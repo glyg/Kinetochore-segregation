@@ -7,7 +7,6 @@
 ## Commentary:
 
 
-#tuto1.py
 '''
 QtWidgets to set the values of the parameters and the measures
 used in the simulation
