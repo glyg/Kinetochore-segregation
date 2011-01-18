@@ -237,7 +237,7 @@ class MainWindow(QtGui.QMainWindow):
         #self.statusBar().showMessage(self.tr("A context menu is available by right-clicking"))
         self.setWindowTitle(self.tr("Kinetochore Dynamics Simulation"))
         self.setMinimumSize(160,160)
-        self.resize(800,480)
+        self.resize(1000,600)
 
 
     def run_simulation(self):
