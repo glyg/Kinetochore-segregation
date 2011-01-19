@@ -6,7 +6,8 @@ import os
 import sys
 from numpy import correlate, sqrt, diff, r_, hanning, convolve
 from scipy import array, arange, polyfit, argmax
-from scipy.stats import mean, std
+#from scipy.stats import mean, std
+from numpy import mean, std
 from scipy.interpolate import splrep, splev
 from numpy.fft import rfft, fftfreq
 from numpy.random import normal

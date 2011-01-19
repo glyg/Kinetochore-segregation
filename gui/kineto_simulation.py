@@ -23,8 +23,12 @@ sys.path.append('/home/guillaume/Python/')
 
 from kt_simul import simul_spindle as Sim
 from param_seter import *
+from game import *
+
 from kt_simul.eval_simul import metaph_kineto_dist 
 from kt_simul.xml_handler import ParamTree
+
+
 
 paramfile = Sim.paramfile
 measurefile = Sim.measurefile
@@ -179,7 +183,6 @@ class MainWindow(QtGui.QMainWindow):
         self.w2.setLayout(vbox2)
 
 
-
         #All this goes in a tab widget
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.addTab(self.simLog, "Log")
@@ -200,8 +203,8 @@ class MainWindow(QtGui.QMainWindow):
         showOneButton = QtGui.QPushButton('Show one trajectory')
         self.connect(showOneButton, QtCore.SIGNAL('clicked()'), self.show_one)
         
-        
-
+        self.interactiveButton = QtGui.QRadioButton('Interactive Simulation')
+        self.interactiveButton.setChecked(True)
         #self.buttonGroup.addButton(runButton)
 
         #Progress Bar
@@ -214,6 +217,7 @@ class MainWindow(QtGui.QMainWindow):
         hbox.addWidget(showTrajButton)
         hbox.addWidget(showOneButton)
         hbox.addWidget(self.progressBar)
+        hbox.addWidget(self.interactiveButton)
 
         vbox = QtGui.QVBoxLayout()
         vbox.setMargin(5)
@@ -227,14 +231,8 @@ class MainWindow(QtGui.QMainWindow):
         
         self.createToolBars()
         self.createStatusBar()
-
-
-#         self.connect(self.textEdit.document(), QtCore.SIGNAL("contentsChanged()"),
-#                      self.documentWasModified)
         self.setCurrentFile(paramfile)
-        
 
-        #self.statusBar().showMessage(self.tr("A context menu is available by right-clicking"))
         self.setWindowTitle(self.tr("Kinetochore Dynamics Simulation"))
         self.setMinimumSize(160,160)
         self.resize(1000,600)
@@ -249,10 +247,20 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'), self.active_checkpoint)
         self.connect(self.mt,  QtCore.SIGNAL('stepDone'), self.progressBar.setValue)
         self.connect(self.mt,  QtCore.SIGNAL('simulDone'), self.print_report)
-       
-        self.mt.sig_simul()
-        #self.plotarea.update_figure(self.mt)
-        QtGui.QApplication.restoreOverrideCursor()
+
+        run_interactively = self.interactiveButton.isChecked()
+        if run_interactively:
+            self.iw = InteractiveWidget(self.mt)
+            idx = self.tabWidget.currentIndex()+1
+            self.tabWidget.insertTab(idx, self.iw, "Interactive Simulation")
+            self.tabWidget.setCurrentIndex(idx)
+
+            self.mt.sig_simul()
+            QtGui.QApplication.restoreOverrideCursor()
+        else:
+            self.mt.sig_simul()
+            #self.plotarea.update_figure(self.mt)
+            QtGui.QApplication.restoreOverrideCursor()
 
     def show_trajs(self):
 
