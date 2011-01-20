@@ -269,18 +269,9 @@ class Metaphase(object):
         delay = -1
         for t in self.timelapse[1:]:
             # Ablation test
-            if ablat is not None:
-                if  ablat <= t :
-                    self.KD.params['Fmz'] = 0.
-                    self.KD.params['fa'] = 0.
-                    self.KD.params['fd'] = 0.
-                    for ch in self.KD.chromosomes.values():
-                        (right_pluged, left_pluged) = ch.pluged
-                        (right_mero, left_mero) = ch.mero
-                        ch.pluged = (0, left_pluged)
-                        ch.mero = (right_mero, 0)
-                        for rplug in ch.rplugs.values():
-                            rplug.plug = 0
+            if ablat is not None and ablat <= t:
+                self.ablation(pos = self.spbL.pos)
+
             # Anaphase transition ?
             if transition <= t and self._plug_checkpoint():
                 if delay == -1 :
@@ -301,7 +292,7 @@ class Metaphase(object):
             self._one_step()
             
             if movie and t/dt % 15 == 0: #One picture every 15 time point
-                self._make_movie(t, (50, 100, 3))
+                self._make_movie(t, (50, 100,  3))
 
             for n in range(N):
                 ch = self.KD.chromosomes[n]
@@ -328,6 +319,20 @@ class Metaphase(object):
         #         for l in self.report:
         #             print l
         
+
+        def abaltion(self, pos = self.spbR.pos):
+            self.KD.params['Fmz'] = 0.
+            self.KD.params['fa'] = 0.
+            self.KD.params['fd'] = 0.
+            for ch in self.KD.chromosomes.values():
+                (right_pluged, left_pluged) = ch.pluged
+                (right_mero, left_mero) = ch.mero
+                for rplug in ch.rplugs.values():
+                    rplug.plug = 0
+                ch.pluged = (0, left_pluged)
+                ch.mero = (right_mero, 0)
+
+
     def _plug_checkpoint(self):
         '''returns True if all chromosomes are pluged by at least
         one kMT, False otherwise

@@ -97,7 +97,7 @@ class SigMetaphase(Sim.Metaphase, QtGui.QWidget):
         self.date = 0
         
     def _one_step(self):
-
+            
         if not self.KD.anaphase:
             self.KD.plug_unplug()
             self.emit(QtCore.SIGNAL('inMetaphase'))
@@ -114,7 +114,8 @@ class SigMetaphase(Sim.Metaphase, QtGui.QWidget):
         self.emit(QtCore.SIGNAL('plugCheckPoint'), self._plug_checkpoint())
         self.date += 1
         self.emit(QtCore.SIGNAL('stepDone'), self.date)
-
+        self.emit(QtCore.SIGNAL('stepDone_nop'))
+        
     def sig_simul(self):
         
         self.simul()
@@ -153,7 +154,6 @@ class MainWindow(QtGui.QMainWindow):
         self.dock.setWidget(scrollArea)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
         #
-
 
         #Text Area
         s = ("Welcome to the S.Pombe kinetochore motion "
@@ -251,12 +251,20 @@ class MainWindow(QtGui.QMainWindow):
         run_interactively = self.interactiveButton.isChecked()
         if run_interactively:
             self.iw = InteractiveWidget(self.mt)
+            self.iw.setRenderHint(QtGui.QPainter.Antialiasing)
+
             idx = self.tabWidget.currentIndex()+1
             self.tabWidget.insertTab(idx, self.iw, "Interactive Simulation")
             self.tabWidget.setCurrentIndex(idx)
 
+            self.connect(self.mt,  QtCore.SIGNAL('stepDone_nop'),
+                         self.iw.cell.updateSimPos)
+            # self.connect(self.mt,  QtCore.SIGNAL('stepDone_nop'),
+            #              self.iw.scene().advance)
             self.mt.sig_simul()
+
             QtGui.QApplication.restoreOverrideCursor()
+            
         else:
             self.mt.sig_simul()
             #self.plotarea.update_figure(self.mt)

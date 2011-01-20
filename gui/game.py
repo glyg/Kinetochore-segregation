@@ -53,8 +53,24 @@ class GraphCell(QtGui.QGraphicsItem):
         self.items.append(self.spbL)
 
         for item in self.items:
-            item.setPos(item.newPos)
-    
+            item.setPos(item.getSimPos())
+
+    def updateSimPos(self):
+
+        for item in self.items:
+            item.setPos(item.getSimPos())
+        self.emit(QtCore.SIGNAL('changed'))
+
+    def advance(self):
+
+        for item in self.items:
+            newPos = item.getSimPos()
+            if newPos == item.pos():
+                return False
+
+            item.setPos(newPos)
+        return True
+        
 
     def boundingRect(self):
         '''
@@ -104,6 +120,13 @@ class GraphSPB(QtGui.QGraphicsItem):
             self.sim = self.graphcell.mt.KD.spbL
         self.newPos = QtCore.QPointF(self.sim.pos, 0.)
 
+    def getSimPos(self):
+        
+        x = self.sim.pos
+        y = 0.
+        return  QtCore.QPointF(x, y)
+
+
     def advance(self):
         if self.newPos == self.pos():
             return False
@@ -123,9 +146,9 @@ class GraphSPB(QtGui.QGraphicsItem):
         painter.drawEllipse(center, 0.2, 0.6)
 
     def boundingRect(self):
-        adjust = 0.1
-        return QtCore.QRectF(-0.1 - adjust, -0.3  - adjust,
-                             0.2  + adjust, 0.6 + adjust)
+        adjust = 1.
+        return QtCore.QRectF(-0.2 - adjust, -0.6  - adjust,
+                             0.4  + adjust, 1.2 + adjust)
 
     
         
@@ -137,13 +160,13 @@ class InteractiveWidget(QtGui.QGraphicsView):
         super(InteractiveWidget, self).__init__()
         self.timerId = 0
 
-        cell = GraphCell(mt)
+        self.cell = GraphCell(mt)
 
         scene = QtGui.QGraphicsScene(self)
         scene.setSceneRect(-9, -4, 18, 8)
         self.setScene(scene)
         
-        scene.addItem(cell)
+        scene.addItem(self.cell)
         
         self.scale(30, 30)
 
@@ -185,7 +208,7 @@ class InteractiveWidget(QtGui.QGraphicsView):
         factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(
             QtCore.QRectF(0, 0, 1, 1)).width()
 
-        if factor < 0.07 or factor > 100:
+        if factor < 0.1 or factor > 200:
             return
 
         self.scale(scaleFactor, scaleFactor)
@@ -194,7 +217,6 @@ class InteractiveWidget(QtGui.QGraphicsView):
 if __name__ == '__main__':
 
     from kineto_simulation import SigMetaphase
-
 
     app = QtGui.QApplication(sys.argv)
     QtCore.qsrand(QtCore.QTime(0,0,0).secsTo(QtCore.QTime.currentTime()))
