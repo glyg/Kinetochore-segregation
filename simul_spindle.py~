@@ -93,11 +93,12 @@ def reduce_params(paramtree, measuretree):
     Vmz = params['Vmz'] = anaph_rate
     #Aurora modifies fd
     if aurora != 0:
-        fd_eff = fd * aurora / metaph_k_dist
+        fd_eff = fa * aurora / metaph_k_dist
     else:
         fd_eff = fd
     
-    alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
+    # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
+    alpha_mean = float(1/(1 + fd/fa))
     #Take metaphase kt pair distance as the maximum one
     #kappa = 4 * alpha_mean * (1 + metaph_rate/2) / ( metaph_k_dist - d0 )
     kappa = Mk / ( metaph_k_dist - d0 )
@@ -262,24 +263,14 @@ class Metaphase(object):
         dt = self.KD.params['dt']
         kappa = self.KD.params['kappa']
         mus = self.KD.params['mus']
-        transition = int(self.KD.params['trans'])
 
         self.report = []
         delay = -1
         for t in self.timelapse[1:]:
             # Ablation test
-            if ablat is not None:
-                if  ablat <= t :
-                    self.KD.params['Fmz'] = 0.
-                    self.KD.params['fa'] = 0.
-                    self.KD.params['fd'] = 0.
-                    for ch in self.KD.chromosomes.values():
-                        (right_pluged, left_pluged) = ch.pluged
-                        (right_mero, left_mero) = ch.mero
-                        ch.pluged = (0, left_pluged)
-                        ch.mero = (right_mero, 0)
-                        for rplug in ch.rplugs.values():
-                            rplug.plug = 0
+            if ablat is not None and ablat <= t:
+                self.ablation(pos = self.spbL.pos)
+
             # Anaphase transition ?
             if transition <= t and self._plug_checkpoint():
                 if delay == -1 :
@@ -300,7 +291,7 @@ class Metaphase(object):
             self._one_step()
             
             if movie and t/dt % 15 == 0: #One picture every 15 time point
-                self._make_movie(t, (50, 100, 3))
+                self._make_movie(t, (50, 100,  3))
 
             for n in range(N):
                 ch = self.KD.chromosomes[n]
@@ -327,6 +318,44 @@ class Metaphase(object):
         #         for l in self.report:
         #             print l
         
+
+        def ablation(self, pos = self.KD.spbR.pos):
+
+            if not self.KD.spbL.pos <= pos <= self.KD.spbR.pos:
+                print 'Bad shot, same player play again!'
+                return 
+                
+            self.KD.params['Fmz'] = 0.
+            self.KD.params['fa'] = 0.
+            self.KD.params['fd'] = 0.
+            for ch in self.KD.chromosomes.values():
+                (right_pluged, left_pluged) = ch.pluged
+                (right_mero, left_mero) = ch.mero
+                if pos > ch.ktR.pos:
+                    for rplug in ch.rplugs.values():
+                        rplug.plug = min(0, rplug.plug)
+                    for lplug in ch.lplugs.values():
+                        lplug.plug = max(0, lplug.plug)
+                    ch.pluged = (right_pluged, left_pluged)
+                    ch.mero = (0, 0)
+
+                elif ch.ktR.pos >= pos > ch.ktL.pos:
+                    for rplug in ch.rplugs.values():
+                        rplug.plug = max(0, rplug.plug)
+                    for lplug in ch.lplugs.values():
+                        lplug.plug = max(0, lplug.plug)
+                    ch.pluged = (0, left_pluged)
+                    ch.mero = (right_mero, 0)
+                    
+                elif pos < ch.ktL.pos:
+                    for lplug in ch.lplugs.values():
+                        lplug.plug = min(0, lplug.plug)
+                    for rplug in ch.rplugs.values():
+                        rplug.plug = max(0, rplug.plug)
+                    
+                    ch.pluged = (right_pluged, 0)
+                    ch.mero = (0,left_mero)
+
     def _plug_checkpoint(self):
         '''returns True if all chromosomes are pluged by at least
         one kMT, False otherwise

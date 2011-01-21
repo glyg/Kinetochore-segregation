@@ -257,8 +257,8 @@ class MainWindow(QtGui.QMainWindow):
             self.tabWidget.insertTab(idx, self.iw, "Interactive Simulation")
             self.tabWidget.setCurrentIndex(idx)
 
-            self.connect(self.mt,  QtCore.SIGNAL('stepDone_nop'),
-                         self.iw.cell.updateSimPos)
+            self.connect(self.mt,  QtCore.SIGNAL('simulDone'),
+                         self.iw.startAnim)
             # self.connect(self.mt,  QtCore.SIGNAL('stepDone_nop'),
             #              self.iw.scene().advance)
             self.mt.sig_simul()

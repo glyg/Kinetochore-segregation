@@ -263,54 +263,28 @@ class Metaphase(object):
         dt = self.KD.params['dt']
         kappa = self.KD.params['kappa']
         mus = self.KD.params['mus']
-        transition = int(self.KD.params['trans'])
 
         self.report = []
-        delay = -1
+        self.delay = -1
+
         for t in self.timelapse[1:]:
             # Ablation test
             if ablat is not None and ablat <= t:
                 self.ablation(pos = self.spbL.pos)
-
             # Anaphase transition ?
-            if transition <= t and self._plug_checkpoint():
-                if delay == -1 :
-                    delay = t - transition 
-                    #Then we just get rid of cohesin
-                    self.KD.params['kappa'] = 0.
-                    self.KD.B_mat = self.KD.write_B()
-                    self.nb_mero = self._mero_checkpoint()
-                    if self.nb_mero:
-                        s = 'There were %d merotelic MT at anaphase onset' %self.nb_mero
-                        self.report.append(s)
-                    self.KD.anaphase = True
-                    self.KD.test_anaphase_switch()
-
-            if self.KD.anaphase :
-                self.KD.test_anaphase_switch()
+            if self.anaphase_test(t):
+                self.toa_test()
 
             self._one_step()
             
             if movie and t/dt % 15 == 0: #One picture every 15 time point
                 self._make_movie(t, (50, 100,  3))
 
-            for n in range(N):
-                ch = self.KD.chromosomes[n]
-                
-                if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
-                    ch.right_toa = t
-                    s = "Right kt of chromosome %d reached the pole at time %.2f" %(n,t)
-                    self.report.append(s)
-                if ch.anaphase_switch[1] > 0 and ch.left_toa == 0:
-                    ch.left_toa = t
-                    s = "Left kt of chromosome %d reached the pole at time %.2f" %(n,t)
-                    self.report.append(s)
 
 
         self.KD.params['kappa'] = kappa
-        
-        self.KD.delay = delay - 1
-        s = "delay = %2d seconds" % delay
+        self.KD.delay = self.delay - 1
+        s = "delay = %2d seconds" % self.delay
         self.report.append(s)
         k_dist = metaph_kineto_dist(self.KD)
         s = "Mean Kt - Kt distance: %.3f m" % k_dist[0]
@@ -318,20 +292,79 @@ class Metaphase(object):
         #self.evaluate()
         #         for l in self.report:
         #             print l
-        
 
-        def abaltion(self, pos = self.spbR.pos):
-            self.KD.params['Fmz'] = 0.
-            self.KD.params['fa'] = 0.
-            self.KD.params['fd'] = 0.
-            for ch in self.KD.chromosomes.values():
-                (right_pluged, left_pluged) = ch.pluged
-                (right_mero, left_mero) = ch.mero
+    def toa_test(self):
+        
+        for ch in self.KD.chromosomes.values():    
+            if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
+                ch.right_toa = t
+                s = "Right kt of chromosome %d reached the pole at time %.2f" %(n,t)
+                self.report.append(s)
+            if ch.anaphase_switch[1] > 0 and ch.left_toa == 0:
+                ch.left_toa = t
+                s = "Left kt of chromosome %d reached the pole at time %.2f" %(n,t)
+                self.report.append(s)
+
+
+    def anaphase_test(self, t):
+        
+        transition = int(self.KD.params['trans'])
+        if self.KD.anaphase:
+            return True
+            
+        if transition <= t and self._plug_checkpoint():
+            if self.delay == -1 :
+                self.delay = t - transition 
+                #Then we just get rid of cohesin
+                self.KD.params['kappa'] = 0.
+                self.KD.B_mat = self.KD.write_B()
+                self.nb_mero = self._mero_checkpoint()
+                if self.nb_mero:
+                    s = 'There were %d merotelic MT at anaphase onset' %self.nb_mero
+                    self.report.append(s)
+                self.KD.anaphase = True
+                self.KD.test_anaphase_switch()
+                return True
+
+        return False
+
+
+    def ablation(self, pos = None):
+        if pos == None: pos = self.KD.spbR.pos
+        if not self.KD.spbL.pos <= pos <= self.KD.spbR.pos:
+            print 'Bad shot, same player play again!'
+            return 
+
+        self.KD.params['Fmz'] = 0.
+        self.KD.params['fa'] = 0.
+        self.KD.params['fd'] = 0.
+        for ch in self.KD.chromosomes.values():
+            (right_pluged, left_pluged) = ch.pluged
+            (right_mero, left_mero) = ch.mero
+            if pos > ch.ktR.pos:
                 for rplug in ch.rplugs.values():
-                    rplug.plug = 0
+                    rplug.plug = min(0, rplug.plug)
+                for lplug in ch.lplugs.values():
+                    lplug.plug = max(0, lplug.plug)
+                ch.pluged = (right_pluged, left_pluged)
+                ch.mero = (0, 0)
+
+            elif ch.ktR.pos >= pos > ch.ktL.pos:
+                for rplug in ch.rplugs.values():
+                    rplug.plug = max(0, rplug.plug)
+                for lplug in ch.lplugs.values():
+                    lplug.plug = max(0, lplug.plug)
                 ch.pluged = (0, left_pluged)
                 ch.mero = (right_mero, 0)
 
+            elif pos < ch.ktL.pos:
+                for lplug in ch.lplugs.values():
+                    lplug.plug = min(0, lplug.plug)
+                for rplug in ch.rplugs.values():
+                    rplug.plug = max(0, rplug.plug)
+
+                ch.pluged = (right_pluged, 0)
+                ch.mero = (0,left_mero)
 
     def _plug_checkpoint(self):
         '''returns True if all chromosomes are pluged by at least

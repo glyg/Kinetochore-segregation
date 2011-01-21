@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python -*- coding: utf-8 -*-
 
 ## Title: 
 ## Description: 
@@ -28,12 +27,12 @@ SITE_OFFSET = 0.2 #Vertical distance between attachment sites
 CH_OFFSET = 0.4 # Vertical distance between chromosomes
 
 SPB_COLOR = QtGui.QColor(0,0,255)
-CH_COLOR = QtGui.QColor(0.2,0.2,0.2, alpha = 200)
-GOOD_PLUGSITE_COLOR = QtGui.QColor(0,1.,0, alpha = 200)
-BAD_PLUGSITE_COLOR = QtGui.QColor(1.,0,0, alpha = 255)
-
+CH_COLOR = QtGui.QColor(100,100,100, alpha = 200)
+GOOD_PLUGSITE_COLOR = QtGui.QColor(0,250,20, alpha = 200)
+BAD_PLUGSITE_COLOR = QtGui.QColor(255,0,0, alpha = 255)
+UNPLUGED_COLOR = QtGui.QColor(0,250,20, alpha = 100)
         
-        
+FRAME_RATE = 25 #image/seconds        
 
 
 class GraphCell(QtGui.QGraphicsItem):
@@ -45,30 +44,40 @@ class GraphCell(QtGui.QGraphicsItem):
 
         QtGui.QGraphicsItem.__init__(self, parent = parent)
 
+        N = mt.KD.params['N']
+        Mk = mt.KD.params['Mk']
         self.mt = mt # A SimMetaphase instance
         self.items = []
         self.spbR = GraphSPB(0, parent = self)
         self.items.append(self.spbR)
         self.spbL = GraphSPB(-1, parent = self)
         self.items.append(self.spbL)
-
+       
+        for n in range(N):
+            left_kineto = GraphKinetochore(n, -1, parent = self)
+            self.items.append(left_kineto)
+            right_kineto = GraphKinetochore(n, 0, parent = self)
+            self.items.append(right_kineto)            
+        
+        self.time_point = 0
         for item in self.items:
-            item.setPos(item.getSimPos())
+            item.setPos(item.getSimPos(0))
 
-    def updateSimPos(self):
-
-        for item in self.items:
-            item.setPos(item.getSimPos())
-        self.emit(QtCore.SIGNAL('changed'))
 
     def advance(self):
 
+        self.time_point += 1
         for item in self.items:
-            newPos = item.getSimPos()
+            newPos = item.getSimPos(self.time_point)
             if newPos == item.pos():
                 return False
-
             item.setPos(newPos)
+            if isinstance(item, GraphKinetochore):
+                for plugsite in item.plugsites:
+                    newPos = plugsite.getSimPos(self.time_point)
+                    plugsite.setPos(newPos)
+                
+            
         return True
         
 
@@ -91,21 +100,146 @@ class GraphCell(QtGui.QGraphicsItem):
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.1))
         painter.drawRoundedRect(self.boundingRect(), 30, 100, QtCore.Qt.RelativeSize)
 
-class GraphChromosome(QtGui.QGraphicsItem):
-    def __init__(self, n, parent = None):
-        
+class GraphKinetochore(QtGui.QGraphicsItem):
+
+    def __init__(self, n, side, parent = None):
+
         QtGui.QGraphicsItem.__init__(self, parent = parent)
         self.graphcell = parent
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
-        
-        if side == 0:
-            self.sim = self.graphcell.mt.KD.chromosomes[n].pos
-        else:
-            self.sim = self.graphcell.mt.KD.spbL
-                
-        self.newPos = QtCore.QPointF(self.sim.pos, 0.)
 
-     
+        N = self.graphcell.mt.KD.params['N']
+        Mk = self.graphcell.mt.KD.params['Mk']
+
+        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+        self.n = n
+        self.side = side
+        self.ch = self.graphcell.mt.KD.chromosomes[n]
+
+        if side == 0:
+            x = self.ch.rightpos
+            self.traj = self.ch.righttraj
+        else:
+            x = self.ch.leftpos
+            self.traj = self.ch.lefttraj
+        self.y = ( n - (N - 1) / 2. ) * 0.2 #* ( Mk * SITE_OFFSET + CH_OFFSET)
+
+        self.width = 0.2 
+        self.height = 0.1* Mk #Mk * SITE_OFFSET + CH_OFFSET
+        self.newPos = QtCore.QPointF(x, self.y)
+
+        self.plugsites = []
+        for m in range(Mk):
+            self.plugsites.append(GraphPlugSite(m, self))
+
+
+    def getSimPos(self, time_point):
+
+        try:
+            x = self.traj[time_point]
+        except IndexError:
+            x = self.traj[-1]
+        return  QtCore.QPointF(x, self.y)
+
+    def advance(self):
+
+        self.time_point += 1
+        for item in self.items:
+            newPos = item.getSimPos(self.time_point)
+            if newPos == item.pos():
+                return False
+            item.setPos(newPos)
+
+        return True
+
+    def shape(self):
+        
+        self.path = QtGui.QPainterPath()
+        self.path.addEllipse(-self.width/2., -self.height/2,
+                             self.width, self.height)
+        return self.path
+    
+    def paint(self, painter, option, widget):
+        brush = QtGui.QBrush(CH_COLOR)
+        painter.setBrush(brush)
+        painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
+        center = self.newPos
+        painter.drawEllipse(center, self.width, self.height)
+
+    def boundingRect(self):
+        adjust = 1.
+        return QtCore.QRectF(-self.width - adjust, -self.height - adjust,
+                             2*self.width  + adjust, 2* self.height + adjust)
+
+class GraphPlugSite(QtGui.QGraphicsItem):
+
+    def __init__(self, m, parent = None):
+
+        QtGui.QGraphicsItem.__init__(self, parent = parent)
+        self.kineto = parent
+        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+
+        Mk = self.kineto.graphcell.mt.KD.params['Mk']
+
+        self.m = m
+        side = self.kineto.side
+        if side == 0:
+            self.sim = self.kineto.ch.rplugs[m]
+        else:    
+            self.sim = self.kineto.ch.lplugs[m]
+        
+        self.width = 0.1
+        self.height = self.kineto.height/Mk 
+
+        self.y = self.kineto.y + ( m - (Mk -1 )/2.) * 0.1
+        x = self.sim.pos 
+        self.newPos = self.mapFromParent(QtCore.QPointF(x, self.y))
+
+    def getSimPos(self, time_point):
+
+        try:
+            x = self.sim.traj[time_point]
+        except IndexError:
+            x = self.sim.traj[-1]
+        return  self.mapFromParent(QtCore.QPointF(x, self.y))
+
+    def advance(self):
+
+        self.time_point += 1
+        for item in self.items:
+            newPos = item.getSimPos(self.time_point)
+            if newPos == item.pos():
+                return False
+            item.setPos(newPos)
+        return True
+
+    def shape(self):
+        
+        self.path = QtGui.QPainterPath()
+        self.path.addEllipse(-self.width/2., -self.height/2,
+                             self.width, self.height)
+        return self.path
+        
+    def paint(self, painter, option, widget):
+        if self.sim.plug == 1:
+            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
+        elif self.sim.plug == -1:
+            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
+            print 'brush changed'
+        else: 
+            brush = QtGui.QBrush(UNPLUGED_COLOR)
+            
+        painter.setBrush(brush)
+        painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
+        center = self.newPos
+        painter.drawEllipse(center, self.width, self.height)
+
+    def boundingRect(self):
+        adjust = 1.
+        return QtCore.QRectF(-self.width - adjust, -self.height - adjust,
+                             2*self.width  + adjust, 2* self.height + adjust)
+
+
+        
 class GraphSPB(QtGui.QGraphicsItem):
 
     def __init__(self, side, parent = None):
@@ -116,16 +250,19 @@ class GraphSPB(QtGui.QGraphicsItem):
 
         if side == 0:
             self.sim = self.graphcell.mt.KD.spbR
-        else :
+        else:
             self.sim = self.graphcell.mt.KD.spbL
         self.newPos = QtCore.QPointF(self.sim.pos, 0.)
 
-    def getSimPos(self):
-        
-        x = self.sim.pos
+    
+    def getSimPos(self, time_point):
+        try:
+            x = self.sim.traj[time_point]
+        except IndexError:
+            x = self.sim.traj[-1]
+
         y = 0.
         return  QtCore.QPointF(x, y)
-
 
     def advance(self):
         if self.newPos == self.pos():
@@ -137,7 +274,9 @@ class GraphSPB(QtGui.QGraphicsItem):
     def shape(self):
         self.path = QtGui.QPainterPath()
         self.path.addEllipse(-0.1, -0.3, 0.2, 0.6)
-            
+
+        return self.path
+        
     def paint(self, painter, option, widget):
         brush = QtGui.QBrush(SPB_COLOR)
         painter.setBrush(brush)
@@ -169,8 +308,6 @@ class InteractiveWidget(QtGui.QGraphicsView):
         scene.addItem(self.cell)
         
         self.scale(30, 30)
-
-
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
@@ -214,6 +351,24 @@ class InteractiveWidget(QtGui.QGraphicsView):
         self.scale(scaleFactor, scaleFactor)
 
 
+    def startAnim(self):
+        if not self.timerId:
+            self.timerId = self.startTimer(1000 / FRAME_RATE)
+    
+
+    def timerEvent(self, event):
+
+        itemsMoved = False
+        
+        if self.cell.advance():
+            itemsMoved = True
+
+        if not itemsMoved:
+            self.killTimer(self.timerId)
+            self.timerId = 0
+
+
+
 if __name__ == '__main__':
 
     from kineto_simulation import SigMetaphase
@@ -233,6 +388,8 @@ if __name__ == '__main__':
     widget = InteractiveWidget(mt)
     widget.setRenderHint(QtGui.QPainter.Antialiasing)
     widget.show()
+    
+    
     
     sys.exit(app.exec_())
 

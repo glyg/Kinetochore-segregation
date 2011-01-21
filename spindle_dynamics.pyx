@@ -604,16 +604,10 @@ class KinetoDynamics(object) :
                         else:
                             left_pluged += 1
                             ch.lplugs[m].plug = 1
-                ch.rplugs[m].state_hist.append(ch.rplugs[m].plug)
-                ch.lplugs[m].state_hist.append(ch.lplugs[m].plug)                
-
+    
             #update
             ch.pluged = (right_pluged, left_pluged)
             ch.mero = (right_mero, left_mero)
-
-            ch.pluged_history.append(ch.pluged)
-            ch.mero_history.append(ch.mero)
-
 
             #swap
             if sum(ch.pluged) < sum(ch.mero):
@@ -670,6 +664,13 @@ class KinetoDynamics(object) :
                 if self.spbR.pos < ch.lplugs[m].pos:
                    ch.lplugs[m].pos = self.spbR.pos
                 ch.lplugs[m].traj.append(ch.lplugs[m].pos)
+
+                ch.rplugs[m].state_hist.append(ch.rplugs[m].plug)
+                ch.lplugs[m].state_hist.append(ch.lplugs[m].plug)                
+
+
+            ch.pluged_history.append(ch.pluged)
+            ch.mero_history.append(ch.mero)
 
             ch.lefttraj.append(ch.leftpos)
             ch.righttraj.append(ch.rightpos)
