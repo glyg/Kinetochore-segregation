@@ -76,8 +76,17 @@ class GraphCell(QtGui.QGraphicsItem):
                 for plugsite in item.plugsites:
                     newPos = plugsite.getSimPos(self.time_point)
                     plugsite.setPos(newPos)
-                
-            
+                    if plugsite.newPlug != plugsite.sim.plug:
+                        #plugsite.emit('changed')
+                        plugsite.newPlug = plugsite.sim.plug
+                        if plugsite.newPlug == 1:
+                            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
+                        elif plugsite.newPlug == -1:
+                            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
+                            print 'brush changed'
+                        else: 
+                            brush = QtGui.QBrush(UNPLUGED_COLOR)
+                        plugsite.color = brush
         return True
         
 
@@ -128,10 +137,11 @@ class GraphKinetochore(QtGui.QGraphicsItem):
         self.newPos = QtCore.QPointF(x, self.y)
 
         self.plugsites = []
+        self.setZValue(n)
         for m in range(Mk):
-            self.plugsites.append(GraphPlugSite(m, self))
-
-
+            self.plugsites.append(GraphPlugSite(m, self, parent))
+        
+        
     def getSimPos(self, time_point):
 
         try:
@@ -172,10 +182,10 @@ class GraphKinetochore(QtGui.QGraphicsItem):
 
 class GraphPlugSite(QtGui.QGraphicsItem):
 
-    def __init__(self, m, parent = None):
+    def __init__(self, m, kineto, parent = None):
 
         QtGui.QGraphicsItem.__init__(self, parent = parent)
-        self.kineto = parent
+        self.kineto = kineto
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
 
         Mk = self.kineto.graphcell.mt.KD.params['Mk']
@@ -192,7 +202,19 @@ class GraphPlugSite(QtGui.QGraphicsItem):
 
         self.y = self.kineto.y + ( m - (Mk -1 )/2.) * 0.1
         x = self.sim.pos 
-        self.newPos = self.mapFromParent(QtCore.QPointF(x, self.y))
+        self.newPos = QtCore.QPointF(x, self.y)
+        self.newPlug = self.sim.plug
+        self.setZValue(self.kineto.n * (1 + m))
+
+        if self.sim.plug == 1:
+            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
+        elif self.sim.plug == -1:
+            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
+            print 'brush changed'
+        else: 
+            brush = QtGui.QBrush(UNPLUGED_COLOR)
+        self.color = brush
+
 
     def getSimPos(self, time_point):
 
@@ -200,7 +222,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
             x = self.sim.traj[time_point]
         except IndexError:
             x = self.sim.traj[-1]
-        return  self.mapFromParent(QtCore.QPointF(x, self.y))
+        return  QtCore.QPointF(x, self.y)
 
     def advance(self):
 
@@ -220,14 +242,8 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         return self.path
         
     def paint(self, painter, option, widget):
-        if self.sim.plug == 1:
-            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
-        elif self.sim.plug == -1:
-            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
-            print 'brush changed'
-        else: 
-            brush = QtGui.QBrush(UNPLUGED_COLOR)
-            
+
+        brush = self.color
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
         center = self.newPos
