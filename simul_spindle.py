@@ -339,8 +339,8 @@ class Metaphase(object):
         self.KD.params['fa'] = 0.
         self.KD.params['fd'] = 0.
         for ch in self.KD.chromosomes.values():
-            (right_pluged, left_pluged) = ch.pluged
-            (right_mero, left_mero) = ch.mero
+            (right_pluged, left_pluged) = ch.pluged()
+            (right_mero, left_mero) = ch.mero()
             if pos > ch.ktR.pos:
                 for rplug in ch.rplugs.values():
                     rplug.plug = min(0, rplug.plug)
@@ -363,8 +363,8 @@ class Metaphase(object):
                 for rplug in ch.rplugs.values():
                     rplug.plug = max(0, rplug.plug)
 
-                ch.pluged = (right_pluged, 0)
-                ch.mero = (0,left_mero)
+                #ch.pluged = (right_pluged, 0)
+                #ch.mero = (0,left_mero)
 
     def _plug_checkpoint(self):
         '''returns True if all chromosomes are pluged by at least
@@ -389,7 +389,7 @@ class Metaphase(object):
         nb_mero = 0
         for ch in self.KD.chromosomes.values() :
             if any(ch.mero) :
-                nb_mero += ch.mero[0] + ch.mero[1]
+                nb_mero += sum(ch.mero())
                 #print "active checkpoint"
         return nb_mero
 

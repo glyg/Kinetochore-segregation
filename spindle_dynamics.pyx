@@ -466,11 +466,11 @@ class KinetoDynamics(object) :
         for n in range(N):
             ch = self.chromosomes[n]
             if ch.anaphase_switch[0] == 0:
-                if ch.isatrightpole() and (ch.mero[0] == 0):
+                if ch.isatrightpole() and (ch.mero()[0] == 0):
                     #print 'switch!'
                     ch.anaphase_switch[0] = 1
             if  ch.anaphase_switch[1] == 0:                    
-                if ch.isatleftpole() and (ch.mero[1] == 0):
+                if ch.isatleftpole() and (ch.mero()[1] == 0):
                     ch.anaphase_switch[1] = 1
 
 
@@ -505,7 +505,7 @@ class KinetoDynamics(object) :
         cdef double aurora = self.params['aurora']
 
         ch = self.chromosomes[n]
-        m = sum(ch.mero, dtype=float) # float(ch.mero[side])
+        m = sum(ch.mero(), dtype=float) # float(ch.mero()[side])
         dist = ch.dist()
 
         ### Aurora ???
@@ -531,8 +531,8 @@ class KinetoDynamics(object) :
         cdef int orientation
         Mk = self.params['Mk']
         ch = self.chromosomes[n]
-        p = float(ch.pluged[side]) #        p = sum(ch.pluged, dtype=float) #
-        m = float(ch.mero[side]) #        m = sum(ch.mero, dtype=float)# 
+        p = float(ch.pluged()[side]) #        p = sum(ch.pluged(), dtype=float) #
+        m = float(ch.mero()[side]) #        m = sum(ch.mero, dtype=float)# 
         orientation = self.params['orientation']
 
         if orientation == 0:
@@ -554,20 +554,18 @@ class KinetoDynamics(object) :
 
         for n in range(N):
             ch = self.chromosomes[n]
-            (right_pluged, left_pluged) = ch.pluged
-            (right_mero, left_mero) = ch.mero
+            (right_pluged, left_pluged) = ch.pluged()
+            (right_mero, left_mero) = ch.mero()
             
             for m in range(Mk):
                 # Attached kMTs have a chance to unplug (until anaphaseB):
                 if ch.rplugs[m].plug == 1:# and ch.anaphase_switch[0] == 0:
                     dice = random.random()
                     if  dice < self.Pdet_mero(n, m, 0):
-                        right_pluged -= 1
                         ch.rplugs[m].plug = 0
                 elif ch.rplugs[m].plug == -1 :
                     dice = random.random()
                     if  dice < self.Pdet_mero(n, m, 0):
-                        right_mero -= 1
                         ch.rplugs[m].plug = 0
                 # Unattached kMTs have a chance to plug:                    
                 else :
@@ -576,21 +574,17 @@ class KinetoDynamics(object) :
                         #Implementing the possibility to attach mero kts:
                         m_dice = random.random()
                         if m_dice < self.Pmero(n, 0):
-                            right_mero += 1
                             ch.rplugs[m].plug = -1
                         else:
-                            right_pluged += 1
                             ch.rplugs[m].plug = 1
 
                 if ch.lplugs[m].plug == 1 :# and ch.anaphase_switch[1] == 0:
                     dice = random.random()
                     if  dice < self.Pdet_mero(n, m, 1):
-                        left_pluged -= 1
                         ch.lplugs[m].plug = 0
                 elif ch.lplugs[m].plug == -1:
                     dice = random.random()
                     if  dice < self.Pdet_mero(n, m, 1):
-                        left_mero -= 1
                         ch.lplugs[m].plug = 0
                 # Unattached kMTs have a chance to plug:                    
                 else :
@@ -599,18 +593,16 @@ class KinetoDynamics(object) :
                         #Implementing the possibility to attach mero kts:
                         m_dice = random.random()
                         if m_dice < self.Pmero(n, 1):
-                            left_mero += 1
                             ch.lplugs[m].plug = -1
                         else:
-                            left_pluged += 1
                             ch.lplugs[m].plug = 1
     
             #update
-            ch.pluged = (right_pluged, left_pluged)
-            ch.mero = (right_mero, left_mero)
+            # ch.pluged() = (right_pluged, left_pluged)
+            # ch.mero = (right_mero, left_mero)
 
             #swap
-            if sum(ch.pluged) < sum(ch.mero):
+            if sum(ch.pluged()) < sum(ch.mero()):
                 ch.swap()
 
 
@@ -669,8 +661,8 @@ class KinetoDynamics(object) :
                 ch.lplugs[m].state_hist.append(ch.lplugs[m].plug)                
 
 
-            ch.pluged_history.append(ch.pluged)
-            ch.mero_history.append(ch.mero)
+            ch.pluged_history.append(ch.pluged())
+            ch.mero_history.append(ch.mero())
 
             ch.lefttraj.append(ch.leftpos)
             ch.righttraj.append(ch.rightpos)
@@ -758,13 +750,30 @@ class Chromosome(object):
         self.rplugs = dict(self.rplugs)
         self.lplugs = dict(self.lplugs)
         
-        self.pluged = (nd, ng)
-        self.pluged_history = [self.pluged]
+        self.pluged_history = [self.pluged()]
 
-        self.mero = (md, mg)
-        self.mero_history = [self.mero]
+        self.mero_history = [self.mero()]
         self.anaphase_switch = [0,0]# = 1 once the kineto reached the pole at anaphase
         
+
+    def pluged(self):
+        rpluged, lpluged = 0, 0
+        for rps, lps in zip(self.rplugs.values(), self.lplugs.values()) :
+            if rps.plug > 0:
+                rpluged += 1
+            if lps.plug > 0:
+                lpluged += 1
+        return rpluged, lpluged
+
+    def mero(self):
+        rmero, lmero = 0,0
+        for rps, lps in zip(self.rplugs.values(), self.lplugs.values()) :
+            if rps.plug < 0:
+                rmero += 1
+            if lps.plug < 0:
+                lmero += 1
+        return rmero, lmero
+
         
     def dist(self):
         return (self.rightpos - self.leftpos)
@@ -808,7 +817,6 @@ class Chromosome(object):
         '''
         change the sides of the kinetochores
         '''
-        self.mero,self.pluged = self.pluged, self.mero
         self.leftpos, self.rightpos = self.rightpos, self.leftpos
         self.lefttraj, self.righttraj = self.righttraj, self.lefttraj
         self.leftspeed, self.rightspeed =  self.rightspeed, self.leftspeed

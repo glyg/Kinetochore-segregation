@@ -30,7 +30,7 @@ SPB_COLOR = QtGui.QColor(0,0,255)
 CH_COLOR = QtGui.QColor(100,100,100, alpha = 200)
 GOOD_PLUGSITE_COLOR = QtGui.QColor(0,250,20, alpha = 200)
 BAD_PLUGSITE_COLOR = QtGui.QColor(255,0,0, alpha = 255)
-UNPLUGED_COLOR = QtGui.QColor(0,250,20, alpha = 100)
+UNPLUGED_COLOR = QtGui.QColor(0,20,250, alpha = 200)
         
 FRAME_RATE = 25 #image/seconds        
 
@@ -63,6 +63,8 @@ class GraphCell(QtGui.QGraphicsItem):
         for item in self.items:
             item.setPos(item.getSimPos(0))
 
+        
+
 
     def advance(self):
 
@@ -76,14 +78,12 @@ class GraphCell(QtGui.QGraphicsItem):
                 for plugsite in item.plugsites:
                     newPos = plugsite.getSimPos(self.time_point)
                     plugsite.setPos(newPos)
-                    if plugsite.newPlug != plugsite.sim.plug:
-                        #plugsite.emit('changed')
-                        plugsite.newPlug = plugsite.sim.plug
+                    if plugsite.newPlug != plugsite.sim.state_hist[self.time_point]:
+                        plugsite.newPlug = plugsite.sim.state_hist[self.time_point]
                         if plugsite.newPlug == 1:
                             brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
                         elif plugsite.newPlug == -1:
                             brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
-                            print 'brush changed'
                         else: 
                             brush = QtGui.QBrush(UNPLUGED_COLOR)
                         plugsite.color = brush
@@ -98,8 +98,8 @@ class GraphCell(QtGui.QGraphicsItem):
         N = self.mt.KD.params['N']
         Mk = self.mt.KD.params['Mk']
         
-        height = N * ( Mk * SITE_OFFSET + CH_OFFSET)
-        width = 14 # microns, shall be enough
+        height = 5.#N * ( Mk * SITE_OFFSET + CH_OFFSET)
+        width = 14. # microns, shall be enough
         
         return QtCore.QRectF(-width/2, -height/2, width, height)
 
@@ -109,12 +109,15 @@ class GraphCell(QtGui.QGraphicsItem):
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.1))
         painter.drawRoundedRect(self.boundingRect(), 30, 100, QtCore.Qt.RelativeSize)
 
+
 class GraphKinetochore(QtGui.QGraphicsItem):
 
     def __init__(self, n, side, parent = None):
 
         QtGui.QGraphicsItem.__init__(self, parent = parent)
         self.graphcell = parent
+
+        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
 
         N = self.graphcell.mt.KD.params['N']
         Mk = self.graphcell.mt.KD.params['Mk']
@@ -164,8 +167,8 @@ class GraphKinetochore(QtGui.QGraphicsItem):
     def shape(self):
         
         self.path = QtGui.QPainterPath()
-        self.path.addEllipse(-self.width/2., -self.height/2,
-                             self.width, self.height)
+        self.path.addEllipse(self.width, self.height,
+                             2*self.width, 2*self.height)
         return self.path
     
     def paint(self, painter, option, widget):
@@ -222,6 +225,8 @@ class GraphPlugSite(QtGui.QGraphicsItem):
             x = self.sim.traj[time_point]
         except IndexError:
             x = self.sim.traj[-1]
+
+            
         return  QtCore.QPointF(x, self.y)
 
     def advance(self):
@@ -301,7 +306,7 @@ class GraphSPB(QtGui.QGraphicsItem):
         painter.drawEllipse(center, 0.2, 0.6)
 
     def boundingRect(self):
-        adjust = 1.
+        adjust = 5.
         return QtCore.QRectF(-0.2 - adjust, -0.6  - adjust,
                              0.4  + adjust, 1.2 + adjust)
 
@@ -318,12 +323,19 @@ class InteractiveWidget(QtGui.QGraphicsView):
         self.cell = GraphCell(mt)
 
         scene = QtGui.QGraphicsScene(self)
+
+        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+        self.setViewportUpdateMode(QtGui.QGraphicsView.BoundingRectViewportUpdate)
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+
         scene.setSceneRect(-9, -4, 18, 8)
         self.setScene(scene)
         
         scene.addItem(self.cell)
         
-        self.scale(30, 30)
+        self.scale(40, 40)
 
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, -event.delta() / 240.0))
