@@ -56,7 +56,9 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
 
     def gotoTime(self, time):
         if self.ccw.slider.hasFocus():
-            self.pause() 
+            self.pause()
+            rects = [self.view.cell.boundingRect()]
+            self.view.updateScene(rects)
             self.view.cell.gotoTime(time)
             self.timerId = 0
 
@@ -74,6 +76,8 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
     def timerEvent(self, event):
 
         itemsMoved = False
+        rects = [self.view.cell.boundingRect()]
+        self.view.updateScene(rects)
         if self.view.cell.advance():
             itemsMoved = True
             self.ccw.slider.setValue(self.view.cell.time_point)
@@ -133,7 +137,7 @@ class ViewCellWidget(QtGui.QGraphicsView):
         scene = QtGui.QGraphicsScene(self)
 
         self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
-        self.setViewportUpdateMode(QtGui.QGraphicsView.BoundingRectViewportUpdate)
+        #self.setViewportUpdateMode(QtGui.QGraphicsView.BoundingRectViewportUpdate)
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)

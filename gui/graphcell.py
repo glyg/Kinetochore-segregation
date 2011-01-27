@@ -26,8 +26,8 @@ measurefile = Sim.measurefile
 SITE_OFFSET = 0.2 #Vertical distance between attachment sites
 CH_OFFSET = 0.4 # Vertical distance between chromosomes
 
-SPB_COLOR = QtGui.QColor(0,0,255)
-CH_COLOR = QtGui.QColor(100,100,100, alpha = 200)
+SPB_COLOR = QtGui.QColor(255,0,0)
+CH_COLOR = QtGui.QColor(0,100,100, alpha = 200)
 GOOD_PLUGSITE_COLOR = QtGui.QColor(0,250,20, alpha = 200)
 BAD_PLUGSITE_COLOR = QtGui.QColor(255,0,0, alpha = 255)
 UNPLUGED_COLOR = QtGui.QColor(0,20,250, alpha = 200)
@@ -61,10 +61,6 @@ class GraphCell(QtGui.QGraphicsItem):
         self.time_point = 0
         for item in self.items:
             item.setPos(item.getSimPos(0))
-
-        
-
-
 
     def advance(self):
 
@@ -138,7 +134,7 @@ class GraphKinetochore(QtGui.QGraphicsItem):
         else:
             x = self.ch.leftpos
             self.traj = self.ch.lefttraj
-        self.y = ( n - (N - 1) / 2. ) * 0.2 #* ( Mk * SITE_OFFSET + CH_OFFSET)
+        self.y = ( n - (N - 1) / 2. ) * 0.4 #* ( Mk * SITE_OFFSET + CH_OFFSET)
 
         self.width = 0.2 
         self.height = 0.1* Mk #Mk * SITE_OFFSET + CH_OFFSET
@@ -329,7 +325,7 @@ class NakedWidget(QtGui.QGraphicsView):
 
         scene = QtGui.QGraphicsScene(self)
 
-        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+        #self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setViewportUpdateMode(QtGui.QGraphicsView.BoundingRectViewportUpdate)
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)

@@ -66,13 +66,14 @@ def reduce_params(paramtree, measuretree):
         metaph_rate /= poleward_speed 
         anaph_rate = measures['anaph_rate']   
         anaph_rate /= poleward_speed
-        metaph_k_dist = measures['metaph_k_dist']
+        metaph_k_dist = measures['mean_metaph_k_dist']
         outer_inner_dist = measures['oi_dist']
         tau_o = measures['tau_o'] 
         tau_i = measures['tau_i'] 
         obs_d0 = measures['obs_d0']
 
     except KeyError:
+        
         print "The measures dictionary should contain at least the following "
         print "keys "
         print MEASURES.keys()
@@ -273,7 +274,7 @@ class Metaphase(object):
                 self.ablation(pos = self.spbL.pos)
             # Anaphase transition ?
             if self.anaphase_test(t):
-                self.toa_test()
+                self.toa_test(t)
 
             self._one_step()
             
@@ -293,7 +294,7 @@ class Metaphase(object):
         #         for l in self.report:
         #             print l
 
-    def toa_test(self):
+    def toa_test(self, t):
         
         for ch in self.KD.chromosomes.values():    
             if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
