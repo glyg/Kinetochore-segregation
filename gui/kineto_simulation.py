@@ -250,7 +250,7 @@ class MainWindow(QtGui.QMainWindow):
 
         run_interactively = self.interactiveButton.isChecked()
         if run_interactively:
-            self.iw = InteractiveWidget(self.mt)
+            self.iw = InteractiveCellWidget(self.mt)
             self.iw.setRenderHint(QtGui.QPainter.Antialiasing)
 
             idx = self.tabWidget.currentIndex()+1
