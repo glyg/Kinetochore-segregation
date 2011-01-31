@@ -830,7 +830,17 @@ class Chromosome(object):
 
 class PlugSite(object):
     """
-    An attachment site object. 
+    An attachment site object.
+
+    Instanciation: PlugSite(ch, side, doi, plug).
+    The plug argument can be either of the following:
+    None (the default), in which case the PlugSite is randomly attached
+    'null' -- -- self.plug = 0
+    'amphitelic' -- self.plug = 1
+    'random' -- self.plug = -1, 0, or 1 with equal probability
+    'monotelic' -- self.plug = 1 for right side PlugSite and self.plug = 0 for left side ones
+    'syntelic' --  self.plug = 1 for right side PlugSite and self.plug = -1 for left side ones
+    
     """
 
 
@@ -840,8 +850,23 @@ class PlugSite(object):
             self.pos = ch.rightpos + doi
         else:
             self.pos = ch.leftpos - doi
-        if plug == None:
+        if plug == None: 
             self.plug = random.randint(-1, 1)
+        elif plug == 'null':
+            self.plug = 0
+        elif plug == 'amphitelic':
+            self.plug = 1
+        elif plug == 'random':
+            self.plug = random.randint(-1, 1)
+        elif plug == 'monotelic':
+            if side == 0:
+                self.plug = 1
+            else:
+                self.plug = 0
+        elif plug == 'syntelic':
+            self.plug = 1
+        elif plug == 'merotelic':
+            self.plug = random.choice([-1,1])
         else:
             self.plug = plug
         self.traj = [self.pos]

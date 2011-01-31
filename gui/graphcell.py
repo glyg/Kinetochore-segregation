@@ -214,7 +214,6 @@ class GraphPlugSite(QtGui.QGraphicsItem):
             brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
         elif self.sim.plug == -1:
             brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
-            print 'brush changed'
         else: 
             brush = QtGui.QBrush(UNPLUGED_COLOR)
         self.color = brush

@@ -89,10 +89,12 @@ class SigMetaphase(Sim.Metaphase, QtGui.QWidget):
 
     '''
     
-    def __init__(self, paramtree, measuretree, parent = None):
+    def __init__(self, paramtree, measuretree,
+                 plug = None, parent = None):
         paramtree.create_dic(adimentionalized = True)
         duration = paramtree.dic["span"]
-        Sim.Metaphase.__init__(self, duration, paramtree, measuretree)
+        Sim.Metaphase.__init__(self, duration, paramtree, measuretree,
+                               plug = plug)
         QtGui.QWidget.__init__(self, None)
         self.date = 0
         
@@ -241,7 +243,12 @@ class MainWindow(QtGui.QMainWindow):
     def run_simulation(self):
 
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        self.mt = SigMetaphase(self.paramtree, self.measuretree)
+
+        plug_idx = self.attachCombo.currentIndex()
+        print self.attachCombo.currentText()
+        plug = self.attachment_list[plug_idx]
+        print plug
+        self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
         self.progressBar.setMaximum(int(self.paramtree.dic['span']/self.paramtree.dic['dt']))
         self.progressBar.setMinimum(0)
         self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'), self.active_checkpoint)
@@ -378,6 +385,7 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(self.aboutQtAct, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("aboutQt()"))
 
 
+
     def createMenus(self):
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAct)
@@ -397,6 +405,26 @@ class MainWindow(QtGui.QMainWindow):
         self.fileToolBar = self.addToolBar(self.tr("File"))
         self.fileToolBar.addAction(self.openAct)
         self.fileToolBar.addAction(self.saveAct)
+
+        self.attachCombo = QtGui.QComboBox()
+        self.attachCombo.addItem("No attachment") #0
+        self.attachCombo.addItem("Amphitelic attachment") #1
+        self.attachCombo.addItem("Merotelic attachment") #2
+        self.attachCombo.addItem("Syntelic attachment") #3
+        self.attachCombo.addItem("Monotelic attachment") #4
+        self.attachCombo.addItem("Random attachment") #5
+
+        self.configToolBar = self.addToolBar(self.tr("config"))
+        self.configToolBar.addWidget(self.attachCombo)
+        
+        self.attachment_list = ['null',
+                                'amphitelic',
+                                'merotelic',
+                                'syntelic',
+                                'monotelic',
+                                'random']
+        self.attachCombo.setCurrentIndex(5)
+        
 
     def createStatusBar(self):
         self.statusBar().showMessage(self.tr("Ready"))

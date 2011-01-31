@@ -154,7 +154,7 @@ class Metaphase(object):
     """
 
     def __init__(self,  duration=900, paramtree=None, measuretree=None,
-                 paramfile=paramfile, measurefile=measurefile, 
+                 paramfile=paramfile, measurefile=measurefile, plug=None, 
                  reduce_p=True):
 
         """
@@ -196,7 +196,7 @@ class Metaphase(object):
         if reduce_p:
             reduce_params(self.paramtree, self.measuretree)
             
-        self.KD = KinetoDynamics(self.paramtree.dic, plug = 0)
+        self.KD = KinetoDynamics(self.paramtree.dic, plug = plug)
         dt = self.KD.params['dt']
         self.nb_steps = int(duration/dt)
         self.KD.anaphase = False
