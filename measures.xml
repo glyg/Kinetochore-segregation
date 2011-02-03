@@ -12,11 +12,11 @@
     <unit>&#181;m/s</unit>
     <description>Kt poleward speed</description>
   </param>
-  <param max="2." min="0." name="mean_metaph_k_dist" step="0.1" value="0.3">
+  <param max="2." min="0." name="mean_metaph_k_dist" step="0.1" value="0.4">
     <unit>&#181;m</unit>
     <description>Mean kt-kt distance</description>
   </param>
-  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="0.7">
+  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="1.2">
     <unit>&#181;m</unit>
     <description>Max kt-kt distance</description>
   </param>
@@ -28,7 +28,7 @@
     <unit>&#181;m</unit>
     <description>Mean outer-inner plate distance</description>
   </param>
-  <param max="60." min="5." name="tau_o" step="0.1" value="8.">
+  <param max="60." min="5." name="tau_o" step="0.1" value="12.">
     <unit>s</unit>
     <description>Kt pair relaxation rate</description>
   </param>

@@ -56,7 +56,7 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
 
     def gotoTime(self, time):
         if self.ccw.slider.hasFocus():
-            self.pause()
+            #self.pause()
             rects = [self.view.cell.boundingRect()]
             self.view.updateScene(rects)
             self.view.cell.gotoTime(time)
@@ -144,9 +144,7 @@ class ViewCellWidget(QtGui.QGraphicsView):
 
         scene.setSceneRect(-9, -4, 18, 8)
         self.setScene(scene)
-        
         scene.addItem(self.cell)
-        
         self.scale(40, 40)
 
 

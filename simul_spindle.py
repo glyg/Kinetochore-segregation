@@ -66,7 +66,8 @@ def reduce_params(paramtree, measuretree):
         metaph_rate /= poleward_speed 
         anaph_rate = measures['anaph_rate']   
         anaph_rate /= poleward_speed
-        metaph_k_dist = measures['mean_metaph_k_dist']
+        mean_metaph_k_dist = measures['mean_metaph_k_dist']
+        max_metaph_k_dist = measures['max_metaph_k_dist']        
         outer_inner_dist = measures['oi_dist']
         tau_o = measures['tau_o'] 
         tau_i = measures['tau_i'] 
@@ -94,15 +95,15 @@ def reduce_params(paramtree, measuretree):
     Vmz = params['Vmz'] = anaph_rate
     #Aurora modifies fd
     if aurora != 0:
-        fd_eff = fa * aurora / metaph_k_dist
+        fd_eff = fa * aurora / mean_metaph_k_dist
     else:
         fd_eff = fd
     
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
-    alpha_mean = float(1/(1 + fd/fa))
+    alpha_mean = float(1/(1 + fd_eff/fa))
     #Take metaphase kt pair distance as the maximum one
     #kappa = 4 * alpha_mean * (1 + metaph_rate/2) / ( metaph_k_dist - d0 )
-    kappa = Mk / ( metaph_k_dist - d0 )
+    kappa = Mk / ( max_metaph_k_dist - d0 )
     params['kappa'] = kappa
 
     kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
@@ -417,12 +418,12 @@ class Metaphase(object):
         results are stored in the self.observations dictionnary
         '''
         if len(self.KD.spbR.traj) < 2:
-            print "No simulation was run ... exiting"
+            print "No simulation was ran ... exiting"
             return 0
 
         self.observations = {'anaphase_rate':anaphase_rate(self.KD),
                              'metaph_rate': metaph_rate(self.KD),
-                             'metaph_k_dist': metaph_kineto_dist(self.KD),
+                             'mean_metaph_k_dist': metaph_kineto_dist(self.KD),
                              'pitch': auto_corel(self.KD, smooth = 5.),
                              'poleward_speed': poleward_speed(self.KD),
                              'kt_rms_speed':kt_rms_speed(self.KD),

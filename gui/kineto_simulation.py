@@ -245,9 +245,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
         plug_idx = self.attachCombo.currentIndex()
-        print self.attachCombo.currentText()
         plug = self.attachment_list[plug_idx]
-        print plug
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
         self.progressBar.setMaximum(int(self.paramtree.dic['span']/self.paramtree.dic['dt']))
         self.progressBar.setMinimum(0)

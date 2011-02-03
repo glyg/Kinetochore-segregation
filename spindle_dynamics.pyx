@@ -864,7 +864,10 @@ class PlugSite(object):
             else:
                 self.plug = 0
         elif plug == 'syntelic':
-            self.plug = 1
+            if side == 0:
+                self.plug = 1
+            else:
+                self.plug = -1
         elif plug == 'merotelic':
             self.plug = random.choice([-1,1])
         else:

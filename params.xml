@@ -1,5 +1,5 @@
 <parameters>
-  <param max="2000." min="0.1" name="span" step="10." value="800.0">
+  <param max="2000." min="0.1" name="span" step="10." value="1000.0">
     <unit>s</unit>
     <description>Simulation duration</description>
   </param>
