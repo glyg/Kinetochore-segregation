@@ -18,5 +18,7 @@ setup(name='kt_simul',
       package_data = {'kt_simul': ['params.xml', 'measures.xml']},
       data_files = [('gui/images', ['gui/images/exec.svg',
                                     'gui/images/open.png',
-                                    'gui/images/save.png',])]
+                                    'gui/images/save.png',
+                                    'gui/images/player_pause.svg',
+                                    'gui/images/player_play.svg'])]
       )
