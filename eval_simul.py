@@ -17,50 +17,18 @@ pyximport.install()
 #from pylab import *
 #
 
+sys.path.append('/home/guillaume/Python/')
+
 ## local imports
-from xml_handler import *
-from spindle_dynamics import *
+from kt_simul.xml_handler import *
+from kt_simul.spindle_dynamics import *
 
 
-__all__ = ["get_fromfile", "anaphase_rate", "metaph_rate",
+__all__ = ["anaphase_rate", "metaph_rate",
            "metaph_kineto_dist", "auto_corel", "poleward_speed",
            "kt_rms_speed", "time_of_arrival", "pluged_stats"]
            
 
-def get_fromfile(xmlfname = "results.xml"):
-    '''re-creates the Kinetochores Dynamics datas structure
-    i.e a dictionnary of "waves" for each element
-    returns a KinetoDynamics instance
-    '''
-    restree = ResultTree(xmlfname)
-    param_root = restree.root.find('parameters')
-    param_tree = ParamTree(root = param_root)
-    param_tree.create_dic()
-    params = param_tree.dic
-    traj_matrix = restree.get_all_trajs()
-    pluged_matrix = restree.get_all_pluged()
-    mero_matrix = restree.get_all_mero()
-    KD = KinetoDynamics(params)
-    KD.spbR.traj = traj_matrix[:,0]
-    KD.spbL.traj = traj_matrix[:,1]
-    N = params['N']
-    Mk = params['Mk']
-    col_num = 2
-    for n in range(N):
-        KD.chromosomes[n].righttraj = traj_matrix[:, col_num]
-        col_num += 1
-        KD.chromosomes[n].lefttraj = traj_matrix[:, col_num]
-        col_num += 1
-        KD.chromosomes[n].pluged_history = (pluged_matrix[:, n*2: n*2 + 2])
-        KD.chromosomes[n].mero_history = (mero_matrix[:, n*2 : n*2 + 2])
-        for m in range(Mk):
-            KD.chromosomes[n].rplugs[m].traj = traj_matrix[:, col_num]
-            col_num += 1
-        for m in range(Mk):
-            KD.chromosomes[n].lplugs[m].traj = traj_matrix[:, col_num]
-            col_num += 1
-
-    return KD
 
 def get_kt_speeds(KD, step = 2):
     
@@ -75,7 +43,6 @@ def get_kt_speeds(KD, step = 2):
 def get_spb_speed(KD, step = 2):
     
     speed = diff(array(KD.spbR.traj[::step]))/step
-
     return speed
 
 
@@ -87,19 +54,14 @@ def anaph_transAB(KD):
     '''
     toas = []
     for ch in KD.chromosomes.values():
-
         toas.append(ch.right_toa)
         toas.append(ch.left_toa)
-            
     trans_AB = min(toas)
-    
-#    print "Transition at %03f seconds" % trans_AB# * dt
     return trans_AB
     
 def anaphase_rate(KD):
     '''Calculates anaphase B elongation rate.
     '''
-
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     trans_AB = anaph_transAB(KD)
@@ -119,8 +81,6 @@ def metaph_rate(KD):
     N = KD.params['N']
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
-    
-    
     spindle_length = array(KD.spbR.traj) - array(KD.spbL.traj)
     if spindle_length.size >= int(trans_MA/dt):
         elapsed = arange(trans_MA, step = dt)
@@ -294,7 +254,6 @@ def auto_corel(KD, smooth = 10.):
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     pitches = []
-
     if len(KD.spbR.traj) <= trans_MA/dt: #no anaphase execution
         elapsed = arange(len(KD.spbR.traj)*dt, step = dt)
     else:
@@ -304,7 +263,6 @@ def auto_corel(KD, smooth = 10.):
     for ch in KD.chromosomes.values():
 
         ktR = array(ch.righttraj)[:int(trans_MA/dt)]
-
         # In order to compare with the 'real world' tracked kinetochores
         # we smooth by a factor smooth/dt
         ktR_tck = splrep(elapsed, ktR, t = elapsed[smth:-smth:smth])
@@ -326,8 +284,6 @@ def auto_corel(KD, smooth = 10.):
 
         
     pitches = 1/(array(pitches)*dt)
-
-    
     return pitches.mean(), pitches.std()
         
         
@@ -389,19 +345,3 @@ def max_freqs(KD, show_fig = True):
             plot(freqs[:len(sp_fft)], abs(sp_fft), 'o', alpha = 0.6)
 
     return max_fs
-        
-# def metaph_kineto_pair_cor(KD):
-#     ''' Calculates the correlation coefficients of the
-#     kinetochore pairs
-#     '''
-#     N = KD.params['N']
-#     trans_MA = KD.params['trans']
-#     dt = KD.params['dt']
-#     trans_MA = int(trans_MA/dt)
-#     cor = 
-#     stdev = 0
-#     for n in range(N):
-#         kinetoR = array(KD.chromosomes[n].righttraj)
-#         kinetoL = array(KD.chromosomes[n].lefttraj)
-    
-#         c = correlate(kinetoR, kinetoL)

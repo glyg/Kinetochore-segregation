@@ -60,7 +60,7 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
             rects = [self.view.cell.boundingRect()]
             self.view.updateScene(rects)
             self.view.cell.gotoTime(time)
-            self.timerId = 0
+            #self.timerId = 0
 
     def play(self):
         ### I'll re-implement this when user can move things in graphcell

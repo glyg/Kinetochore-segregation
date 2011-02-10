@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<parameters>
+<measures>
   <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.01">
     <unit>&#181;m/s</unit>
     <description>Metaphase elongation rate</description>
@@ -36,4 +36,4 @@
     <unit>s</unit>
     <description>Merotelic kt relaxation rate</description>
   </param>
-</parameters>
+</measures>

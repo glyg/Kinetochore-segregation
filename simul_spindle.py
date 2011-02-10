@@ -17,13 +17,15 @@ import sys
 import pyximport
 pyximport.install()
 
+sys.path.append('/home/guillaume/Python')
 ## local imports
-from spindle_dynamics import KinetoDynamics
-from xml_handler import ParamTree, indent, ResultTree
-from eval_simul import *
-from dyninst import mean_attachment, delta_Mk
+#from kt_simul import *
+from kt_simul.spindle_dynamics import KinetoDynamics
+from kt_simul.xml_handler import ParamTree, indent, ResultTree
+from kt_simul.eval_simul import *
+from kt_simul.dyninst import mean_attachment, delta_Mk
 
-__all__ = ["Metaphase", "reduce_params", "paramfile", "measurefile"]
+__all__ = ["Metaphase", "reduce_params", "paramfile", "measurefile", "get_fromfile"]
 
 try:
     paramfile = os.path.join(os.path.dirname(__file__), 'params.xml')
@@ -202,6 +204,10 @@ class Metaphase(object):
         self.nb_steps = int(duration/dt)
         self.KD.anaphase = False
         self.timelapse = arange(0, duration + dt, dt)
+        self.report = []
+        self.delay = -1
+
+
 
     def __str__(self):
 
@@ -266,8 +272,6 @@ class Metaphase(object):
         kappa = self.KD.params['kappa']
         mus = self.KD.params['mus']
 
-        self.report = []
-        self.delay = -1
 
         for t in self.timelapse[1:]:
             # Ablation test
@@ -509,7 +513,6 @@ class Metaphase(object):
             chLx = array(ch.lefttraj)
             out_array = append(out_array, column_stack((chLx, ys, ts, idxs)),
                                axis = 0)
-        
             
         dataout = file(datafname, 'w+')
         dataout.write("# desciptor: "+xmlfname+"\n")
@@ -518,7 +521,7 @@ class Metaphase(object):
 
         
         
-    def write_results(self, xmlfname = "results.xml", datafname = "datas.txt"):
+    def write_results(self, xmlfname = "results.xml", datafname = "datas.txt.gz"):
         '''
         Saves the results of the simulation in two files with the parameters,
         the measures and observations in one file and the trajectories in
@@ -528,10 +531,10 @@ class Metaphase(object):
         xmlfname : name of the xml file where parameters and observations
         will be written
         datafname : name of the txt file where the trajectories will be written
-        
+        if the file ends with .gz, files are compressed transparently
+
         Column index for each trajectory is an
         attribute of the corresponding element in the xml file.
-
         '''
 
         N = self.KD.params['N']
@@ -542,7 +545,6 @@ class Metaphase(object):
         
 
         chromosomes = self.KD.chromosomes.values()
-        
         wavelist=[]
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
@@ -613,12 +615,23 @@ class Metaphase(object):
                                  name="rightplugsite", index = str((n, m)),
                                  column=str(col_num), units='mu m')
                 wavelist.append(rpt_traj); col_num += 1
+                rpt_plug = array(rplug.state_hist)
+                rpp = SubElement(experiment, "state",
+                                 name="rightplugsite", index = str((n, m)),
+                                 column=str(col_num), units='')
+                wavelist.append(rpt_plug); col_num += 1
+            
             for m, lplug in enumerate(ch.lplugs.values()):
                 lpt_traj = array(lplug.traj)
                 lpt = SubElement(experiment, "trajectory",
                                  name="leftplugsite", index = str((n, m)),
                                  column=str(col_num), units='mu m')
                 wavelist.append(lpt_traj); col_num += 1
+                lpt_plug = array(lplug.state_hist)
+                lpp = SubElement(experiment, "state",
+                                 name="leftplugsite", index = str((n, m)),
+                                 column=str(col_num), units='')
+                wavelist.append(lpt_plug); col_num += 1
 
         #Observations
         obs_elem = SubElement(experiment, "observations")
@@ -856,6 +869,58 @@ class Metaphase(object):
                 n += 1
 
         return trajectories
+
+def get_fromfile(xmlfname = "results.xml"):
+
+    '''re-creates the Kinetochores Dynamics datas structure
+    i.e a dictionnary of "waves" for each element
+    returns a Metaphase instance
+    '''
+    restree = ResultTree(xmlfname)
+    param_root = restree.root.find('parameters')
+    paramtree = ParamTree(root = param_root)
+    paramtree.create_dic()
+    params = paramtree.dic
+
+    measure_root = restree.root.find('measures')
+    measuretree = ParamTree(root = measure_root)
+    measuretree.create_dic(adimentionalized = False)
+    metaphase = Metaphase(paramtree = paramtree,
+                          measuretree = measuretree)
+    
+    traj_matrix = restree.get_all_trajs()
+    pluged_matrix = restree.get_all_pluged()
+    mero_matrix = restree.get_all_mero()
+    state_hist_matrix = restree.get_all_plug_state()
+    KD = KinetoDynamics(params)
+    KD.spbR.traj = traj_matrix[:,0]
+    KD.spbL.traj = traj_matrix[:,1]
+    N = params['N']
+    Mk = params['Mk']
+    col_num = 2
+    state_num = 0
+    for n in range(N):
+        KD.chromosomes[n].righttraj = traj_matrix[:, col_num]
+        col_num += 1
+        KD.chromosomes[n].lefttraj = traj_matrix[:, col_num]
+        col_num += 1
+        KD.chromosomes[n].pluged_history = (pluged_matrix[:, n*2: n*2 + 2])
+        KD.chromosomes[n].mero_history = (mero_matrix[:, n*2 : n*2 + 2])
+        for m in range(Mk):
+            KD.chromosomes[n].rplugs[m].traj = traj_matrix[:, col_num]
+            col_num += 1
+            KD.chromosomes[n].rplugs[m].state_hist = traj_matrix[:, state_num]
+            state_num += 1
+        for m in range(Mk):
+            KD.chromosomes[n].lplugs[m].traj = traj_matrix[:, col_num]
+            col_num += 1
+            KD.chromosomes[n].lplugs[m].state_hist = traj_matrix[:, state_num]
+            state_num += 1
+
+    metaphase.KD = KD
+    
+
+    return metaphase
 
 def scale(x, size, pix_size = 0.0645):
     '''

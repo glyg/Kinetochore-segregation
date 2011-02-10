@@ -6,7 +6,7 @@ Graphical User Interface for the kinetochore dynamics simulation
 
 '''
 
-import sys, os, random
+import sys, os, random, time
 from PyQt4 import QtCore, QtGui
 from numpy import arange, sin, pi, array, linalg, mod
 import matplotlib
@@ -21,18 +21,15 @@ pyximport.install()
 sys.path.append('/home/guillaume/Python/')
 
 
-from kt_simul import simul_spindle as Sim
+from kt_simul.simul_spindle import *
 from param_seter import *
 from game import *
 
-from kt_simul.eval_simul import metaph_kineto_dist 
+from kt_simul.eval_simul import metaph_kineto_dist
 from kt_simul.xml_handler import ParamTree
 
-
-
-paramfile = Sim.paramfile
-measurefile = Sim.measurefile
-
+# paramfile = Sim.paramfile
+# measurefile = Sim.measurefile
 
 __all__ = ['MainWindow', paramfile, measurefile]
 
@@ -80,7 +77,7 @@ class MyMplCanvas(FigureCanvas):
         self.draw()
 
 
-class SigMetaphase(Sim.Metaphase, QtGui.QWidget):
+class SigMetaphase(Metaphase, QtGui.QWidget):
 
     '''
     See if we can retrieve signals from this hybrid
@@ -93,7 +90,7 @@ class SigMetaphase(Sim.Metaphase, QtGui.QWidget):
                  plug = None, parent = None):
         paramtree.create_dic(adimentionalized = True)
         duration = paramtree.dic["span"]
-        Sim.Metaphase.__init__(self, duration, paramtree, measuretree,
+        Metaphase.__init__(self, duration, paramtree, measuretree,
                                plug = plug)
         QtGui.QWidget.__init__(self, None)
         self.date = 0
@@ -135,9 +132,20 @@ class MainWindow(QtGui.QMainWindow):
         self.measuretree.create_dic(adimentionalized = False)
         self.measures = self.measuretree.dic
 
+        self.mt = None
+
         QtGui.QMainWindow.__init__(self, parent)
-        w = QtGui.QWidget()
-        self.setCentralWidget(w)
+        self.centralwidget = QtGui.QWidget()
+
+        self.setCentralWidget(self.centralwidget)
+
+        self.create_docks()
+        self.create_tabs()
+        self.create_buttons()
+        self.prepare_simulation()
+        
+        
+    def create_docks(self):
 
         #Parameter Setting in a Dock Widget
         self.dock = QtGui.QDockWidget('Parameters Setting')
@@ -157,6 +165,7 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
         #
 
+    def create_tabs(self):
         #Text Area
         s = ("Welcome to the S.Pombe kinetochore motion "
              "Simulator")
@@ -166,7 +175,7 @@ class MainWindow(QtGui.QMainWindow):
         #Plotting Areas
         span = self.paramtree.dic['span']
         self.plotarea1 = MyMplCanvas(span)
-        mpl_toolbar = NavigationToolbar(self.plotarea1, w)
+        mpl_toolbar = NavigationToolbar(self.plotarea1, self.centralwidget)
         vbox1 = QtGui.QVBoxLayout()
         vbox1.setMargin(5)
         vbox1.addWidget(self.plotarea1)
@@ -174,9 +183,8 @@ class MainWindow(QtGui.QMainWindow):
         self.w1 = QtGui.QWidget()
         self.w1.setLayout(vbox1)
 
-        
         self.plotarea2 = MyMplCanvas(span)
-        mpl_toolbar = NavigationToolbar(self.plotarea2, w)
+        mpl_toolbar = NavigationToolbar(self.plotarea2, self.centralwidget)
         vbox2 = QtGui.QVBoxLayout()
         vbox2.setMargin(5)
         vbox2.addWidget(self.plotarea2)
@@ -184,12 +192,14 @@ class MainWindow(QtGui.QMainWindow):
         self.w2 = QtGui.QWidget()
         self.w2.setLayout(vbox2)
 
-
         #All this goes in a tab widget
         self.tabWidget = QtGui.QTabWidget()
+        self.tabWidget.setTabsClosable(True)
         self.tabWidget.addTab(self.simLog, "Log")
         #self.tabWidget.addTab(w1, "All trajectories")
         #self.tabWidget.addTab(w2, "One trajectory")
+
+    def create_buttons(self):
         #Buttons
         #self.buttonGroup = QtGui.QButtonGroup()
         runButton = QtGui.QPushButton('Run the simulation')
@@ -208,13 +218,11 @@ class MainWindow(QtGui.QMainWindow):
         self.interactiveButton = QtGui.QRadioButton('Interactive Simulation')
         self.interactiveButton.setChecked(True)
         #self.buttonGroup.addButton(runButton)
-
         #Progress Bar
         self.progressBar = QtGui.QProgressBar()
 
         hbox = QtGui.QHBoxLayout()
         hbox.setMargin(5)
-
         hbox.addWidget(runButton)
         hbox.addWidget(showTrajButton)
         hbox.addWidget(showOneButton)
@@ -226,34 +234,44 @@ class MainWindow(QtGui.QMainWindow):
         vbox.addLayout(hbox)#self.buttonGroup)
         vbox.addWidget(self.tabWidget)
 
-        w.setLayout(vbox)
+        self.centralwidget.setLayout(vbox)
 
         self.createActions()
         self.createMenus()
         
         self.createToolBars()
         self.createStatusBar()
-        self.setCurrentFile(paramfile)
-
+        currentFileName = '_'.join(time.asctime().split()[:-1])
+        currentFileName = 'simul_'+'_'.join(currentFileName.split(':'))+'.xml'
+        currentFileName = os.path.join(os.path.dirname(__file__),
+                                       'simulations', currentFileName)        
+        self.setCurrentFile(currentFileName)
         self.setWindowTitle(self.tr("Kinetochore Dynamics Simulation"))
         self.setMinimumSize(160,160)
         self.resize(1000,600)
 
 
-    def run_simulation(self):
 
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    def prepare_simulation(self):
 
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
-        self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
-        self.progressBar.setMaximum(int(self.paramtree.dic['span']/self.paramtree.dic['dt']))
+
+        if self.mt is None:
+            self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
+
+        self.progressBar.setMaximum(int(self.paramtree.dic['span']/
+                                        self.paramtree.dic['dt']))
         self.progressBar.setMinimum(0)
-        self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'), self.active_checkpoint)
-        self.connect(self.mt,  QtCore.SIGNAL('stepDone'), self.progressBar.setValue)
-        self.connect(self.mt,  QtCore.SIGNAL('simulDone'), self.print_report)
+        self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'),
+                     self.active_checkpoint)
+        self.connect(self.mt,  QtCore.SIGNAL('stepDone'),
+                     self.progressBar.setValue)
+        self.connect(self.mt,  QtCore.SIGNAL('simulDone'),
+                     self.print_report)
 
         run_interactively = self.interactiveButton.isChecked()
+
         if run_interactively:
             self.iw = InteractiveCellWidget(self.mt)
             self.iw.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -264,16 +282,15 @@ class MainWindow(QtGui.QMainWindow):
 
             self.connect(self.mt,  QtCore.SIGNAL('simulDone'),
                          self.iw.startAnim)
-            # self.connect(self.mt,  QtCore.SIGNAL('stepDone_nop'),
-            #              self.iw.scene().advance)
-            self.mt.sig_simul()
 
-            QtGui.QApplication.restoreOverrideCursor()
-            
-        else:
-            self.mt.sig_simul()
-            #self.plotarea.update_figure(self.mt)
-            QtGui.QApplication.restoreOverrideCursor()
+
+    
+    def run_simulation(self):
+
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+
+        self.mt.sig_simul()
+        QtGui.QApplication.restoreOverrideCursor()
 
     def show_trajs(self):
 
@@ -323,15 +340,16 @@ class MainWindow(QtGui.QMainWindow):
 
     def open(self):
         if self.maybeSave():
-            fileName = QtGui.QFileDialog.getOpenFileName(self)
+            fileName = QtGui.QFileDialog.getOpenFileName(self,
+                                                         filter = "XML files (*.xml);;All Files (*.*)")
             if not fileName.isEmpty():
                 self.loadFile(fileName)
 
     def save(self):
-        #         if self.curFile.isEmpty():
-        #             return self.saveAs()
-        #         else:
-        return self.saveFile(self.curFile)
+        #if not os.path.isfile(self.curFile):
+        return self.saveAs()
+        # else:
+        #     return self.saveFile(self.curFile)
 
     def saveAs(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self)
@@ -353,20 +371,20 @@ class MainWindow(QtGui.QMainWindow):
         open_icon = os.path.join(os.path.dirname(__file__),
                                  "images", "open.png")
         self.openAct = QtGui.QAction(QtGui.QIcon(open_icon),
-                                     self.tr("&Open Parameters File"), self)
+                                     self.tr("&Open Simulation File"), self)
         self.openAct.setShortcut(self.tr("Ctrl+O"))
-        self.openAct.setStatusTip(self.tr("Open an existing parameters file"))
+        self.openAct.setStatusTip(self.tr("Open an existing simulation file"))
         self.connect(self.openAct, QtCore.SIGNAL("triggered()"), self.open)
         save_icon = os.path.join(os.path.dirname(__file__),
                                  "images", "save.png")
         self.saveAct = QtGui.QAction(QtGui.QIcon(save_icon),
                                      self.tr("&Save"), self)
         self.saveAct.setShortcut(self.tr("Ctrl+S"))
-        self.saveAct.setStatusTip(self.tr("Save the paramters to disk"))
+        self.saveAct.setStatusTip(self.tr("Save the simulation to disk"))
         self.connect(self.saveAct, QtCore.SIGNAL("triggered()"), self.save)
 
         self.saveAsAct = QtGui.QAction(self.tr("Save &As..."), self)
-        self.saveAsAct.setStatusTip(self.tr("Save the document under a new name"))
+        self.saveAsAct.setStatusTip(self.tr("Save the simulation under a new name"))
         self.connect(self.saveAsAct, QtCore.SIGNAL("triggered()"), self.saveAs)
 
         self.exitAct = QtGui.QAction(self.tr("E&xit"), self)
@@ -445,30 +463,39 @@ class MainWindow(QtGui.QMainWindow):
     def loadFile(self, fileName):
         
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        self.paramtree = ParamTree(fileName)
+        tmp_m = get_fromfile(str(fileName))
+        self.mt = SigMetaphase(tmp_m.paramtree, tmp_m.measuretree)
+        self.mt.KD = tmp_m.KD
+        del tmp_m
 
-        self.removeDockWidget (self.dock)
-        del self.dock
-        self.dock = QtGui.QDockWidget('Parameters Setting')
-        self.setParameters = SetParameters(self.paramtree)
-        scrollArea = QtGui.QScrollArea()
-        scrollArea.setWidget(self.setParameters)
-        self.dock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
+        self.prepare_simulation()
+        self.mt.emit(QtCore.SIGNAL('simulDone'),self.mt.report)
+
+        # self.removeDockWidget (self.dock)
+        # del self.dock
+        # self.dock = QtGui.QDockWidget('Parameters Setting')
+        # self.setParameters = SetParameters(self.paramtree)
+        # scrollArea = QtGui.QScrollArea()
+        # scrollArea.setWidget(self.setParameters)
+        # self.dock.setWidget(scrollArea)
+        # self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
 
         QtGui.QApplication.restoreOverrideCursor()
 
         self.setCurrentFile(fileName)
-        self.statusBar().showMessage(self.tr("Parameters loaded"), 2000)
+        self.statusBar().showMessage(self.tr("Loaded"), 2000)
 
 
     def saveFile(self, fileName):
 
-        outf = open(fileName, 'w+')
-        print fileName
-        indent(self.paramtree.root)
-        outf.write(tostring(self.paramtree.root))
-        outf.close()
+        if not fileName.endsWith('.xml'):
+            xmlfname = fileName+'xml'
+            datafname = fileName+'_data.txt.gz'
+        else:
+            xmlfname = fileName
+            datafname = fileName.split('.')[-2]+'_data.txt.gz'
+            
+        self.mt.write_results(xmlfname, datafname)
 
         self.setCurrentFile(fileName);
         self.statusBar().showMessage(self.tr("File saved"), 2000)

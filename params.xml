@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <parameters>
-  <param max="2000." min="0.1" name="span" step="10." value="1000.0">
+  <param max="2000." min="0.1" name="span" step="10." value="800.0">
     <unit>s</unit>
     <description>Simulation duration</description>
   </param>
@@ -43,7 +44,7 @@
     <unit>&#181;m</unit>
     <description>Kinetochore - kinetochore rest length</description>
   </param>
-  <param max="100" min="0" name="aurora" step="0.1" value="0.3">
+  <param max="100" min="0" name="aurora" step="0.1" value="0.12">
     <unit>&#181;m</unit>
     <description>Aurora Pdet modifier</description>
   </param>
@@ -55,7 +56,7 @@
     <unit> </unit>
     <description>Non zero: spindle assembly checkpt </description>
   </param>
-  <param max="1." min="0." name="fa" step="0.001" value="0.04">
+  <param max="1." min="0." name="fa" step="0.001" value="0.06">
     <unit>Hz</unit>
     <description>MT free attachement frequency</description>
   </param>  

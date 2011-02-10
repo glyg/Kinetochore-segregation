@@ -16,7 +16,7 @@ def check_all(param_name, span, num_ech = 50, repeats = 10,
               logscale = False, reduced = True, *args):
     """
     This will just run the simulation repeats times for each of the
-    num_ech values of the parameter param_name. It will record the
+    num_ech values of the parameter param_name. It will run the
     observations given by Metaphsase.evalute and record them.
     It will also record the report attribute  for inspection
 

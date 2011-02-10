@@ -3,7 +3,7 @@
 
 # Handler for the parameters xml files -- to allow phase space exploration
 
-import sys
+import sys, os
 
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import parse, tostring
@@ -37,8 +37,6 @@ def indent(elem, level=0):
 
 
 
-
-
 class ParamTree(object):
 
     def __init__(self, filename = None, root = None):
@@ -50,8 +48,6 @@ class ParamTree(object):
             self.root = self.tree.getroot()
         elif root is not None:
             self.root = root
-
-        
 
 
     def create_dic(self, adimentionalized = True):
@@ -120,14 +116,14 @@ class ParamTree(object):
 
 
 
-    def change_dic(self, key, new_value, write = True, back_up = False, verbose = True):
+    def change_dic(self, key, new_value, write = True, back_up = False,
+                   verbose = True):
         '''changes the Element tree and re-creates the associated dictionnary.
         If write is True, re_writes the parameters files
         (older version is backed up if back_up)
         '''
         if self.dic is None:
             self.create_dic()
-
         try:
             self.dic[key] = new_value
 
@@ -161,15 +157,23 @@ class ParamTree(object):
             print "Changed parameter %s value to %03f in file %s" %(key, new_value, self.filename)
         elif verbose:
             print "Warning: parameter %s changed but not written!" %key
-            
+
+
         
 class ResultTree(ParamTree):    
 
     def __init__(self, xmlfname = "resuts.xml"):
 
+        xmlfname = os.path.abspath(xmlfname)
         ParamTree.__init__(self, xmlfname)
-        self.datafname = self.root.get("datafile")
-        if self.datafname is None:
+        
+        datafname = self.root.get("datafile")
+        if not os.path.isabs(datafname):
+            self.datafname = os.path.join(os.path.dirname(xmlfname), 
+                                          datafname)
+        else:
+            self.datafname = datafname
+        if self.datafname is None or not os.path.isfile(self.datafname):
             raise ValueError, "Corresponding data file not specified"
 
     def get_spb_trajs(self):
@@ -262,6 +266,19 @@ class ResultTree(ParamTree):
         cols = []
         for traj in self.tree.getiterator("numbermero"):
             col = int(traj.get("column"))
+            cols.append(col)
+
+        cols = tuple(cols)
+        return loadtxt(f, delimiter = ' ', usecols = cols) 
+
+
+    def get_all_plug_state(self):
+
+        f = file(self.datafname)
+        header = f.readline()
+        cols = []
+        for state_hist in self.tree.getiterator("state"):
+            col = int(state_hist.get("column"))
             cols.append(col)
 
         cols = tuple(cols)
