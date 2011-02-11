@@ -495,7 +495,6 @@ class KinetoDynamics(object) :
     #@cython.profile(False)
     def Pdet_mero(self, int n, int m, int side):
         '''Calculates detachement frequency for kineto n
-        for merotelic kMT
         side = 0 : right
         side = 1 : left
         '''
@@ -528,7 +527,7 @@ class KinetoDynamics(object) :
         cdef int Mk
         cdef double p
         cdef double m
-        cdef int orientation
+        cdef double orientation
         Mk = self.params['Mk']
         ch = self.chromosomes[n]
         p = float(ch.pluged()[side]) #        p = sum(ch.pluged(), dtype=float) #
@@ -542,8 +541,9 @@ class KinetoDynamics(object) :
             return 0.5
         # if m > p :
         #     return 0.5
+        Pmero = 0.5 + orientation * (m - p) / (2 * (m + p))
 
-        return m / (m + p)
+        return Pmero
         
         
     def plug_unplug(self):
