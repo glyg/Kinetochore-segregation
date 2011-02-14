@@ -7,7 +7,7 @@
 
 from pylab import *
 from scipy import linalg, column_stack, sparse
-from numpy import any, all, arange, array, uint8, savetxt, mod, asarray, zeros
+from numpy import any, all, arange, array, uint8, save, savetxt, mod, asarray, zeros
 from xml.etree.ElementTree import Element, SubElement, tostring
 import time
 from Image import fromarray as image_fromarray
@@ -521,7 +521,7 @@ class Metaphase(object):
 
         
         
-    def write_results(self, xmlfname = "results.xml", datafname = "datas.txt.gz"):
+    def write_results(self, xmlfname = "results.xml", datafname = "datas.npy"):
         '''
         Saves the results of the simulation in two files with the parameters,
         the measures and observations in one file and the trajectories in
@@ -530,9 +530,14 @@ class Metaphase(object):
         Keyword arguments:
         xmlfname : name of the xml file where parameters and observations
         will be written
-        datafname : name of the txt file where the trajectories will be written
-        if the file ends with .gz, files are compressed transparently
-
+        datafname : name of the file where the trajectories will be written
+        file type is determined by the file suffix:
+         - *.npy : data are stored in numpy"s binary format
+                   (less portable but quite efficient)
+         - *.txt : simple text
+         - *.txt.gz : text files compressed transparently
+        Any other suffix will be saved as plain text
+         
         Column index for each trajectory is an
         attribute of the corresponding element in the xml file.
         '''
@@ -646,9 +651,12 @@ class Metaphase(object):
         out.close()
         #And the numbers in the file datafname
         dataout = file(datafname, 'w+')
-        dataout.write("# desciptor: "+xmlfname+"\n")
         data = column_stack(wavelist)
-        savetxt(dataout, data, delimiter=' ')
+        if datafname.endswith('.npy'):
+            save(dataout, data)
+        else:
+            dataout.write("# desciptor: "+xmlfname+"\n")
+            savetxt(dataout, data, delimiter=' ')
 
     def _make_movie(self, t, imsize):
 
@@ -909,16 +917,14 @@ def get_fromfile(xmlfname = "results.xml"):
         for m in range(Mk):
             KD.chromosomes[n].rplugs[m].traj = traj_matrix[:, col_num]
             col_num += 1
-            KD.chromosomes[n].rplugs[m].state_hist = traj_matrix[:, state_num]
+            KD.chromosomes[n].rplugs[m].state_hist = state_hist_matrix[:, state_num]
             state_num += 1
         for m in range(Mk):
             KD.chromosomes[n].lplugs[m].traj = traj_matrix[:, col_num]
             col_num += 1
-            KD.chromosomes[n].lplugs[m].state_hist = traj_matrix[:, state_num]
+            KD.chromosomes[n].lplugs[m].state_hist = state_hist_matrix[:, state_num]
             state_num += 1
-
     metaphase.KD = KD
-    
 
     return metaphase
 

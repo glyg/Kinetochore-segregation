@@ -7,7 +7,7 @@ import sys, os
 
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import parse, tostring
-from numpy import loadtxt
+from numpy import loadtxt, load
 
 #Those strings should be respected in the xml file
 SPRING_UNIT=u'pN/µm' 
@@ -176,11 +176,15 @@ class ResultTree(ParamTree):
         if self.datafname is None or not os.path.isfile(self.datafname):
             raise ValueError, "Corresponding data file not specified"
 
+        if self.datafname.endswith('.npy'):
+            self.data = load(self.datafname)
+        else:
+            self.data = loadtxt(self.datafname, delimiter=' ',
+                                comments = '#')        
+    
     def get_spb_trajs(self):
 
-        f = file(self.datafname)
-        header = f.readline()
-        Rcol = None
+        Rcol = None 
         Lcol = None
         for traj in self.tree.getiterator("trajectory"):
             if traj.get("name") == "rightspb":
@@ -189,16 +193,11 @@ class ResultTree(ParamTree):
                 Lcol = traj.get("column")
             if Rcol is not None and Lcol is not None:
                 break
-        spb_trajs = loadtxt(f, delimiter=' ', usecols=(Rcol,Lcol))
-        f.close()
+        spb_trajs = self.data.take((Rcol, Lcol), axis = 1)
         return spb_trajs
 
     def get_kineto_trajs(self):
 
-        if self.dic is None:
-            self.create_dic(element)
-        f = file(self.datafname)
-        header = f.readline()
         N = self.dic['N']
         cols = []
         for traj in self.tree.getiterator("trajectory"):
@@ -211,8 +210,8 @@ class ResultTree(ParamTree):
             if len(cols) == N * 2:
                 break
         cols = tuple(cols)
-        kineto_trajs = loadtxt(f, delimiter = ' ', usecols = cols)
-        f.close()
+        
+        kineto_trajs = self.data.take(cols, axis = 1)
         return kineto_trajs
         
     def get_array(self, name, index = None):
@@ -245,41 +244,39 @@ class ResultTree(ParamTree):
             cols.append(col)
 
         cols = tuple(cols)
-        return loadtxt(f, delimiter = ' ',usecols = cols) 
+        
+        return self.data.take(cols, axis = 1) 
 
     def get_all_pluged(self):
 
-        f = file(self.datafname)
-        header = f.readline()
         cols = []
         for traj in self.tree.getiterator("numberpluged"):
             col = int(traj.get("column"))
             cols.append(col)
 
         cols = tuple(cols)
-        return loadtxt(f, delimiter = ' ', usecols = cols) 
+        return self.data.take(cols, axis = 1) 
+
         
     def get_all_mero(self):
 
-        f = file(self.datafname)
-        header = f.readline()
         cols = []
         for traj in self.tree.getiterator("numbermero"):
             col = int(traj.get("column"))
             cols.append(col)
 
         cols = tuple(cols)
-        return loadtxt(f, delimiter = ' ', usecols = cols) 
+        return self.data.take(cols, axis = 1) 
+
 
 
     def get_all_plug_state(self):
 
-        f = file(self.datafname)
-        header = f.readline()
+
         cols = []
         for state_hist in self.tree.getiterator("state"):
             col = int(state_hist.get("column"))
             cols.append(col)
 
         cols = tuple(cols)
-        return loadtxt(f, delimiter = ' ', usecols = cols) 
+        return self.data.take(cols, axis = 1) 

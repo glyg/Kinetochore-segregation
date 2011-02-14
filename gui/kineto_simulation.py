@@ -119,7 +119,7 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
         
         self.simul()
         self.emit(QtCore.SIGNAL('simulDone'),self.report)
-        
+        self.simulDone = True
 
 class MainWindow(QtGui.QMainWindow):
 
@@ -142,27 +142,27 @@ class MainWindow(QtGui.QMainWindow):
         self.create_docks()
         self.create_tabs()
         self.create_buttons()
-        self.prepare_simulation()
+        #self.prepare_simulation()
         
         
     def create_docks(self):
 
         #Parameter Setting in a Dock Widget
-        self.dock = QtGui.QDockWidget('Parameters Setting')
+        self.paramdock = QtGui.QDockWidget('Parameters Setting')
         self.setParameters = SetParameters(self.paramtree)
         scrollArea = QtGui.QScrollArea()
         scrollArea.setWidget(self.setParameters)
-        self.dock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
+        self.paramdock.setWidget(scrollArea)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
         #
 
         #Measures Setting in another Dock Widget
-        self.dock = QtGui.QDockWidget('Measures Setting')
+        self.measuredock = QtGui.QDockWidget('Measures Setting')
         self.setMeasures = SetMeasures(self.measuretree)
         scrollArea = QtGui.QScrollArea()
         scrollArea.setWidget(self.setMeasures)
-        self.dock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
+        self.measuredock.setWidget(scrollArea)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
         #
 
     def create_tabs(self):
@@ -196,9 +196,17 @@ class MainWindow(QtGui.QMainWindow):
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.setTabsClosable(True)
         self.tabWidget.addTab(self.simLog, "Log")
+        #self.tabWidget.tabCloseRequested.connect(self.tabWidget.removeTab)
+        
+        self.connect(self.tabWidget, QtCore.SIGNAL('tabCloseRequested(int)'),
+                     self.closeTab)
+        #              self.closeTab)
         #self.tabWidget.addTab(w1, "All trajectories")
         #self.tabWidget.addTab(w2, "One trajectory")
 
+    def closeTab(self, idx):
+        self.tabWidget.removeTab(idx)
+        
     def create_buttons(self):
         #Buttons
         #self.buttonGroup = QtGui.QButtonGroup()
@@ -257,8 +265,8 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-        if self.mt is None:
-            self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
+
+        self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
 
         self.progressBar.setMaximum(int(self.paramtree.dic['span']/
                                         self.paramtree.dic['dt']))
@@ -287,8 +295,9 @@ class MainWindow(QtGui.QMainWindow):
     
     def run_simulation(self):
 
+        self.prepare_simulation()
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-
+        
         self.mt.sig_simul()
         QtGui.QApplication.restoreOverrideCursor()
 
@@ -463,12 +472,20 @@ class MainWindow(QtGui.QMainWindow):
     def loadFile(self, fileName):
         
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        self.prepare_simulation()
         tmp_m = get_fromfile(str(fileName))
+        self.paramtree = tmp_m.paramtree
+        self.measuretree = tmp_m.measuretree
+
+        self.removeDockWidget(self.paramdock)
+        del self.paramdock
+        self.removeDockWidget(self.measuredock)
+        del self.measuredock
+        self.create_docks()
+        self.prepare_simulation()
         self.mt = SigMetaphase(tmp_m.paramtree, tmp_m.measuretree)
         self.mt.KD = tmp_m.KD
         del tmp_m
-
-        self.prepare_simulation()
         self.mt.emit(QtCore.SIGNAL('simulDone'),self.mt.report)
 
         # self.removeDockWidget (self.dock)
@@ -490,12 +507,12 @@ class MainWindow(QtGui.QMainWindow):
 
         if not fileName.endsWith('.xml'):
             xmlfname = fileName+'xml'
-            datafname = fileName+'_data.txt.gz'
+            datafname = fileName+'_data.npy'
         else:
             xmlfname = fileName
-            datafname = fileName.split('.')[-2]+'_data.txt.gz'
+            datafname = fileName.split('.')[-2]+'_data.npy'
             
-        self.mt.write_results(xmlfname, datafname)
+        self.mt.write_results(str(xmlfname), str(datafname))
 
         self.setCurrentFile(fileName);
         self.statusBar().showMessage(self.tr("File saved"), 2000)
