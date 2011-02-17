@@ -4,8 +4,12 @@
 
 ### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
+try:
+    from pylab import *
+except RuntimeError:
+    print 'No display..'
+    pass
 
-from pylab import *
 from scipy import linalg, column_stack, sparse
 from numpy import any, all, arange, array, uint8, save, savetxt, mod, asarray, zeros
 from xml.etree.ElementTree import Element, SubElement, tostring

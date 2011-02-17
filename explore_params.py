@@ -9,7 +9,12 @@ from simul_spindle import *
 from eval_simul import *
 
 from numpy import logspace, linspace, log10, ndindex
-from pylab import Figure, figure, plot, semilogx, show, pcolor
+try:
+    from pylab import Figure, figure, plot, semilogx, show, pcolor
+except RuntimeError:
+    print 'No display..'
+    pass
+
 from time import time
 
 def check_all(param_name, span, num_ech = 50, repeats = 10,
