@@ -17,7 +17,7 @@ import sys
 import pyximport
 pyximport.install()
 
-sys.path.append('/home/guillaume/Python')
+
 ## local imports
 #from kt_simul import *
 from kt_simul.spindle_dynamics import KinetoDynamics
@@ -927,6 +927,10 @@ def get_fromfile(xmlfname = "results.xml"):
     metaphase.KD = KD
 
     return metaphase
+
+
+
+
 
 def scale(x, size, pix_size = 0.0645):
     '''

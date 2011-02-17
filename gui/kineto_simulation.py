@@ -18,9 +18,6 @@ import pyximport
 pyximport.install()
 
 
-sys.path.append('/home/guillaume/Python/')
-
-
 from kt_simul.simul_spindle import *
 from param_seter import *
 from game import *

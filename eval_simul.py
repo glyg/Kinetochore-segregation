@@ -17,7 +17,8 @@ pyximport.install()
 #from pylab import *
 #
 
-sys.path.append('/home/guillaume/Python/')
+from glygs_utils.array_utils import first_min, fwhm
+
 
 ## local imports
 from kt_simul.xml_handler import *
@@ -121,8 +122,6 @@ def metaph_kineto_dist(KD):
 def add_noise(KD, detect_noise = 65e-3, smth = 5):
 
     wd = hanning(smth)
-    
-    
     KD.spbR.traj = array(KD.spbR.traj)
     
     KD.spbR.traj += normal(scale = detect_noise, size = KD.spbR.traj.shape)
@@ -149,8 +148,6 @@ def metaph_kineto_dist_list(KD):
         dist_list.append(dist)
 
     return dist_list
-
-
 
 def poleward_speed(KD):
 
@@ -205,7 +202,6 @@ def kt_rms_speed(KD):
     
 def time_of_arrival(KD):
 
-
     toas = []
     for ch in KD.chromosomes.values():
 
@@ -249,7 +245,6 @@ def auto_corel(KD, smooth = 10.):
     Calculates the "pitch" of chromosomes"trajectory (kind of a
     Pitch detection algorithm
     '''
-    
 
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
@@ -281,46 +276,9 @@ def auto_corel(KD, smooth = 10.):
         ktL_sc = (ktL_s - m_speed)/st_speed
         co_ktL = correlate(ktL_sc, ktL_sc, 'full') / ktL_sc.size
         pitches.append(first_min(co_ktL[-co_ktL.size//2:]))
-
         
     pitches = 1/(array(pitches)*dt)
     return pitches.mean(), pitches.std()
-        
-        
-def first_min(wave):
-    '''
-    returns the first minimum of an array, starting from the first element 
-    if interp = True, evaluates the minimum position via linear interpolation
-    of diff(wave)
-
-    '''
-    
-    for i in range(1,wave[1:-1].size):
-        if wave[i-1] > wave[i] < wave[i+1]:
-            return i
-    return None
-        
-def fwhm(wave):
-    '''
-    Returns full width at half maximum
-    '''
-    
-    m = wave.max()
-    x = wave.argmax()
-
-    right = left = 0
-    
-    wave /= m
-    for i in range(min(wave[x:-1].size, wave[1:x].size)):
-        if wave[x+i] <= 0.5 < wave[x+i+1]:
-            right = i
-        if wave[x-i] <= 0.5 < wave[x-i-1]:
-            left = i
-
-        if right and left:
-
-            return right + left
-        
     
 
 def max_freqs(KD, show_fig = True):
@@ -345,3 +303,5 @@ def max_freqs(KD, show_fig = True):
             plot(freqs[:len(sp_fft)], abs(sp_fft), 'o', alpha = 0.6)
 
     return max_fs
+
+

@@ -9,7 +9,6 @@ from PyQt4 import QtCore, QtGui
 
 import math
 import sys, os
-sys.path.append('/home/guillaume/Python')
 
 from kt_simul import simul_spindle as Sim
 from param_seter import *

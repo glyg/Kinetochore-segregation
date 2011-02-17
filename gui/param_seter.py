@@ -15,7 +15,7 @@ used in the simulation
 import sys
 from PyQt4 import QtGui, QtCore
 
-sys.path.append('/home/guillaume/Python')
+
 from kt_simul.xml_handler import *
 from numpy import log10, floor
 

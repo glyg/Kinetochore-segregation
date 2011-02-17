@@ -195,19 +195,6 @@ class KinetoDynamics(object) :
         cdef double ld0, ld_slope
         ld0 = self.params['ld0']
         ld_slope = self.params['ld_slope']
-
-        #ch = self.chromosomes[n]
-
-        # cdef int p
-        # cdef double pspos, spos
-        # if side == 0:
-        #     pspos = ch.rplugs[m].pos
-        #     p = ch.rplugs[m].plug
-        #     spos = self.spbL.pos
-        # else:
-        #     pspos = ch.lplugs[m].pos
-        #     p = ch.lplugs[m].plug
-        #     spos = self.spbR.pos
         
         cdef double dist
         dist = abs(spos - pspos)
@@ -217,114 +204,6 @@ class KinetoDynamics(object) :
         if dist < 0.1: ldep = dist  # No force when at pole
 
         return  ldep * p * (p - 1) / 2
-
-    #@cython.profile(False)
-    def am_SS(self):
-        '''
-        SPBs diagonal term
-        '''
-        cdef int N = self.params['N']
-        cdef int Mk = self.params['Mk']
-        cdef float mus = self.params['mus']
-        cdef float Vmz = self.params['Vmz']
-        cdef float Fmz = self.params['Fmz']
-
-        cdef float s
-        s = - 2 * mus - 4 * Fmz / Vmz
-        cdef float sposR = self.spbR.pos
-        cdef float sposL = self.spbL.pos
-        cdef float psposR, psposL
-        cdef int pR, pL
-
-        for n in range(N):
-            ch = self.chromosomes[n]
-            for m in range(Mk):
-                psposR = ch.rplugs[m].pos
-                pR = ch.rplugs[m].plug
-                psposL = ch.lplugs[m].pos
-                pL = ch.lplugs[m].plug
-
-                s += - self.alpha(psposR, sposR, pR) - self.beta(psposR, sposL, pR)
-                s += - self.alpha(psposL, sposL, pL) - self.beta(psposL, sposR, pL)
-
-        return s
-
-    #@cython.profile(False)    
-    def am_mS(self, int side, int p, float pspos,
-              float spos_good, float spos_bad):
-        '''
-        attachment site interaction with SPB
-        '''
-        a =  (1 - side*2) * ( self.alpha(pspos, spos_good, p)
-                              - self.beta(pspos, spos_bad, p) )
-
-        return  a
-
-    #@cython.profile(False)
-    def am_mm(self, int p, float pspos,
-              float spos_good, float spos_bad):
-        '''attachment site diagonal term
-        '''
-        cdef float muo = self.params['muo']
-        return - muo - (self.alpha(pspos, spos_good, p)
-                        + self.beta(pspos, spos_bad, p))
-
-        
-    #@cython.profile(False)        
-    def am_mn(self, int side):
-        '''friction from outerplate
-        '''
-        cdef float muo = self.params['muo']
-        return  muo
-
-
-    #@cython.profile(False)
-    def am_nn(self):
-        cdef float muo = self.params['muo']
-        cdef float mui = self.params['mui']
-        cdef int Mk = self.params['Mk']
-        return  - Mk * muo - mui
-
-        
-    # Constant vector
-    #@cython.profile(False)
-    def cm_S(self):
-        cdef int N = self.params['N']
-        cdef int Mk = self.params['Mk']        
-        cdef float Fmz = self.params['Fmz']
-        cdef float sposR = self.spbR.pos
-        cdef float sposL = self.spbL.pos
-        cdef float psposR, psposL
-        cdef int pR, pL
-
-        cdef float b = 2 * Fmz
-        for n in range(N):
-            ch = self.chromosomes[n]
-            for m in range(Mk):
-                psposR = ch.rplugs[m].pos
-                pR = ch.rplugs[m].plug
-                psposL = ch.lplugs[m].pos
-                pL = ch.lplugs[m].plug
-
-                b += - self.alpha(psposR, sposR, pR) - self.beta(psposR, sposL, pR)
-                b += - self.alpha(psposL, sposL, pL) - self.beta(psposL, sposR, pL)
-
-        return b
-
-    #@cython.profile(False)
-    def cm_n(self, int side) :
-        ''' kineto '''
-        cdef float d0 = self.params['d0']
-        cdef float kappa = self.params['kappa']
-        return (1 - 2*side) * kappa * d0
-
-    #@cython.profile(False)
-    def cm_m(self, int side, int p, float pspos,
-              float spos_good, float spos_bad):
-        cdef float b
-        b = (1 - side * 2) * ( self.alpha(pspos, spos_good, p)
-                               - self.beta(pspos, spos_bad, p) )
-        return b
 
     def calcA(self):
         
@@ -405,6 +284,47 @@ class KinetoDynamics(object) :
             
         return A#.tocsr()
 
+        # Constant vector
+    #@cython.profile(False)
+    def cm_S(self):
+        cdef int N = self.params['N']
+        cdef int Mk = self.params['Mk']        
+        cdef float Fmz = self.params['Fmz']
+        cdef float sposR = self.spbR.pos
+        cdef float sposL = self.spbL.pos
+        cdef float psposR, psposL
+        cdef int pR, pL
+
+        cdef float b = 2 * Fmz
+        for n in range(N):
+            ch = self.chromosomes[n]
+            for m in range(Mk):
+                psposR = ch.rplugs[m].pos
+                pR = ch.rplugs[m].plug
+                psposL = ch.lplugs[m].pos
+                pL = ch.lplugs[m].plug
+
+                b += - self.alpha(psposR, sposR, pR) - self.beta(psposR, sposL, pR)
+                b += - self.alpha(psposL, sposL, pL) - self.beta(psposL, sposR, pL)
+
+        return b
+
+    #@cython.profile(False)
+    def cm_n(self, int side) :
+        ''' kineto '''
+        cdef float d0 = self.params['d0']
+        cdef float kappa = self.params['kappa']
+        return (1 - 2*side) * kappa * d0
+
+    #@cython.profile(False)
+    def cm_m(self, int side, int p, float pspos,
+              float spos_good, float spos_bad):
+        cdef float b
+        b = (1 - side * 2) * ( self.alpha(pspos, spos_good, p)
+                               - self.beta(pspos, spos_bad, p) )
+        return b
+
+
     def calcc(self):
 
         cdef int Mk = self.params['Mk']
@@ -456,10 +376,7 @@ class KinetoDynamics(object) :
         #product = dot(B.todense(), X)
         product = dot(B,X)
         pos_dep = product + C
-        
-        
         return pos_dep
-
 
     def test_anaphase_switch(self):
         N = self.params["N"]
@@ -484,16 +401,8 @@ class KinetoDynamics(object) :
         return 1 - exp( - fa)
 
 
-    def Pdet(self, n, m, side):
-        '''Calculates detachement frequency for kineto n
-        for correctely pluged kMTs
-        side = 0 : right
-        side = 1 : left
-        '''
-        return self.Pdet_mero( n, m, side)
-
     #@cython.profile(False)
-    def Pdet_mero(self, int n, int m, int side):
+    def Pdet(self, int n, double plugpos):
         '''Calculates detachement frequency for kineto n
         side = 0 : right
         side = 1 : left
@@ -504,9 +413,8 @@ class KinetoDynamics(object) :
         cdef double aurora = self.params['aurora']
 
         ch = self.chromosomes[n]
-        m = sum(ch.mero(), dtype=float) # float(ch.mero()[side])
-        dist = ch.dist()
-
+        dist = ch.plug_dist(plugpos)
+        
         ### Aurora ???
         cdef double fdc
         if aurora != 0 :
@@ -561,11 +469,11 @@ class KinetoDynamics(object) :
                 # Attached kMTs have a chance to unplug (until anaphaseB):
                 if ch.rplugs[m].plug == 1:# and ch.anaphase_switch[0] == 0:
                     dice = random.random()
-                    if  dice < self.Pdet_mero(n, m, 0):
+                    if  dice < self.Pdet(n, ch.rplugs[m].pos):
                         ch.rplugs[m].plug = 0
                 elif ch.rplugs[m].plug == -1 :
                     dice = random.random()
-                    if  dice < self.Pdet_mero(n, m, 0):
+                    if  dice < self.Pdet(n, ch.rplugs[m].pos):
                         ch.rplugs[m].plug = 0
                 # Unattached kMTs have a chance to plug:                    
                 else :
@@ -580,11 +488,11 @@ class KinetoDynamics(object) :
 
                 if ch.lplugs[m].plug == 1 :# and ch.anaphase_switch[1] == 0:
                     dice = random.random()
-                    if  dice < self.Pdet_mero(n, m, 1):
+                    if  dice < self.Pdet(n, ch.lplugs[m].pos):
                         ch.lplugs[m].plug = 0
                 elif ch.lplugs[m].plug == -1:
                     dice = random.random()
-                    if  dice < self.Pdet_mero(n, m, 1):
+                    if  dice < self.Pdet(n, ch.lplugs[m].pos):
                         ch.lplugs[m].plug = 0
                 # Unattached kMTs have a chance to plug:                    
                 else :
@@ -757,6 +665,8 @@ class Chromosome(object):
         
 
     def pluged(self):
+        cdef int rpluged 
+        cdef int lpluged 
         rpluged, lpluged = 0, 0
         for rps, lps in zip(self.rplugs.values(), self.lplugs.values()) :
             if rps.plug > 0:
@@ -766,6 +676,8 @@ class Chromosome(object):
         return rpluged, lpluged
 
     def mero(self):
+        cdef int rmero
+        cdef int lmero
         rmero, lmero = 0,0
         for rps, lps in zip(self.rplugs.values(), self.lplugs.values()) :
             if rps.plug < 0:
@@ -778,15 +690,17 @@ class Chromosome(object):
     def dist(self):
         return (self.rightpos - self.leftpos)
 
+    def plug_dist(self, double plugpos):
+        return self.center() - plugpos
+
     def center(self):
         return (self.rightpos + self.leftpos)/2
 
     def cen_traj(self):
-        
         return (array(self.righttraj) + array(self.lefttraj))/2
         
 
-    def isatrightpole(self, tol = 0.1) :
+    def isatrightpole(self, double tol = 0.01) :
         '''tol : tolerance distance
         '''
         if self.rightpos >= self.spindle.spbR.pos - tol:
@@ -794,13 +708,13 @@ class Chromosome(object):
         else :
             return False
 
-    def isatleftpole (self, tol = 0.1) :
+    def isatleftpole (self, double tol = 0.01) :
         if abs(self.leftpos - self.spindle.spbL.pos) <= tol:
             return True
         else :
             return False
             
-    def isatpole(self, side = None, tol = 0.1) :
+    def isatpole(self, side = None, double tol = 0.01) :
 
         if side == 0 and self.isatrightpole(tol):
             return True
