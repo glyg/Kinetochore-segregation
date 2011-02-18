@@ -177,8 +177,8 @@ def were_unat(mh_b, ph_b):
     # AND  Right |  False     False
     xor_r = mh_b[:,1::2] ^ ph_b[:,1::2] #right
     xor_l = mh_b[:,::2] ^ ph_b[:,::2]   #left
-    nand_r = logical_not(mh_b[:,::2] | ph_b[:,::2]) & xor_r   #            Correct  Merotelic
-    nand_l = logical_not(mh_b[:,1::2] | ph_b[:,1::2]) & xor_l #      Left   False     False    
+    nand_r = logical_not(mh_b[:,::2] | ph_b[:,::2])
+    nand_l = logical_not(mh_b[:,1::2] | ph_b[:,1::2])
     and_x = nand_r & nand_l    
     return and_x
 
