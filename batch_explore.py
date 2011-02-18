@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 #from pylab import *
 from numpy import *
-from scipy import *
+#from scipy import *
 #import matplotlib.mlab as mlab
 import sys, os
 import time
 
 import pyximport
 pyximport.install()
+
+sys.path.append('/home/gay/python')
+sys.path.append('/home/gay/python/lib')
 
 from kt_simul.simul_spindle import *
 from kt_simul.xml_handler import *
@@ -39,24 +42,22 @@ def full_simul(new_params, num_steps,  plug = 'monotelic'):
     return m
     
 
-def explore_2D(num_steps, num_ech, plug):
+def explore_2D(pcs1s, auroras, num_steps, num_ech, plug):
 
     new_params = {}
 
-    pcs1s = linspace(0., 1., 41)[::-1]
-    auroras = logspace(-1.5, .2, 41)
     
     all_defects = {}
     all_balance = None
-
+    all_trans_mat = None
 
     for pcs1 in pcs1s:
         for aurora in auroras:
             new_params['aurora'] = aurora
             new_params['orientation'] = pcs1
             
-            defects, balance = explore_one(new_params, num_steps,
-                                           num_ech, plug = plug)
+            defects, balance, trans_mat = explore_one(new_params, num_steps,
+                                                      num_ech, plug = plug)
             for key, value in defects.items():
                 try:
                     all_defects[key] = vstack((all_defects[key],value))
@@ -64,11 +65,12 @@ def explore_2D(num_steps, num_ech, plug):
                     all_defects[key] = value
             if all_balance is None:
                 all_balance = balance
+                all_trans_mat = trans_mat
             else:
                 all_balance = vstack((all_balance,balance))
-                
+                all_trans_mat = vstack((all_trans_mat, trans_mat))
 
-    return all_defects, all_balance
+    return all_defects, all_balance, all_trans_mat
 
         
 
@@ -84,16 +86,20 @@ def explore_one(new_params, num_steps, num_ech, plug):
         mp = full_simul(new_params, num_steps, plug = plug)
         defects, were_defects = defect_histories(mp.KD)
         balance = balance_histories(mp.KD)
+        trans_mat = transition_matrix(mp.KD)
         if i == 0:
             all_defects = defects
             all_balance = balance
+            all_trans_mat = trans_mat
         else:
             for defect in defects.keys():
                 all_defects[defect] = hstack((all_defects[defect],
                                               defects[defect]))
             all_balance = hstack((all_balance, balance))
+            all_trans_mat = hstack((all_trans_mat, trans_mat))
 
-    return all_defects, all_balance
+            
+    return all_defects, all_balance, all_trans_mat
 
  
 if __name__ == "__main__":
@@ -101,14 +107,25 @@ if __name__ == "__main__":
 
     base_name = sys.argv[1]
 
+    pcs1s = linspace(0., 1., 2)[::-1]
+    auroras = logspace(-1.5, .2, 2)
+    pcs1name = '%s_pcs1s.npy' %base_name
+    auroraname = '%s_auroras.npy' %base_name
+    save(pcs1name, pcs1s)
+    save(auroraname, auroras)
+
+    print 'saved auras'
     plugs = ['monotelic', 'null', 'merotelic', 'amphitelic','syntelic']
-    
     for plug in plugs:
-        defects, balance = explore_2D(800, 15, plug = plug)
+        defects, balance, trans_mat = explore_2D(pcs1s, auroras, 100, 30, plug = plug)
         for key, value in defects.items():
             mname = '%sdefect_%s_%s.npy' %(base_name, key, plug)
             save(mname, value)
+
         mname = '%sbalance_%s.npy' %(base_name, plug)
         save(mname, balance)
+        mname = '%stransition_%s.npy' %(base_name, plug)
+        save(mname, trans_mat)
+
 
     

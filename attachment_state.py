@@ -59,6 +59,22 @@ def balance_histories(kd):
 
     return vstack(balance)
 
+def transition_matrix(kd):
+    
+    def_tags = {'merotelic':3, 'syntelic':4, 'amphitelic':2,
+                    'monotelic':1, 'unattached':0}
+    N = kd.params['N']
+    num_defects, were_defects = defect_histories(kd)
+    trans_mat = zeros((5,5))
+    for key, wd in were_defects.items():
+        for key2, wd2 in were_defects.items():
+            num_trans = 0
+            for i in range(N):
+                num_trans += (wd.astype(int)[:-1,i]*wd2.astype(int)[1:,i]).sum()
+                trans_mat[def_tags[key], def_tags[key2]] += num_trans
+    
+    return trans_mat
+
 def defect_histories(kd):
 
     '''
@@ -66,21 +82,17 @@ def defect_histories(kd):
     Takes a KinetochoreDynamics instance as unique argument
 
     output:
-    plugs : a (2*N, num_steps) shaped array of plug_history
-    meros : a (2*N, num_steps) shaped array of mero_history
+    num_defects, were_defects: dectionnaries
+    
     The following outputs are established on a per chromosome
     (i.e. kt pairs) basis
-    num_plugs: the number of correctely plugged chromosomes
-    num_synt: the number of syntelic chromosomes
-    num_mono: the number of monotelic chromosomes
-    num_mero: the number of merotelic chromosomes
-    num_unplugs: the number of unpluged chromosomes
+
     Those outputs are returned in a dictionnary called num_defects:
-    num_defects = {"amphitelic":num_plugs,
-               "merotelic":num_meros,
-               "monotelic":num_mono,
-               "syntelic":num_synt
-               "unattached":num_unplugs}
+    num_defects = {"amphitelic":the number of correctely plugged chromosomes,
+               "merotelic":the number of merotelic chromosomes,
+               "monotelic":the number of monotelic chromosomes,
+               "syntelic":the number of syntelic chromosomes
+               "unattached":the number of unpluged chromosomes}
     Normaly num_plugs+num_synt+num_mono+num_mero+num_unplugs = N
 
     were_plug, were_mero, etc. : 2D arrays of booleans giving the state
@@ -99,10 +111,8 @@ def defect_histories(kd):
     plugs = hstack(plugs)
     mh_b = meros.astype(bool)
     ph_b = plugs.astype(bool)
-
     
     #Put all this in a dictionary
-
     were_defects = {'amphitelic':were_plug(mh_b, ph_b),
                    'merotelic':were_mero(mh_b, ph_b),
                    'monotelic':were_mono(mh_b, ph_b),
