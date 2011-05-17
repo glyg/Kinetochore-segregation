@@ -107,17 +107,17 @@ if __name__ == "__main__":
 
     base_name = sys.argv[1]
 
-    pcs1s = linspace(0., 1., 2)[::-1]
-    auroras = logspace(-1.5, .2, 2)
+    pcs1s = linspace(0.95, 1., 5)[::-1]
+    auroras = logspace(-2.5, .2, 41)
     pcs1name = '%s_pcs1s.npy' %base_name
     auroraname = '%s_auroras.npy' %base_name
     save(pcs1name, pcs1s)
     save(auroraname, auroras)
 
     print 'saved auras'
-    plugs = ['monotelic', 'null', 'merotelic', 'amphitelic','syntelic']
+    plugs = ['monotelic', 'null', 'random', 'merotelic']
     for plug in plugs:
-        defects, balance, trans_mat = explore_2D(pcs1s, auroras, 100, 30, plug = plug)
+        defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 100, plug = plug)
         for key, value in defects.items():
             mname = '%sdefect_%s_%s.npy' %(base_name, key, plug)
             save(mname, value)

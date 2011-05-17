@@ -16,7 +16,7 @@
     <unit>&#181;m</unit>
     <description>Mean kt-kt distance</description>
   </param>
-  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="1.2">
+  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="1.">
     <unit>&#181;m</unit>
     <description>Max kt-kt distance</description>
   </param>

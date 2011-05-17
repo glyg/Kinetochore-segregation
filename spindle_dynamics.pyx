@@ -180,7 +180,7 @@ class KinetoDynamics(object) :
 
         cdef double ldep
         ldep = ld_slope * dist + ld0
-        if dist < 0.1: ldep = dist  # No force when at pole
+        if dist < 0.01: ldep = dist  # No force when at pole
         
         return ldep * p * (1 + p) / 2
 
@@ -201,7 +201,7 @@ class KinetoDynamics(object) :
 
         cdef double ldep
         ldep = ld_slope * dist + ld0
-        if dist < 0.1: ldep = dist  # No force when at pole
+        if dist < 0.01: ldep = dist  # No force when at pole
 
         return  ldep * p * (p - 1) / 2
 
@@ -218,7 +218,7 @@ class KinetoDynamics(object) :
         #create a well- sized array
         cdef int dims
         dims = 1 + 2*N * ( Mk + 1 ) 
-        cdef np.ndarray[np.float64_t, ndim =2] A 
+        #cdef np.ndarray[np.float64_t, ndim =2] A 
         A = zeros((dims, dims))
         #A = sparse.lil_matrix((dims, dims))
         

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <parameters>
-  <param max="2000." min="0.1" name="span" step="10." value="800.0">
+  <param max="2000." min="0.1" name="span" step="10." value="1200.0">
     <unit>s</unit>
     <description>Simulation duration</description>
   </param>
@@ -32,7 +32,7 @@
     <unit>pN.s/&#181;m</unit>
     <description>Kt structural friction coef.</description>
   </param>
-  <param max="2000." min="1." name="mus" step="1." value="100.0">
+  <param max="2000." min="1." name="mus" step="1." value="1000.0">
     <unit>pN.s/&#181;m</unit>
     <description>Spb drag coefficient</description>
   </param>

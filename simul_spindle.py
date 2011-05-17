@@ -279,8 +279,8 @@ class Metaphase(object):
 
         for t in self.timelapse[1:]:
             # Ablation test
-            if ablat is not None and ablat <= t:
-                self.ablation(pos = self.spbL.pos)
+            if ablat is not None and ablat == t:
+                self.ablation(pos = self.KD.spbL.pos)
             # Anaphase transition ?
             if self.anaphase_test(t):
                 self.toa_test(t)
@@ -305,7 +305,7 @@ class Metaphase(object):
 
     def toa_test(self, t):
         
-        for ch in self.KD.chromosomes.values():    
+        for n, ch in self.KD.chromosomes.items():    
             if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
                 ch.right_toa = t
                 s = "Right kt of chromosome %d reached the pole at time %.2f" %(n,t)
@@ -351,28 +351,33 @@ class Metaphase(object):
         for ch in self.KD.chromosomes.values():
             (right_pluged, left_pluged) = ch.pluged()
             (right_mero, left_mero) = ch.mero()
-            if pos > ch.ktR.pos:
+            if pos > ch.rightpos:
                 for rplug in ch.rplugs.values():
                     rplug.plug = min(0, rplug.plug)
                 for lplug in ch.lplugs.values():
                     lplug.plug = max(0, lplug.plug)
-                ch.pluged = (right_pluged, left_pluged)
-                ch.mero = (0, 0)
+                #ch.pluged = (right_pluged, left_pluged)
+                #ch.mero = (0, 0)
 
-            elif ch.ktR.pos >= pos > ch.ktL.pos:
+            elif ch.rightpos >= pos > ch.leftpos:
                 for rplug in ch.rplugs.values():
                     rplug.plug = max(0, rplug.plug)
                 for lplug in ch.lplugs.values():
                     lplug.plug = max(0, lplug.plug)
-                ch.pluged = (0, left_pluged)
-                ch.mero = (right_mero, 0)
+                #ch.pluged = (0, left_pluged)
+                #ch.mero = (right_mero, 0)
 
-            elif pos < ch.ktL.pos:
+            elif pos < ch.leftpos:
                 for lplug in ch.lplugs.values():
                     lplug.plug = min(0, lplug.plug)
                 for rplug in ch.rplugs.values():
                     rplug.plug = max(0, rplug.plug)
 
+
+            (right_pluged, left_pluged) = ch.pluged()
+            (right_mero, left_mero) = ch.mero()
+            print (right_pluged, left_pluged)
+            print (right_mero, left_mero)
                 #ch.pluged = (right_pluged, 0)
                 #ch.mero = (0,left_mero)
 

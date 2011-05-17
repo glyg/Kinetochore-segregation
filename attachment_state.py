@@ -31,8 +31,8 @@ def balance_histories(kd):
     Mk = kd.params['Mk']
     num_steps = len(kd.spbR.traj)
 
-    #The number of cases is (Mk-2) * 2 + 1
-    balance = vsplit(zeros((2 * Mk-3, num_steps)), 2 * Mk-3)
+    #The number of cases is (Mk-1) * 2 + 1
+    balance = vsplit(zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
 
     
     for ch in kd.chromosomes.values():
@@ -169,14 +169,35 @@ def were_mero(mh_b, ph_b):
     or_x = and_r | and_l                # OR  Right  True     True  
     return or_x
 
+#On a phenotype point of view, one should futher distinguish between merotelic chromosomes :
+###  * The ones that are amphitelic - merotelic (i.e kts tend to segregate correctly)
+###  * The ones that are syntelic - merotelic (both kts go to the same poles)
+###  * The ones that are monotelic - merotelic (one kt is merotelic and the other is unattached)
+###  * The ones that are cut (one or both kts are equaly attached to both poles)
+
+#So let's go
+def were_amphi_mero(mh_b, ph_b):
+
+    and_r = mh_b[:,::2] & ph_b[:,::2]
+    and_l = mh_b[:,1::2] & ph_b[:,1::2]
+
+    nor_r = logical_not(mh_b[:,::2] | ph_b[:,::2])
+    nor_l = logical_not(mh_b[:,1::2] | ph_b[:,1::2])
+
+    return ( and_r & nor_l ) ^ ( and_l & nor_r )
+    
+
+
+
+
 def were_mono(mh_b, ph_b):
 
     xor_r = mh_b[:,1::2] ^ ph_b[:,1::2] #right
     xor_l = mh_b[:,::2] ^ ph_b[:,::2]   #left
     #The number of monotelic chromosomes
-    nand_r = logical_not(mh_b[:,::2] | ph_b[:,::2]) & xor_r   #            Correct  Merotelic
-    nand_l = logical_not(mh_b[:,1::2] | ph_b[:,1::2]) & xor_l #      Left   False     False    
-    xor_x = nand_r ^ nand_l                                   # XOR  Right  False     False  
+    nand_r = logical_not(mh_b[:,::2] | ph_b[:,::2])    #            Correct  Merotelic
+    nand_l = logical_not(mh_b[:,1::2] | ph_b[:,1::2])   #      Left   False     False    
+    xor_x =  (nand_r & xor_r)  ^  (nand_l & xor_l)  # XOR  Right  False     False  
     return xor_x
 
 def were_unat(mh_b, ph_b):
