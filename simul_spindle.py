@@ -122,7 +122,7 @@ def reduce_params(paramtree, measuretree):
 
     mus = params['mus']
     Fmz = N * Mk * alpha_mean * (1 + ( metaph_rate/2 ) *
-                                 (1 + mus / ( 12 * alpha_mean ))
+                                 (1 + mus / ( N * Mk * alpha_mean ))
                                  / (1 -  metaph_rate / Vmz ))
     params['Fmz'] = Fmz
     mui = ( tau_i / kappa )
@@ -388,13 +388,17 @@ class Metaphase(object):
         
         N = self.KD.params['N']
         sac = self.KD.params['sac']
-        if sac == 0:
-            return True
+        # if sac == 0:
+        #     return True
         
         for ch in self.KD.chromosomes.values() :
-            if not all(ch.pluged) :
+            if not all(ch.pluged()) :
+                ch.active_sac = 1
                 #print "active checkpoint"
                 return False
+            else:
+                ch.active_sac = 0
+                
         return True
 
     def _mero_checkpoint(self):

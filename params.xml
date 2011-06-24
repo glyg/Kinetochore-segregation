@@ -44,7 +44,7 @@
     <unit>&#181;m</unit>
     <description>Kinetochore - kinetochore rest length</description>
   </param>
-  <param max="100" min="0" name="aurora" step="0.1" value="0.25">
+  <param max="100" min="0" name="aurora" step="0.1" value="0.55">
     <unit>&#181;m</unit>
     <description>Aurora Pdet modifier</description>
   </param>
@@ -60,7 +60,7 @@
     <unit>Hz</unit>
     <description>MT free attachement frequency</description>
   </param>  
-  <param max="1." min="0." name="fd" step="0.001" value="0.02">
+  <param max="1." min="0." name="fd" step="0.001" value="0.08">
     <unit>Hz</unit>
     <description>MT free detachement frequency</description>
   </param>

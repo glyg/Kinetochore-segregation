@@ -32,8 +32,14 @@ def balance_histories(kd):
     num_steps = len(kd.spbR.traj)
 
     #The number of cases is (Mk-1) * 2 + 1
-    balance = vsplit(zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
 
+    balance = vsplit(zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
+    num_cuts = zeros(num_steps)
+ 
+    merotelic_types = {'corrected':zeros(num_steps),
+                       'cut':zeros(num_steps),
+                       'monotelic':zeros(num_steps),
+                       'syntelic':zeros(num_steps)}
     
     for ch in kd.chromosomes.values():
 
@@ -47,17 +53,36 @@ def balance_histories(kd):
                 rbalance[j] =  nan
             else:
                 rbalance[j] = p[0] - m[0]
-
             if m[1] * p[1] == 0 :
                 lbalance[j] =  nan
             else:
                 lbalance[j] = p[1] - m[1]
+                
+            if isfinite(lbalance[j]) or isfinite(rbalance[j]):
+                if p[0] == m[0]:
+                    if p[0] != 0:
+                        merotelic_types['cut'][j] += 1
+                    else:
+                        merotelic_types['monotelic'][j] += 1
+                if p[1] == m[1]:
+                    if p[1] != 0:
+                        merotelic_types['cut'][j] += 1
+                    else:
+                        merotelic_types['monotelic'][j] += 1
+                
+                if (p[1] - m[1]) * (p[0] - m[0]) < 0: #They are pulled the same way
+                    merotelic_types['syntelic'][j] += 1 
 
+                if (p[1] - m[1]) * (p[0] - m[0]) > 0: #they are pulled appart
+                    merotelic_types['corrected'][j] += 1 
+
+                
+        
         for i, bal in enumerate(balance):                
             bal += array([rbalance == i - Mk + 2]).flatten().astype(int)
             bal += array([lbalance == i - Mk + 2]).flatten().astype(int)   
 
-    return vstack(balance)
+    return vstack(balance), merotelic_types
 
 def transition_matrix(kd):
     

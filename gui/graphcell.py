@@ -27,6 +27,8 @@ CH_OFFSET = 0.4 # Vertical distance between chromosomes
 
 SPB_COLOR = QtGui.QColor(255,0,0)
 CH_COLOR = QtGui.QColor(0,100,100, alpha = 200)
+ACTIVE_SAC_COLOR = QtGui.QColor(100,10,100, alpha = 200)
+
 GOOD_PLUGSITE_COLOR = QtGui.QColor(0,250,20, alpha = 200)
 BAD_PLUGSITE_COLOR = QtGui.QColor(255,0,0, alpha = 255)
 UNPLUGED_COLOR = QtGui.QColor(0,20,250, alpha = 200)
@@ -172,7 +174,10 @@ class GraphKinetochore(QtGui.QGraphicsItem):
         return self.path
     
     def paint(self, painter, option, widget):
-        brush = QtGui.QBrush(CH_COLOR)
+        if self.ch.active_sac:
+            brush = QtGui.QBrush(ACTIVE_SAC_COLOR)
+        else:
+            brush = QtGui.QBrush(CH_COLOR)
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
         center = self.newPos

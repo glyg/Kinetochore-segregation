@@ -662,7 +662,7 @@ class Chromosome(object):
 
         self.mero_history = [self.mero()]
         self.anaphase_switch = [0,0]# = 1 once the kineto reached the pole at anaphase
-        
+        self.active_sac = 0
 
     def pluged(self):
         cdef int rpluged 
