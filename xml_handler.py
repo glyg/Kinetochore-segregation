@@ -99,7 +99,7 @@ class ParamTree(object):
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
             elif self.has_unit(param, DRAG_UNIT):
-                val *= Vk/Fk
+                val /= Fk/dt
             elif self.has_unit(param, SPEED_UNIT):
                 val *= 1/Vk
             elif self.has_unit(param, FREQ_UNIT):
