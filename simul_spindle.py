@@ -108,8 +108,7 @@ def reduce_params(paramtree, measuretree):
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
     alpha_mean = float(1/(1 + fd_eff/fa))
     #Take metaphase kt pair distance as the maximum one
-    #kappa = 4 * alpha_mean * (1 + metaph_rate/2) / ( metaph_k_dist - d0 )
-    kappa = Mk / ( max_metaph_k_dist - d0 )
+    kappa = 2 * Mk / ( max_metaph_k_dist - d0 )
     params['kappa'] = kappa
 
     kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
@@ -125,9 +124,9 @@ def reduce_params(paramtree, measuretree):
                                  (1 + mus / ( N * Mk * alpha_mean ))
                                  / (1 -  metaph_rate / Vmz ))
     params['Fmz'] = Fmz
-    mui = ( tau_i / kappa )
+    mui = ( tau_i * kappa ) * Vk #Due to adimentionalization ### THIS SHOULD BE DONE A BIT MORE CARREFULY 
     params['mui'] = mui
-    muo = ( tau_o / kop )
+    muo = ( tau_o * kop ) * Vk  #Due to adimentionalization 
     params['muo'] = muo 
     for key, val in params.items():
         paramtree.change_dic(key, val, write = False, verbose = False)
