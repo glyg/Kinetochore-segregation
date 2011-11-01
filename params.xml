@@ -60,7 +60,7 @@
     <unit>Hz</unit>
     <description>MT free attachement frequency</description>
   </param>  
-  <param max="1." min="0." name="fd" step="0.001" value="0.02">
+  <param max="1." min="0." name="fd" step="0.001" value="0.06">
     <unit>Hz</unit>
     <description>MT free detachement frequency</description>
   </param>
