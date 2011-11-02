@@ -10,8 +10,8 @@ import time
 import pyximport
 pyximport.install()
 
-sys.path.append('/home/gay/python')
-sys.path.append('/home/gay/python/lib')
+# sys.path.append('/home/guillaume/python')
+# sys.path.append('/home/guil/python/lib')
 
 from kt_simul.simul_spindle import *
 from kt_simul.xml_handler import *
@@ -25,7 +25,7 @@ except NameError: #Not importing from a module
     measurefile = 'measures.xml'
 
 
-def full_simul(new_params, num_steps,  plug = 'monotelic'):
+def full_simul(new_params, plug = 'monotelic'):
 
     m = Metaphase()
     for key, new_value in new_params.items(): 
@@ -35,47 +35,76 @@ def full_simul(new_params, num_steps,  plug = 'monotelic'):
     m.paramtree.change_dic('trans', num_steps, write = False,
                            back_up = False, verbose = False)
 
-    m.__init__(num_steps, m.paramtree,  plug = plug)
+    m.__init__(paramtree = m.paramtree,  plug = plug)
     m.simul()
-    m.KD.num_steps = len(m.KD.spbR.traj)
+    #m.KD.num_steps = len(m.KD.spbR.traj)
     
     return m
     
 
-def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, logfile = None):
+def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt = 1):
 
     new_params = {}
+    # all_defects = {}
+    # all_balance = None
+    # all_trans_mat = None
 
-    
-    all_defects = {}
-    all_balance = None
-    all_trans_mat = None
+    logfile = file('%s.log' %base_name, 'w+')
 
-    for pcs1 in pcs1s:
-        for aurora in auroras:
+    for n, pcs1 in enumerate(pcs1s):
+        for m, aurora in enumerate(auroras):
             new_params['aurora'] = aurora
             new_params['orientation'] = pcs1
-            new_params['dt'] = 2.
-            defects, balance, trans_mat = explore_one(new_params, num_steps,
-                                                      num_ech, plug = plug)
+            new_params['span'] = num_steps * dt
+            new_params['dt'] = dt
+
+            for i in range(num_ech):
+                mp = full_simul(new_params, plug = plug)
+                xmlfname = '%s_res_pcs1-%03i_auroras-%03i_%03i.xml' %(base_name, n, m, i)
+                datafname = '%s_data_pcs1-%.3f_auroras-%.3f_%03i.npy' %(base_name, n, m, i)
+                mp.write_results(xmlfname, datafname)
+                del mp
             
             logfile.write('ran plug = %s, pcs1 = %03f, aurora = %03f\n' %(plug, pcs1, aurora))
+
+    return 0
+            
+    #         for key, value in defects.items():
+    #             try:
+    #                 all_defects[key] = vstack((all_defects[key],value))
+    #             except KeyError:
+    #                 all_defects[key] = value
+    #         if all_balance is None:
+    #             all_balance = balance
+    #             all_trans_mat = trans_mat
+    #         else:
+    #             all_balance = vstack((all_balance,balance))
+    #             all_trans_mat = vstack((all_trans_mat, trans_mat))
+
+    # return all_defects, all_balance, all_trans_mat
+
+
+def explore_aurora2D(fd0s, auroras, num_steps, num_ech, plug):
+
+    new_params = {}
+    for i in range(num_ech):
+        for n, fd0 in enumerate(fd0s):
+            for m, aurora in enumerate(auroras):
+                new_params['aurora'] = aurora
+                new_params['fd0'] = fd0
+                new_params['dt'] = 2.
+
+                mp = full_simul(new_params, num_steps, plug = plug)
+                xmlfname = '%s_res_fd0-%03i_auroras-%03i_%03i.xml' %(base_name, n, m, i)
+                datafname = '%s_data_fd0-%03i_auroras-%03i_%03i.npy' %(base_name, n, m, i)
+                mp.write_results(xmlfname, datafname)
+                del mp
+
+    return 0
+
                 
-            for key, value in defects.items():
-                try:
-                    all_defects[key] = vstack((all_defects[key],value))
-                except KeyError:
-                    all_defects[key] = value
-            if all_balance is None:
-                all_balance = balance
-                all_trans_mat = trans_mat
-            else:
-                all_balance = vstack((all_balance,balance))
-                all_trans_mat = vstack((all_trans_mat, trans_mat))
 
-    return all_defects, all_balance, all_trans_mat
 
-        
 
 def explore_one(new_params, num_steps, num_ech, plug):
     '''
@@ -109,38 +138,57 @@ if __name__ == "__main__":
 
 
     base_name = sys.argv[1]
+    t0 = time.time()
+    #fd0s = linspace(0.01, 1., 21)
+    pcs1s = linspace(0., 1., 11)
+    auroras = logspace(-3., .2, 41)
 
-<<<<<<< HEAD
-    pcs1s = linspace(0., 1., 21)[::-1]
-    auroras = logspace(-2, .2, 41)
-=======
-    pcs1s = linspace(0.95, 1., 5)[::-1]
-    auroras = logspace(-2.5, .2, 41)
->>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
-    pcs1name = '%s_pcs1s.npy' %base_name
+    #fd0sname = '%s_fd0s.npy' %base_name
+    #save(fd0sname, fd0s)
+    pcs1sname = '%s_pcs1s.npy' %base_name
+    save(pcs1sname, pcs1s)
     auroraname = '%s_auroras.npy' %base_name
-    save(pcs1name, pcs1s)
     save(auroraname, auroras)
-    logfile_name = '%s_log.txt'  %base_name
-    logfile = open(logfile_name, 'w+')
 
-<<<<<<< HEAD
-    plugs = ['null', 'merotelic', 'random', 'amphitelic', 'monotelic', 'syntelic']
-    for plug in plugs:
-        defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 25, plug, logfile)
-=======
-    print 'saved auras'
-    plugs = ['monotelic', 'null', 'random', 'merotelic']
-    for plug in plugs:
-        defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 100, plug = plug)
->>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
-        for key, value in defects.items():
-            mname = '%sdefect_%s_%s.npy' %(base_name, key, plug)
-            save(mname, value)
-        mname = '%sbalance_%s.npy' %(base_name, plug)
-        save(mname, balance)
-        mname = '%stransition_%s.npy' %(base_name, plug)
-        save(mname, trans_mat)
-        del defects, balance, trans_mat
+    plug = 'random'
+    num_steps = 800
+    dt = 1.
+    num_ech = 50
+    explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt)
+    print 'time: %.3f' %(time.time() - t0)
+
+    
+# <<<<<<< HEAD
+#     pcs1s = linspace(0., 1., 21)[::-1]
+#     auroras = logspace(-2, .2, 41)
+# =======
+#     pcs1s = linspace(0.95, 1., 5)[::-1]
+#     auroras = logspace(-2.5, .2, 41)
+# >>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
+#     pcs1name = '%s_pcs1s.npy' %base_name
+#     auroraname = '%s_auroras.npy' %base_name
+#     save(pcs1name, pcs1s)
+#     save(auroraname, auroras)
+#     logfile_name = '%s_log.txt'  %base_name
+#     logfile = open(logfile_name, 'w+')
+
+# <<<<<<< HEAD
+#     plugs = ['null', 'merotelic', 'random', 'amphitelic', 'monotelic', 'syntelic']
+#     for plug in plugs:
+#         defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 25, plug, logfile)
+# =======
+#     print 'saved auras'
+#     plugs = ['monotelic', 'null', 'random', 'merotelic']
+#     for plug in plugs:
+#         defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 100, plug = plug)
+# >>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
+#         for key, value in defects.items():
+#             mname = '%sdefect_%s_%s.npy' %(base_name, key, plug)
+#             save(mname, value)
+#         mname = '%sbalance_%s.npy' %(base_name, plug)
+#         save(mname, balance)
+#         mname = '%stransition_%s.npy' %(base_name, plug)
+#         save(mname, trans_mat)
+#         del defects, balance, trans_mat
 
     

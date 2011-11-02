@@ -45,7 +45,7 @@ class KinetoDynamics(object) :
         Mk = self.params['Mk']
         d0 = self.params['d0']
         fa = self.params['fa'] # 'free' attachement event frequency
-        fd = self.params['fd'] # 'free' detachement event frequency
+        fd0 = self.params['fd0'] # 'free' detachement event frequency
 
         self.spbR = Spb(1, l0) #right spb
         self.spbL = Spb(-1, l0) #left one
@@ -180,7 +180,7 @@ class KinetoDynamics(object) :
 
         cdef double ldep
         ldep = ld_slope * dist + ld0
-        if dist < 0.01: ldep = dist  # No force when at pole
+        if dist < 0.0001: ldep = dist  # No force when at pole
         
         return ldep * p * (1 + p) / 2
 
@@ -393,12 +393,13 @@ class KinetoDynamics(object) :
 
     #@cython.profile(False)
     def  Pat(self):#,  n, m, side):
-        '''Returns attachement frequency for kineto n
+        '''Returns attachement probability for kineto n
         '''
 
         cdef double fa = self.params['fa']
+        # cdef double dt = self.params['dt']
         #fat = fa
-        return 1 - exp( - fa)
+        return 1 - exp( -fa ) # * dt <- unnecessary due to non-dimentionalization
 
 
     #@cython.profile(False)
@@ -409,8 +410,9 @@ class KinetoDynamics(object) :
         '''
         
         cdef int Mk = self.params['Mk']
-        cdef double fd = self.params['fd']
+        cdef double fd0 = self.params['fd0']
         cdef double aurora = self.params['aurora']
+        # cdef double dt = self.params['dt']
 
         ch = self.chromosomes[n]
         dist = ch.plug_dist(plugpos)
@@ -418,13 +420,13 @@ class KinetoDynamics(object) :
         ### Aurora ???
         cdef double fdc
         if aurora != 0 :
-            fdc = fd  * aurora / abs(dist)   # exp( aurora * m / Mk )
-            if fdc > 1e4:
-                return 0
+            fdc = fd0  *  aurora / dist #exp( - dist / aurora)
+            if fdc > 1e4 : #* dt > 1e4:
+                return 1.
         else:
-            fdc = fd
+            fdc = fd0
         
-        return 1 - exp(-fdc)
+        return 1 - exp( - fdc ) # * dt <- unnecessary due to non-dimentionalization
 
 
     def Pmero(self, int n, int side):
@@ -464,7 +466,6 @@ class KinetoDynamics(object) :
             ch = self.chromosomes[n]
             (right_pluged, left_pluged) = ch.pluged()
             (right_mero, left_mero) = ch.mero()
-            
             for m in range(Mk):
                 # Attached kMTs have a chance to unplug (until anaphaseB):
                 if ch.rplugs[m].plug == 1:# and ch.anaphase_switch[0] == 0:
@@ -691,7 +692,7 @@ class Chromosome(object):
         return (self.rightpos - self.leftpos)
 
     def plug_dist(self, double plugpos):
-        return self.center() - plugpos
+        return abs(self.center() - plugpos)
 
     def center(self):
         return (self.rightpos + self.leftpos)/2
@@ -700,7 +701,7 @@ class Chromosome(object):
         return (array(self.righttraj) + array(self.lefttraj))/2
         
 
-    def isatrightpole(self, double tol = 0.01) :
+    def isatrightpole(self, double tol = 0.0) :
         '''tol : tolerance distance
         '''
         if self.rightpos >= self.spindle.spbR.pos - tol:
@@ -708,13 +709,13 @@ class Chromosome(object):
         else :
             return False
 
-    def isatleftpole (self, double tol = 0.01) :
+    def isatleftpole (self, double tol = 0.0) :
         if abs(self.leftpos - self.spindle.spbL.pos) <= tol:
             return True
         else :
             return False
             
-    def isatpole(self, side = None, double tol = 0.01) :
+    def isatpole(self, side = None, double tol = 0.0):
 
         if side == 0 and self.isatrightpole(tol):
             return True
