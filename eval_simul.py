@@ -276,8 +276,10 @@ def auto_corel(KD, smooth = 10.):
         ktL_sc = (ktL_s - m_speed)/st_speed
         co_ktL = correlate(ktL_sc, ktL_sc, 'full') / ktL_sc.size
         pitches.append(first_min(co_ktL[-co_ktL.size//2:]))
-        
-    pitches = 1/(array(pitches)*dt)
+    try:    
+        pitches = 1/(array(pitches)*dt)
+    except:
+        return 0
     return pitches.mean(), pitches.std()
     
 

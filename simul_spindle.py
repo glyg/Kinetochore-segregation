@@ -89,7 +89,7 @@ def reduce_params(paramtree, measuretree):
 
     Fk = params['Fk']
     fa = params['fa'] # 'free' attachement event frequency
-    fd = params['fd'] # 'free' detachement event frequency
+    fd0 = params['fd0'] # 'free' detachement event frequency
     aurora = params['aurora']
     N = params['N']
     Mk = params['Mk']
@@ -103,7 +103,7 @@ def reduce_params(paramtree, measuretree):
     if aurora != 0:
         fd_eff = fa * aurora / mean_metaph_k_dist
     else:
-        fd_eff = fd
+        fd_eff = fd0
     
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
     alpha_mean = float(1/(1 + fd_eff/fa))
@@ -159,7 +159,7 @@ class Metaphase(object):
     get_2Dtraj_list : returns 2D trajectories of the spindle elements
     """
 
-    def __init__(self,  duration=900, paramtree=None, measuretree=None,
+    def __init__(self,  paramtree=None, measuretree=None,
                  paramfile=paramfile, measurefile=measurefile, plug=None, 
                  reduce_p=True):
 
@@ -198,12 +198,12 @@ class Metaphase(object):
         else:
             self.measuretree = measuretree
             self.measuretree.create_dic(adimentionalized = False)
-            
         if reduce_p:
             reduce_params(self.paramtree, self.measuretree)
             
         self.KD = KinetoDynamics(self.paramtree.dic, plug = plug)
         dt = self.KD.params['dt']
+        duration = self.KD.params['span']
         self.nb_steps = int(duration/dt)
         self.KD.anaphase = False
         self.timelapse = arange(0, duration + dt, dt)
@@ -246,6 +246,7 @@ class Metaphase(object):
 
         if not self.KD.anaphase:
             self.KD.plug_unplug()
+            
         A = self.KD.calcA()
         b = - self.KD.calcb()
         #Linalg solves A.x = b and not A.x + b = 0 !!!!! (F**cking shit)
@@ -346,7 +347,7 @@ class Metaphase(object):
 
         self.KD.params['Fmz'] = 0.
         self.KD.params['fa'] = 0.
-        self.KD.params['fd'] = 0.
+        self.KD.params['fd0'] = 0.
         for ch in self.KD.chromosomes.values():
             (right_pluged, left_pluged) = ch.pluged()
             (right_mero, left_mero) = ch.mero()

@@ -46,6 +46,8 @@ class ParamTree(object):
             source = file(filename, "r")
             self.tree = parse(source)
             self.root = self.tree.getroot()
+            source.close()
+
         elif root is not None:
             self.root = root
 
@@ -98,7 +100,7 @@ class ParamTree(object):
             val = self.dic[key]
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
-            elif self.has_unit(param, DRAG_UNIT):
+            elif self.has_unit(param, DRAG_UNIT): #This shall be checked
                 val /= Fk/dt
             elif self.has_unit(param, SPEED_UNIT):
                 val *= 1/Vk
@@ -109,21 +111,27 @@ class ParamTree(object):
             # elif self.has_unit(param, LENGTH_UNIT):
             #     val /= d0
             self.dic[key] = val
+            # a = self.root.findall('param')
+            # for item in a:
+            #     if item.attrib['name'] == key:
+            #         item.attrib['value'] == str(val)
+            #         break
 
         self.dic["Vk"] =  Vk
         self.dic["Fk"] = Fk
         self.dic["dt"] = dt 
 
+        
 
-
-    def change_dic(self, key, new_value, write = True, back_up = False,
-                   verbose = True):
+    def change_dic(self, key, new_value, write = True, back_up = False, verbose = True):
         '''changes the Element tree and re-creates the associated dictionnary.
         If write is True, re_writes the parameters files
         (older version is backed up if back_up)
         '''
         if self.dic is None:
             self.create_dic()
+
+
         try:
             self.dic[key] = new_value
 
@@ -131,10 +139,10 @@ class ParamTree(object):
             print "Couldn't find the parameter %s" %key
             return 0
         
-        a = self.root.findall('params')
+        a = self.root.findall('param')
         for item in a:
             if item.attrib['name'] == key:
-                item.attrib['value'] == str(new_value)
+                item.attrib['value'] = str(new_value)
                 break
         
         if write:
@@ -169,8 +177,13 @@ class ResultTree(ParamTree):
         
         datafname = self.root.get("datafile")
         if not os.path.isabs(datafname):
-            self.datafname = os.path.join(os.path.dirname(xmlfname), 
-                                          datafname)
+            if '/' not in datafname:
+                self.datafname = os.path.join(os.path.dirname(xmlfname), 
+                                              datafname)
+            else:
+                self.datafname = os.path.join(os.path.dirname(xmlfname), 
+                                              datafname.split('/')[-1])
+                
         else:
             self.datafname = datafname
         if self.datafname is None or not os.path.isfile(self.datafname):
