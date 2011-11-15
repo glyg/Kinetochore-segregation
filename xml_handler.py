@@ -61,7 +61,7 @@ class ParamTree(object):
         for i in a:
             n = i.get("name")
             v = i.get("value")
-            if '.' in v:
+            if '.' in v or 'e' in v:
                 v = float(v)
             else:
                 v = int(v)
@@ -130,7 +130,6 @@ class ParamTree(object):
         '''
         if self.dic is None:
             self.create_dic()
-
 
         try:
             self.dic[key] = new_value

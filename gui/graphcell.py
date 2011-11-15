@@ -12,7 +12,6 @@ import sys
 
 from kt_simul import simul_spindle as Sim
 from param_seter import *
-from game import *
 
 from kt_simul.eval_simul import metaph_kineto_dist 
 from kt_simul.xml_handler import ParamTree
@@ -417,28 +416,10 @@ if __name__ == '__main__':
 
 
     mt = SigMetaphase(paramtree, measuretree)
-    widget = NakedInteractiveWidget(mt)
+    widget = NakedWidget(mt)
     widget.setRenderHint(QtGui.QPainter.Antialiasing)
     widget.show()
     
     
     
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-
-
-
-
-
-# class PlayGround(QtGui.QGraphicsScene):
-
-#     def __init__(self, parent = None):
-#         QtGui.QGraphiscScene.__init__(-300, -100, 600,
-#                                       200, parent = parent)
-        

@@ -5,29 +5,32 @@
 ### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
 try:
-    from pylab import *
+    from pylab import figure, show
 except RuntimeError:
     print 'No display..'
     pass
 
-from scipy import linalg, column_stack, sparse
-from numpy import any, all, arange, array, uint8, save, savetxt, mod, asarray, zeros
+from scipy import linalg, column_stack
+from numpy import any, all, arange, array, uint8, save, savetxt, mod, asarray
+from numpy import ones, zeros, append, cos, sin, dot,  vstack
+from numpy.random import normal
 from xml.etree.ElementTree import Element, SubElement, tostring
 import time
 from Image import fromarray as image_fromarray
 import os
-import sys
 
 import pyximport
 pyximport.install()
 
 
 ## local imports
-#from kt_simul import *
+#from kt_simul import 
 from kt_simul.spindle_dynamics import KinetoDynamics
 from kt_simul.xml_handler import ParamTree, indent, ResultTree
-from kt_simul.eval_simul import *
-from kt_simul.dyninst import mean_attachment, delta_Mk
+
+import kt_simul.eval_simul as eval_simul
+
+
 
 __all__ = ["Metaphase", "reduce_params", "paramfile", "measurefile", "get_fromfile"]
 
@@ -87,7 +90,6 @@ def reduce_params(paramtree, measuretree):
         return 0
 
 
-    Fk = params['Fk']
     fa = params['fa'] # 'free' attachement event frequency
     fd0 = params['fd0'] # 'free' detachement event frequency
     aurora = params['aurora']
@@ -103,15 +105,17 @@ def reduce_params(paramtree, measuretree):
     if aurora != 0:
         fd_eff = fa * aurora / mean_metaph_k_dist
     else:
+        print "Warning; things don't go well without Aurora "
         fd_eff = fd0
     
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
     alpha_mean = float(1/(1 + fd_eff/fa))
     #Take metaphase kt pair distance as the maximum one
-    kappa = 2 * Mk / ( max_metaph_k_dist - d0 )
+    kappa = Mk / ( max_metaph_k_dist - d0 )
     params['kappa'] = kappa
 
-    kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
+    #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
+    kop = Mk / ( 2 * outer_inner_dist )
     params['kop'] = kop
     #Ensure we have sufficientely small time steps
     dt = params['dt']
@@ -124,7 +128,7 @@ def reduce_params(paramtree, measuretree):
                                  (1 + mus / ( N * Mk * alpha_mean ))
                                  / (1 -  metaph_rate / Vmz ))
     params['Fmz'] = Fmz
-    mui = ( tau_i * kappa ) * Vk #Due to adimentionalization ### THIS SHOULD BE DONE A BIT MORE CARREFULY 
+    mui = ( tau_i * kappa ) * Vk #Due to adimentionalization
     params['mui'] = mui
     muo = ( tau_o * kop ) * Vk  #Due to adimentionalization 
     params['muo'] = muo 
@@ -270,11 +274,8 @@ class Metaphase(object):
 
         '''
 
-        N = self.KD.params['N']
-        Mk = self.KD.params['Mk']
         dt = self.KD.params['dt']
         kappa = self.KD.params['kappa']
-        mus = self.KD.params['mus']
 
 
         for t in self.timelapse[1:]:
@@ -296,7 +297,7 @@ class Metaphase(object):
         self.KD.delay = self.delay - 1
         s = "delay = %2d seconds" % self.delay
         self.report.append(s)
-        k_dist = metaph_kineto_dist(self.KD)
+        k_dist = eval_simul.metaph_kineto_dist(self.KD)
         s = "Mean Kt - Kt distance: %.3f m" % k_dist[0]
         self.report.append(s)
         #self.evaluate()
@@ -386,10 +387,9 @@ class Metaphase(object):
         one kMT, False otherwise
         '''
         
-        N = self.KD.params['N']
         sac = self.KD.params['sac']
-        # if sac == 0:
-        #     return True
+        if sac == 0:
+             return True
         
         for ch in self.KD.chromosomes.values() :
             if not all(ch.pluged()) :
@@ -404,7 +404,6 @@ class Metaphase(object):
     def _mero_checkpoint(self):
         '''returns the total number of merotellic kT
         '''
-        N = self.KD.params['N']
         nb_mero = 0
         for ch in self.KD.chromosomes.values() :
             if any(ch.mero) :
@@ -418,13 +417,11 @@ class Metaphase(object):
         returns True if each kinetochore is in the proper half of the spindle
         '''
         
-        N = self.KD.params['N']
-        nb_out = 0
         for ch in self.KD.chromosomes.values() :
             ktR = ch.rightpos
             ktL = ch.leftpos
             if ktR <= 0 or ktL >= 0:
-                return True#False
+                return True 
         return True
 
 
@@ -438,26 +435,25 @@ class Metaphase(object):
             print "No simulation was ran ... exiting"
             return 0
 
-        self.observations = {'anaphase_rate':anaphase_rate(self.KD),
-                             'metaph_rate': metaph_rate(self.KD),
-                             'mean_metaph_k_dist': metaph_kineto_dist(self.KD),
-                             'pitch': auto_corel(self.KD, smooth = 5.),
-                             'poleward_speed': poleward_speed(self.KD),
-                             'kt_rms_speed':kt_rms_speed(self.KD),
-                             'times_of_arrival': time_of_arrival(self.KD),
-                             'pluged_stats': pluged_stats(self.KD)}
+        self.observations = {'anaphase_rate':eval_simul.anaphase_rate(self.KD),
+                             'metaph_rate': eval_simul.metaph_rate(self.KD),
+                             'mean_metaph_k_dist': eval_simul.metaph_kineto_dist(self.KD),
+                             'pitch': eval_simul.auto_corel(self.KD, smooth = 5.),
+                             'poleward_speed': eval_simul.poleward_speed(self.KD),
+                             'kt_rms_speed':eval_simul.kt_rms_speed(self.KD),
+                             'times_of_arrival': eval_simul.time_of_arrival(self.KD),
+                             'pluged_stats': eval_simul.pluged_stats(self.KD)}
 
 
     def show_trajs(self, axes = None): 
         ''' Plot the different trajectories
         '''
         N = self.KD.params['N']
-        Mk = self.KD.params['Mk']
-        dt = self.KD.params['dt']
+
 
         if axes == None:
-            fig = figure(1)
-            axes = gca()
+            fig = figure()
+            axes = fig.gca()
 
         spbRtraj = array(self.KD.spbR.traj)
         spbLtraj = array(self.KD.spbL.traj)
@@ -489,7 +485,7 @@ class Metaphase(object):
                 
         #axes.axis([0, self.nb_steps * dt, -2.2, 2.2 ])
         axes.set_xlabel('Time (seconds)', fontsize = 'small')
-        axes.set_ylabel(u'Distance from center (µm)', fontsize = 'small')
+        axes.set_ylabel(u'Distance from center (um)', fontsize = 'small')
         
         show()
 
@@ -501,7 +497,7 @@ class Metaphase(object):
         real life movies under octave
         '''
         
-        N = self.KD.params['N']
+
         self.write_results(xmlfname = xmlfname)
 
         spbRx = array(self.KD.spbR.traj)
@@ -529,7 +525,7 @@ class Metaphase(object):
             
         dataout = file(datafname, 'w+')
         dataout.write("# desciptor: "+xmlfname+"\n")
-        write_array(dataout, out_array, separator=' ', linesep='\n')
+        savetxt(dataout, out_array, delimiter=' ')
 
 
         
@@ -555,9 +551,6 @@ class Metaphase(object):
         attribute of the corresponding element in the xml file.
         '''
 
-        N = self.KD.params['N']
-        Mk = self.KD.params['Mk']
-        dt = self.KD.params['dt']
         if not hasattr(self, 'observations'):
             self.evaluate()
         
@@ -604,13 +597,13 @@ class Metaphase(object):
             SubElement(rch, "description").text="chromosome %i right kinetochore trajectory" %n
             wavelist.append(array(ch.righttraj)); col_num += 1
             
-            rchp = SubElement(experiment, "numberpluged",
-                              name="rightkineto", index = str(n),
-                              column=str(col_num))
+            SubElement(experiment, "numberpluged",
+                       name="rightkineto", index = str(n),
+                       column=str(col_num))
             wavelist.append(rp); col_num += 1
-            rchp = SubElement(experiment, "numbermero",
-                              name="rightkineto", index = str(n),
-                              column=str(col_num))
+            SubElement(experiment, "numbermero",
+                       name="rightkineto", index = str(n),
+                       column=str(col_num))
             wavelist.append(rm); col_num += 1
             
             lch = SubElement(experiment, "trajectory",
@@ -618,37 +611,37 @@ class Metaphase(object):
                              column=str(col_num), units='mu m')
             SubElement(lch, "description").text="chromosome %s left kinetochore trajectory" %n
             wavelist.append(array(ch.lefttraj)); col_num += 1
-            lchp = SubElement(experiment, "numberpluged", name="leftkineto",
-                              index = str(n),
-                              column=str(col_num))
+            SubElement(experiment, "numberpluged", name="leftkineto",
+                       index = str(n),
+                       column=str(col_num))
             wavelist.append(lp); col_num += 1
-            lchm = SubElement(experiment, "numbermero", name="leftkineto",
-                              index = str(n),
-                              column=str(col_num))
+            SubElement(experiment, "numbermero", name="leftkineto",
+                       index = str(n),
+                       column=str(col_num))
             wavelist.append(lm); col_num += 1
             #Plug Sites
             for m, rplug in enumerate(ch.rplugs.values()):
                 rpt_traj = array(rplug.traj)
-                rpt = SubElement(experiment, "trajectory",
-                                 name="rightplugsite", index = str((n, m)),
-                                 column=str(col_num), units='mu m')
+                SubElement(experiment, "trajectory",
+                           name="rightplugsite", index = str((n, m)),
+                           column=str(col_num), units='mu m')
                 wavelist.append(rpt_traj); col_num += 1
                 rpt_plug = array(rplug.state_hist)
-                rpp = SubElement(experiment, "state",
-                                 name="rightplugsite", index = str((n, m)),
-                                 column=str(col_num), units='')
+                SubElement(experiment, "state",
+                           name="rightplugsite", index = str((n, m)),
+                           column=str(col_num), units='')
                 wavelist.append(rpt_plug); col_num += 1
             
             for m, lplug in enumerate(ch.lplugs.values()):
                 lpt_traj = array(lplug.traj)
-                lpt = SubElement(experiment, "trajectory",
-                                 name="leftplugsite", index = str((n, m)),
-                                 column=str(col_num), units='mu m')
+                SubElement(experiment, "trajectory",
+                           name="leftplugsite", index = str((n, m)),
+                           column=str(col_num), units='mu m')
                 wavelist.append(lpt_traj); col_num += 1
                 lpt_plug = array(lplug.state_hist)
-                lpp = SubElement(experiment, "state",
-                                 name="leftplugsite", index = str((n, m)),
-                                 column=str(col_num), units='')
+                SubElement(experiment, "state",
+                           name="leftplugsite", index = str((n, m)),
+                           column=str(col_num), units='')
                 wavelist.append(lpt_plug); col_num += 1
 
         #Observations
@@ -656,7 +649,7 @@ class Metaphase(object):
         if not hasattr(self, 'observations'):
             self.evaluate()
         for key, val in self.observations.items():
-            obs = SubElement(obs_elem, key).text = str(val)
+            SubElement(obs_elem, key).text = str(val)
 
         #Now we write down the whole experiment XML element
         indent(experiment)
@@ -673,8 +666,6 @@ class Metaphase(object):
 
     def _make_movie(self, t, imsize):
 
-        N = self.KD.params['N']
-        Mk = self.KD.params['Mk']
 
         try:
             os.mkdir("movie")
@@ -779,11 +770,11 @@ class Metaphase(object):
             ax_traj.plot(self.timelapse, ps.traj, 'purple', lw = 0.5,
                          alpha = 0.5)
 
-        axis((0, self.nb_steps*dt, -2, 2))
-        yticks(range(-2,4,2))
-        xticks(range(0, 850 , 240), ['0', '4', '8', '12'])
-        ylabel(u'Position (µm)', fontsize = 'small')
-        xlabel('Time (min)', fontsize = 'small')
+        ax_traj.axis((0, self.nb_steps*dt, -2, 2))
+        ax_traj.yticks(range(-2,4,2))
+        ax_traj.xticks(range(0, 850 , 240), ['0', '4', '8', '12'])
+        ax_traj.ylabel(u'Position (um)', fontsize = 'small')
+        ax_traj.xlabel('Time (min)', fontsize = 'small')
 
         
         mero_hist = array(ch.mero_history)
@@ -795,9 +786,9 @@ class Metaphase(object):
         ax_plug.plot(self.timelapse, pluged_hist[:,0], 'g-',
                      label= 'Number of synthelic kMTs')
         ax_plug.axis((0, self.nb_steps*dt, -0.5, 4.5))
-        xticks(range(0, 850 , 240), (''))
-        ylabel('kMTs state', fontsize = 'small')
-        yticks(arange(0,5,2))
+        ax_plug.xticks(range(0, 850 , 240), (''))
+        ax_plug.ylabel('kMTs state', fontsize = 'small')
+        ax_plug.yticks(arange(0,5,2))
 
         ax_plug2 = fig.add_subplot(313)
         ax_plug2.plot(self.timelapse, mero_hist[:,1], 'r-',
@@ -805,9 +796,8 @@ class Metaphase(object):
         ax_plug2.plot(self.timelapse, pluged_hist[:,1], 'g-',
                       label= 'number of synthelic MTs')
         ax_plug2.axis((0, self.nb_steps*dt, -0.5, 4.5))
-        xticks(range(0, 850 , 240), (''))
-        ylabel('kMTs state', fontsize = 'small')
-        ax_plug.set_aspect(10, anchor = 'S')
+        ax_plug2.xticks(range(0, 850 , 240), (''))
+        ax_plug2.ylabel('kMTs state', fontsize = 'small')
         show()
 
         return fig
@@ -823,21 +813,22 @@ class Metaphase(object):
 
         keyword arguments:
         ang_noise : angular variation in radians per seconds
-        pos_noise : center of mass displacement in µm/s
+        pos_noise : center of mass displacement in um/s
         cen: 0, 1 or 2, returns the trajectory of a simulated cen marker
         attached to the chromosome number cen. Adds a random coiled coil
-        movement around the kinetochore position with sigma=0.13 µm
+        movement around the kinetochore position with sigma=0.06 um
         if None (default), returns all 6 trajectories plus the SPBs
         """
 
         dt = self.KD.params['dt']
         trajectories = []
         ang_noise *= dt # rad.s^-1
-        pos_noise *=  dt # µm.s^-1
+        pos_noise *=  dt # um.s^-1
         xspbR = array(self.KD.spbR.traj)
         xspbL = array(self.KD.spbL.traj)
         yspbR = zeros(xspbR.shape)
         yspbL = zeros(xspbL.shape)
+    
         trajectories.append(column_stack((yspbR, xspbR)))
         trajectories.append(column_stack((yspbL, xspbL)))
 
@@ -845,14 +836,14 @@ class Metaphase(object):
 
         if cen is not None:
             ch = self.get_ch(cen)
-            xrt = array(ch.righttraj) + normal(0, scale = 0.13,
+            xrt = array(ch.righttraj) + normal(0, scale = 0.06,
                                                size = traj_length)  
-            yrt = zeros(xrt.shape) + normal(0, scale = 0.13,
+            yrt = zeros(xrt.shape) + normal(0, scale = 0.06,
                                             size = traj_length)
             trajectories.append(column_stack((yrt, xrt)))
-            xlt = array(ch.lefttraj) + normal(0, scale = 0.13,
+            xlt = array(ch.lefttraj) + normal(0, scale = 0.06,
                                                size = traj_length)
-            ylt = zeros(xlt.shape)+ normal(0, scale = 0.13,
+            ylt = zeros(xlt.shape)+ normal(0, scale = 0.06,
                                            size = traj_length)
             trajectories.append(column_stack((ylt, xlt)))
             
@@ -890,6 +881,109 @@ class Metaphase(object):
                 n += 1
 
         return trajectories
+
+    def get_3Dtraj_list(self, ang_noise = 5e-2, pos_noise = 3e-2, cen = None):
+        
+        """returns a list of 3D trajectories, adding a random mouvement
+        to the whole spindle
+
+        keyword arguments:
+        ang_noise : angular variation in radians per seconds
+        pos_noise : center of mass displacement in um/s
+        cen: 0, 1 or 2, returns the trajectory of a simulated cen marker
+        attached to the chromosome number cen. Adds a random coiled coil
+        movement around the kinetochore position with sigma=0.13 um
+        if None (default), returns all 6 trajectories plus the SPBs
+        """
+
+        dt = self.KD.params['dt']
+        trajectories = []
+        ang_noise *= dt # rad.s^-1
+        pos_noise *=  dt # um.s^-1
+        xspbR = array(self.KD.spbR.traj)
+        xspbL = array(self.KD.spbL.traj)
+        yspbR = zeros(xspbR.shape)
+        yspbL = zeros(xspbL.shape)
+        zspbL = zeros(xspbL.shape)
+        zspbR = zeros(xspbL.shape)
+        
+    
+        trajectories.append(vstack((xspbR, yspbR, zspbR)))
+        trajectories.append(vstack((xspbL, yspbL, zspbL)))
+
+        traj_length = xspbR.shape[0]
+
+        if cen is not None:
+            ch = self.get_ch(cen)
+            xrt = array(ch.righttraj) + normal(0, scale = 0.13,
+                                               size = traj_length)  
+            yrt = zeros(xrt.shape) + normal(0, scale = 0.13,
+                                            size = traj_length)
+            zrt = zeros(xrt.shape) + normal(0, scale = 0.13,
+                                            size = traj_length)
+
+            trajectories.append(vstack((xrt, yrt, zrt)))
+
+            xlt = array(ch.lefttraj) + normal(0, scale = 0.13,
+                                              size = traj_length)
+            ylt = zeros(xlt.shape)+ normal(0, scale = 0.13,
+                                           size = traj_length)
+            zlt = zeros(xlt.shape)+ normal(0, scale = 0.13,
+                                           size = traj_length)
+            trajectories.append(vstack((xlt, ylt, zlt)))
+            
+        else:
+            for n in range(3):
+                ch = self.get_ch(n)
+                xrt = array(ch.righttraj)
+                yrt = zeros(xrt.shape) + (1 - n) * 0.1
+                zrt = zeros(xrt.shape) + (1 - n) * 0.1
+                trajectories.append(vstack((xrt, yrt, zrt)))
+
+                xlt = array(ch.lefttraj)
+                ylt = zeros(xlt.shape) + (1 - n) * 0.1
+                zlt = zeros(xlt.shape) + (1 - n) * 0.1
+                trajectories.append(vstack((xlt, ylt, zlt)))
+        
+        xcs = zeros(xspbR.size)
+        ycs = zeros(xspbR.size)
+        zcs = zeros(xspbR.size)
+
+        #Fix the x axis, rotate around the two others
+        xy_rots = zeros((3,3,xspbR.size))
+        zx_rots = zeros((3,3,xspbR.size))
+
+        xd, yd, zd, thetad, phid = (0.,)*5
+
+        for n in range(xspbR.size):
+            
+            thetad += normal(0, scale = ang_noise)
+            phid += normal(0, scale = ang_noise)
+            xcs[n] += normal(0, scale = pos_noise)
+            ycs[n] += normal(0, scale = pos_noise)
+            zcs[n] += normal(0, scale = pos_noise)
+
+            xy_rots[:,:,n] = [[cos(thetad), -sin(thetad), 0], 
+                              [sin(thetad), cos(thetad), 0],
+                              [0, 0, 1]]
+
+            zx_rots[:,:,n] = [[cos(phid), 0, -sin(phid)], 
+                              [0, 1, 0],
+                              [sin(phid), 0, cos(phid)]]
+            
+        
+        for traj in trajectories:
+            traj += vstack((xcs, ycs, zcs))
+
+            for n, pos in enumerate(traj.T):
+                tmp_pos = dot(pos, xy_rots[:,:,n])
+                new_pos = dot(tmp_pos, zx_rots[:,:,n])
+                traj[:,n] = new_pos
+
+        return trajectories
+
+
+
 
 def get_fromfile(xmlfname = "results.xml"):
 

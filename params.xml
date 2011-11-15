@@ -4,7 +4,7 @@
     <unit>s</unit>
     <description>Simulation duration</description>
   </param>
-  <param max="2." min="0.1" name="dt" step="0.1" value="1.">
+  <param max="2." min="0.1" name="dt" step="0.1" value="0.2">
     <unit>s</unit>
     <description>Time step</description>
   </param>
@@ -63,10 +63,6 @@
   <param max="1." min="0." name="fd0" step="0.001" value="0.06">
     <unit>Hz</unit>
     <description>detachement rate</description>
-  </param>
-  <param max="20." min="0.5" name="F0" step="0" value="10.0">
-    <unit>pN</unit>
-    <description>fd tension dependance</description>
   </param>
   <param max="2." min="0." name="ld_slope" step="0.1" value="0.">
     <unit> </unit>

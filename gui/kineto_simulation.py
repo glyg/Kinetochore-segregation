@@ -18,17 +18,15 @@ import pyximport
 pyximport.install()
 
 
-from kt_simul.simul_spindle import *
-from param_seter import *
-from game import *
+from kt_simul.simul_spindle import Metaphase, paramfile, measurefile
+from param_seter import SetParameters, SetMeasures
+from game import InteractiveCellWidget
 
 from kt_simul.eval_simul import metaph_kineto_dist
 from kt_simul.xml_handler import ParamTree
 
-# paramfile = Sim.paramfile
-# measurefile = Sim.measurefile
 
-__all__ = ['MainWindow', paramfile, measurefile]
+__all__ = ['MainWindow']
 
 #matplotlib.use('Qt4Agg') #Useless
 
@@ -85,10 +83,10 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
     
     def __init__(self, paramtree, measuretree,
                  plug = None, parent = None):
+        
         paramtree.create_dic(adimentionalized = True)
-        duration = paramtree.dic["span"]
-        Metaphase.__init__(self, duration, paramtree, measuretree,
-                               plug = plug)
+        Metaphase.__init__(self, paramtree, measuretree,
+                           plug = plug)
         QtGui.QWidget.__init__(self, None)
         self.date = 0
         
@@ -262,7 +260,8 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-
+        print self.paramtree.dic['fa']
+        
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
 
         self.progressBar.setMaximum(int(self.paramtree.dic['span']/
@@ -287,14 +286,11 @@ class MainWindow(QtGui.QMainWindow):
 
             self.connect(self.mt,  QtCore.SIGNAL('simulDone'),
                          self.iw.startAnim)
-
-
     
     def run_simulation(self):
 
         self.prepare_simulation()
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        
         self.mt.sig_simul()
         QtGui.QApplication.restoreOverrideCursor()
 

@@ -74,7 +74,7 @@ class SetParameters(QtGui.QWidget):
             p_min = param.get("min")
             p_max = param.get("max")
             label = QtGui.QLabel(description, self)
-            if not '.' in value:
+            if not '.' or 'e' in value:
                 value = int(value)
                 p_min = int(p_min)
                 p_max = int(p_max)
@@ -98,7 +98,7 @@ class SetParameters(QtGui.QWidget):
                 spinbox = DoubleParamBox(param, self)
                 spinbox.setDecimals(dec)
                 self.connect(spinbox,  QtCore.SIGNAL('valueChanged(double)'), spinbox.my_emiter)
-                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged'), self.print_new_val)
+                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged'), self.set_new_val)
                 self.connect(spinbox, QtCore.SIGNAL('valueChanged(float)'), self.setModified)
 
             spinbox.setSingleStep(p_step)
@@ -123,12 +123,13 @@ class SetParameters(QtGui.QWidget):
         else :
             self.isModified = False
 
-    def print_new_val(self, param, val):
+    def set_new_val(self, param, val):
 
         name = param.get("name")
         old_value = param.get('value')
         param.set("value", str(val))
-        self.paramtree.change_dic(name, val, write = False, back_up = False, verbose = False)
+        
+        self.paramtree.change_dic(name, val, write = False, back_up = False, verbose = True)
 
 
 class SetMeasures(SetParameters):
