@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <measures>
-  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.0015">
+  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.002">
     <unit>&#181;m/s</unit>
     <description>Metaphase elongation rate</description>
   </param>
-  <param max="0.2" min="0." name="anaph_rate" step="0.001" value="0.01">
+  <param max="0.2" min="0." name="anaph_rate" step="0.001" value="0.03">
     <unit>&#181;m/s</unit>
     <description>Anaphase elongation rate</description>
   </param>
@@ -16,7 +16,7 @@
     <unit>&#181;m</unit>
     <description>Mean kt-kt distance</description>
   </param>
-  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="1.2">
+  <param max="2." min="0." name="max_metaph_k_dist" step="0.1" value="1.">
     <unit>&#181;m</unit>
     <description>Max kt-kt distance</description>
   </param>
@@ -24,9 +24,9 @@
     <unit>&#181;m</unit>
     <description>kt-kt equilibrium distance</description>
   </param>
-  <param max="0.2" min="0." name="oi_dist" step="0.01" value="0.05">
+  <param max="0.2" min="0." name="oi_dist" step="0.01" value="0.5">
     <unit>&#181;m</unit>
-    <description>Mean outer-inner plate distance</description>
+    <description>Max outer-inner plate distance</description>
   </param>
   <param max="60." min="5." name="tau_o" step="0.1" value="12.">
     <unit>s</unit>

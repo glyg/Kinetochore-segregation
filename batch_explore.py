@@ -51,7 +51,7 @@ def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt = 1):
 
     logfile = file('%s.log' %base_name, 'w+')
 
-    for n, pcs1 in enumerate(pcs1s):
+    for n, pcs1 in enumerate(pcs1s[20:]):
         for m, aurora in enumerate(auroras):
             new_params['aurora'] = aurora
             new_params['orientation'] = pcs1
@@ -60,8 +60,8 @@ def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt = 1):
 
             for i in range(num_ech):
                 mp = full_simul(new_params, plug = plug)
-                xmlfname = '%s_res_pcs1-%03i_auroras-%03i_%03i.xml' %(base_name, n, m, i)
-                datafname = '%s_data_pcs1-%.3f_auroras-%.3f_%03i.npy' %(base_name, n, m, i)
+                xmlfname = '%s_res_pcs1-%03i_auroras-%03i_%03i.xml' %(base_name, n+20, m, i)
+                datafname = '%s_data_pcs1-%03i_auroras-%03i_%03i.npy' %(base_name, n+20, m, i)
                 mp.write_results(xmlfname, datafname)
                 del mp
             
@@ -140,8 +140,8 @@ if __name__ == "__main__":
     base_name = sys.argv[1]
     t0 = time.time()
     #fd0s = linspace(0.01, 1., 21)
-    pcs1s = linspace(0., 1., 11)
-    auroras = logspace(-3., .2, 41)
+    pcs1s = linspace(0., 1., 31)
+    auroras = logspace(-3., .2, 51)
 
     #fd0sname = '%s_fd0s.npy' %base_name
     #save(fd0sname, fd0s)
@@ -153,42 +153,8 @@ if __name__ == "__main__":
     plug = 'random'
     num_steps = 800
     dt = 1.
-    num_ech = 50
+    num_ech = 100
     explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt)
     print 'time: %.3f' %(time.time() - t0)
 
-    
-# <<<<<<< HEAD
-#     pcs1s = linspace(0., 1., 21)[::-1]
-#     auroras = logspace(-2, .2, 41)
-# =======
-#     pcs1s = linspace(0.95, 1., 5)[::-1]
-#     auroras = logspace(-2.5, .2, 41)
-# >>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
-#     pcs1name = '%s_pcs1s.npy' %base_name
-#     auroraname = '%s_auroras.npy' %base_name
-#     save(pcs1name, pcs1s)
-#     save(auroraname, auroras)
-#     logfile_name = '%s_log.txt'  %base_name
-#     logfile = open(logfile_name, 'w+')
-
-# <<<<<<< HEAD
-#     plugs = ['null', 'merotelic', 'random', 'amphitelic', 'monotelic', 'syntelic']
-#     for plug in plugs:
-#         defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 25, plug, logfile)
-# =======
-#     print 'saved auras'
-#     plugs = ['monotelic', 'null', 'random', 'merotelic']
-#     for plug in plugs:
-#         defects, balance, trans_mat = explore_2D(pcs1s, auroras, 800, 100, plug = plug)
-# >>>>>>> 147a9742874e4606cdb343b90ebd239ab9f93e1e
-#         for key, value in defects.items():
-#             mname = '%sdefect_%s_%s.npy' %(base_name, key, plug)
-#             save(mname, value)
-#         mname = '%sbalance_%s.npy' %(base_name, plug)
-#         save(mname, balance)
-#         mname = '%stransition_%s.npy' %(base_name, plug)
-#         save(mname, trans_mat)
-#         del defects, balance, trans_mat
-
-    
+    ##### fin prévue dimanche 14h ####

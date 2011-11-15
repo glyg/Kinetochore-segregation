@@ -154,35 +154,23 @@ class KinetoDynamics(object) :
         length dependance implementation:
         alpha depends linearly on the spb-kt distance
 
-        ld0 = 1 and ld_slope = 0 => No length dependance
+        if ld_slope = 0 => No length dependance
         '''
-
-        #Now we'll try to optimize this using CPython
         cdef double ld0, ld_slope
-        ld0 = self.params['ld0']
         ld_slope = self.params['ld_slope']
+        if ld_slope == 0 :
+            return p * (1 + p) / 2
 
-        #ch = self.chromosomes[n]
-
-        # cdef int p
-        # cdef double pspos, spos
-        # if side == 0:
-        #     pspos = ch.rplugs[m].pos
-        #     p = ch.rplugs[m].plug
-        #     spos = self.spbR.pos
-        # else:
-        #     pspos = ch.lplugs[m].pos
-        #     p = ch.lplugs[m].plug
-        #     spos = self.spbL.pos
-
+        ld0 = self.params['ld0']
         cdef double dist
         dist = abs(spos - pspos)
-
+        
         cdef double ldep
         ldep = ld_slope * dist + ld0
-        if dist < 0.0001: ldep = dist  # No force when at pole
-        
-        return ldep * p * (1 + p) / 2
+        if dist < 0.0001:
+            ldep = dist  # No force when at pole
+
+        return p * (1 + p) / 2
 
     #@cython.profile(False)
     def beta(self, double pspos, double spos, int p): #int n, int m, int side):
@@ -190,18 +178,22 @@ class KinetoDynamics(object) :
         length dependance implementation:
         beta depends linearly on the spb-kt distance
         
-        ld0 = 1 and ld_slope = 0 => No length dependance
+        if ld_slope = 0 => No length dependance
         '''
         cdef double ld0, ld_slope
-        ld0 = self.params['ld0']
+
         ld_slope = self.params['ld_slope']
-        
+        if ld_slope == 0 :
+            return p * (p - 1) / 2
+
+        ld0 = self.params['ld0']
         cdef double dist
         dist = abs(spos - pspos)
 
         cdef double ldep
         ldep = ld_slope * dist + ld0
-        if dist < 0.01: ldep = dist  # No force when at pole
+        if dist < 0.0001:
+            ldep = dist  # No force when at pole
 
         return  ldep * p * (p - 1) / 2
 
