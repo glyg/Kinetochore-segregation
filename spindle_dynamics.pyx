@@ -38,11 +38,12 @@ class KinetoDynamics(object) :
     def __init__(self, parameters, plug = None):
         '''parameters : a dictionnary of parameters
         '''
+        cdef int N, Mk
         
         self.params = parameters
         l0 = self.params['l0']
-        N = self.params['N']
-        Mk = self.params['Mk']
+        N = int(self.params['N'])
+        Mk = int(self.params['Mk'])
         d0 = self.params['d0']
         fa = self.params['fa'] # 'free' attachement event frequency
         fd0 = self.params['fd0'] # 'free' detachement event frequency
@@ -71,8 +72,8 @@ class KinetoDynamics(object) :
         '''
         cdef int Mk, N
 
-        Mk = self.params['Mk']
-        N = self.params['N']
+        Mk = int(self.params['Mk'])
+        N = int(self.params['N'])
         idxs = {}
         for n in range(N):
             
@@ -88,8 +89,9 @@ class KinetoDynamics(object) :
 
     def write_B(self):
 
-        Mk = self.params['Mk']
-        N = self.params['N']
+        cdef N, Mk
+        Mk = int(self.params['Mk'])
+        N = int(self.params['N'])
         kappa = self.params['kappa']
         kop = self.params['kop']
 
@@ -128,8 +130,8 @@ class KinetoDynamics(object) :
         '''
         return a vector of the positions of each components
         '''
-        N = self.params['N']
-        Mk = self.params['Mk']
+        N = int(self.params['N'])
+        Mk = int(self.params['Mk'])
 
         X = zeros(1 + 2*N * ( Mk + 1 ))
 
@@ -199,8 +201,8 @@ class KinetoDynamics(object) :
 
     def calcA(self):
         
-        cdef int N = self.params['N']
-        cdef int Mk = self.params['Mk']
+        cdef int N = int(self.params['N'])
+        cdef int Mk = int(self.params['Mk'])
         cdef double mui = self.params['mui']
         cdef float muo = self.params['muo']
         cdef float mus = self.params['mus']
@@ -279,8 +281,8 @@ class KinetoDynamics(object) :
         # Constant vector
     #@cython.profile(False)
     def cm_S(self):
-        cdef int N = self.params['N']
-        cdef int Mk = self.params['Mk']        
+        cdef int N = int(self.params['N'])
+        cdef int Mk = int(self.params['Mk'])
         cdef float Fmz = self.params['Fmz']
         cdef float sposR = self.spbR.pos
         cdef float sposL = self.spbL.pos
@@ -319,8 +321,8 @@ class KinetoDynamics(object) :
 
     def calcc(self):
 
-        cdef int Mk = self.params['Mk']
-        cdef int N = self.params['N']
+        cdef int Mk = int(self.params['Mk'])
+        cdef int N = int(self.params['N'])
         
         C = zeros((1 + N * ( 1 + Mk ) * 2))
 
@@ -371,7 +373,7 @@ class KinetoDynamics(object) :
         return pos_dep
 
     def test_anaphase_switch(self):
-        N = self.params["N"]
+        N = int(self.params["N"])
         for n in range(N):
             ch = self.chromosomes[n]
             if ch.anaphase_switch[0] == 0:
@@ -401,7 +403,7 @@ class KinetoDynamics(object) :
         side = 1 : left
         '''
         
-        cdef int Mk = self.params['Mk']
+        cdef int Mk = int(self.params['Mk'])
         cdef double fd0 = self.params['fd0']
         cdef double aurora = self.params['aurora']
         # cdef double dt = self.params['dt']
@@ -430,7 +432,7 @@ class KinetoDynamics(object) :
         cdef double p
         cdef double m
         cdef double orientation
-        Mk = self.params['Mk']
+        Mk = int(self.params['Mk'])
         ch = self.chromosomes[n]
         p = float(ch.pluged()[side]) #        p = sum(ch.pluged(), dtype=float) #
         m = float(ch.mero()[side]) #        m = sum(ch.mero, dtype=float)# 
@@ -451,8 +453,8 @@ class KinetoDynamics(object) :
     def plug_unplug(self):
         '''Let"s play dices ...
         '''
-        cdef int N = self.params['N']
-        cdef int Mk = self.params['Mk']
+        cdef int N = int(self.params['N'])
+        cdef int Mk = int(self.params['Mk'])
 
         for n in range(N):
             ch = self.chromosomes[n]
@@ -513,8 +515,8 @@ class KinetoDynamics(object) :
         '''given the speeds obtained by solving Atot.x = btot
         and caclulated switch events 
         '''
-        cdef int Mk = self.params['Mk']
-        cdef int N = self.params['N']
+        cdef int Mk = int(self.params['Mk'])
+        cdef int N = int(self.params['N'])
         cdef double dt = self.params['dt']
         cdef double Vk = self.params['Vk']
         

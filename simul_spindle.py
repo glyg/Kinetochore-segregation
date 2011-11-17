@@ -42,9 +42,8 @@ except NameError:
     measurefile = 'measures.xml'
 
     
-measuretree = ParamTree(measurefile)
-measuretree.create_dic(adimentionalized = False)
-MEASURES = measuretree.dic
+measuretree = ParamTree(measurefile, adimentionalized = False)
+MEASURES = measuretree.absolute_dic
 
 
 def reduce_params(paramtree, measuretree):
@@ -58,23 +57,13 @@ def reduce_params(paramtree, measuretree):
     paramtree is modified in place
 
     '''
-    try:    
-        params = paramtree.dic
-    except AttributeError:
-        paramtree.create_dic(adimentionalized = True)
-        params = paramtree.dic
-    try:
-        measures = measuretree.dic
-    except AttributeError:
-        measuretree.create_dic(adimentionalized = False)
-        measures = measuretree.dic
+    params = paramtree.absolute_dic
+    measures = measuretree.absolute_dic
 
     try:
         poleward_speed = measures['poleward_speed'] 
         metaph_rate = measures['metaph_rate']  
-        metaph_rate /= poleward_speed 
         anaph_rate = measures['anaph_rate']   
-        anaph_rate /= poleward_speed
         mean_metaph_k_dist = measures['mean_metaph_k_dist']
         max_metaph_k_dist = measures['max_metaph_k_dist']        
         outer_inner_dist = measures['oi_dist']
@@ -93,9 +82,10 @@ def reduce_params(paramtree, measuretree):
     fa = params['fa'] # 'free' attachement event frequency
     fd0 = params['fd0'] # 'free' detachement event frequency
     aurora = params['aurora']
-    N = params['N']
-    Mk = params['Mk']
+    N = int(params['N'])
+    Mk = int(params['Mk'])
     kop = params['kop']
+    Fk = params['Fk']
 
     #Let's go for the direct relations
     d0 = params['d0'] = obs_d0
@@ -111,31 +101,32 @@ def reduce_params(paramtree, measuretree):
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
     alpha_mean = float(1/(1 + fd_eff/fa))
     #Take metaphase kt pair distance as the maximum one
-    kappa = Mk / ( max_metaph_k_dist - d0 )
+    kappa = Fk * Mk / ( max_metaph_k_dist - d0 )
     params['kappa'] = kappa
 
     #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
-    kop = Mk / ( 2 * outer_inner_dist )
+    kop = Fk * Mk / ( 2 * outer_inner_dist )
     params['kop'] = kop
     #Ensure we have sufficientely small time steps
     dt = params['dt']
-    params['dt'] = min( tau_i/4 , tau_o/4. , params['dt'])
+    params['dt'] = min( tau_i/4., tau_o/4., params['dt'])
     if params['dt'] != dt:
         print 'Time step changed' 
 
     mus = params['mus']
-    Fmz = N * Mk * alpha_mean * (1 + ( metaph_rate/2 ) *
-                                 (1 + mus / ( N * Mk * alpha_mean ))
-                                 / (1 -  metaph_rate / Vmz ))
+    Fmz = Fk * N * Mk * alpha_mean * (1 + ( metaph_rate/2 ) *
+                                      (1 + mus / ( N * Mk * alpha_mean ))
+                                      / (1 -  metaph_rate / ( 2 * Vmz ) ))
     params['Fmz'] = Fmz
-    mui = ( tau_i * kappa ) * Vk #Due to adimentionalization
+    mui = ( tau_i * kappa )
     params['mui'] = mui
-    muo = ( tau_o * kop ) * Vk  #Due to adimentionalization 
+    muo = ( tau_o * kop )
     params['muo'] = muo 
+
     for key, val in params.items():
         paramtree.change_dic(key, val, write = False, verbose = False)
 
-
+    paramtree.adimentionalize()
 
 
 class Metaphase(object):
@@ -192,22 +183,20 @@ class Metaphase(object):
 
         if paramtree is None:
             self.paramtree = ParamTree(paramfile)
-            self.paramtree.create_dic()
         else:
             self.paramtree = paramtree
 
         if measuretree is None:
-            self.measuretree = ParamTree(measurefile)
-            self.measuretree.create_dic(adimentionalized = False)
+            self.measuretree = ParamTree(measurefile, adimentionalized = False)
         else:
             self.measuretree = measuretree
-            self.measuretree.create_dic(adimentionalized = False)
         if reduce_p:
             reduce_params(self.paramtree, self.measuretree)
             
-        self.KD = KinetoDynamics(self.paramtree.dic, plug = plug)
-        dt = self.KD.params['dt']
-        duration = self.KD.params['span']
+        self.KD = KinetoDynamics(self.paramtree.relative_dic,
+                                 plug = plug)
+        dt = self.paramtree.absolute_dic['dt']
+        duration = self.paramtree.absolute_dic['span']
         self.nb_steps = int(duration/dt)
         self.KD.anaphase = False
         self.timelapse = arange(0, duration + dt, dt)
@@ -222,14 +211,14 @@ class Metaphase(object):
         lines.append('Metaphase class')
         try:
             lines.append('Parameters:')
-            for line in str(self.paramtree.dic).split(','):
+            for line in str(self.paramtree.relative_dic).split(','):
                 lines.append(line)
         except AttributeError:
             pass
 
         try:
             lines.append('Measures:' )
-            for line in str(self.measuretree.dic).split(','):
+            for line in str(self.measuretree.absolute_dic).split(','):
                 lines.append(line)
         except AttributeError:
             pass
@@ -448,7 +437,7 @@ class Metaphase(object):
     def show_trajs(self, axes = None): 
         ''' Plot the different trajectories
         '''
-        N = self.KD.params['N']
+        N = int(self.KD.params['N'])
 
 
         if axes == None:
@@ -994,12 +983,9 @@ def get_fromfile(xmlfname = "results.xml"):
     restree = ResultTree(xmlfname)
     param_root = restree.root.find('parameters')
     paramtree = ParamTree(root = param_root)
-    paramtree.create_dic()
-    params = paramtree.dic
-
+    params = paramtree.relative_dic
     measure_root = restree.root.find('measures')
-    measuretree = ParamTree(root = measure_root)
-    measuretree.create_dic(adimentionalized = False)
+    measuretree = ParamTree(root = measure_root, adimentionalized = False)
     metaphase = Metaphase(paramtree = paramtree,
                           measuretree = measuretree)
     
@@ -1010,8 +996,8 @@ def get_fromfile(xmlfname = "results.xml"):
     KD = KinetoDynamics(params)
     KD.spbR.traj = traj_matrix[:,0]
     KD.spbL.traj = traj_matrix[:,1]
-    N = params['N']
-    Mk = params['Mk']
+    N = int(params['N'])
+    Mk = int(params['Mk'])
     col_num = 2
     state_num = 0
     for n in range(N):

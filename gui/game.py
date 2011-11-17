@@ -35,8 +35,8 @@ class GraphCell(QtGui.QGraphicsItem):
 
         QtGui.QGraphicsItem.__init__(self, parent = parent)
 
-        N = mt.KD.params['N']
-        Mk = mt.KD.params['Mk']
+        N = int(mt.KD.params['N'])
+        Mk = int(mt.KD.params['Mk'])
         self.mt = mt # A SimMetaphase instance
         self.items = []
         self.spbR = GraphSPB(0, parent = self)
@@ -88,8 +88,6 @@ class GraphCell(QtGui.QGraphicsItem):
         As this is not easily changed (or not supposed to, we give a
         large box
         '''
-        N = self.mt.KD.params['N']
-        Mk = self.mt.KD.params['Mk']
         
         height = 5.#N * ( Mk * SITE_OFFSET + CH_OFFSET)
         width = 14. # microns, shall be enough
@@ -112,8 +110,8 @@ class GraphKinetochore(QtGui.QGraphicsItem):
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
 
-        N = self.graphcell.mt.KD.params['N']
-        Mk = self.graphcell.mt.KD.params['Mk']
+        N = int(self.graphcell.mt.KD.params['N'])
+        Mk = int(self.graphcell.mt.KD.params['Mk'])
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         self.n = n
@@ -187,7 +185,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         self.kineto = kineto
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
 
-        Mk = self.kineto.graphcell.mt.KD.params['Mk']
+        Mk = int(self.kineto.graphcell.mt.KD.params['Mk'])
 
         self.m = m
         side = self.kineto.side

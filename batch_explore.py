@@ -34,7 +34,6 @@ def full_simul(new_params, plug = 'monotelic'):
     #we don't want to execute anaphase during this kind of simulation
     m.paramtree.change_dic('trans', num_steps, write = False,
                            back_up = False, verbose = False)
-
     m.__init__(paramtree = m.paramtree,  plug = plug)
     m.simul()
     #m.KD.num_steps = len(m.KD.spbR.traj)

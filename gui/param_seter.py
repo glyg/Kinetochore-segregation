@@ -38,16 +38,13 @@ class DoubleParamBox(QtGui.QDoubleSpinBox):
     def my_emiter(self, val):
         self.emit(QtCore.SIGNAL('doubleparamValueChanged'), self.param, val)
 
-
-
 class SetParameters(QtGui.QWidget):
 
-    def __init__(self, paramtree, parent=None, adimentionalized = True):
+    def __init__(self, paramtree, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.setWindowTitle('Parameters')
         self.paramtree = paramtree
-        self.parameters = self.paramtree.create_dic(adimentionalized)
         self.isModified = False
 
         hbox = QtGui.QHBoxLayout()
@@ -81,9 +78,12 @@ class SetParameters(QtGui.QWidget):
                 p_step = int(p_step)
                 
                 spinbox = ParamBox(param, self)
-                self.connect(spinbox,  QtCore.SIGNAL('valueChanged(int)'), spinbox.my_emiter)
-                self.connect(spinbox, QtCore.SIGNAL('paramValueChanged'), self.print_new_val)
-                self.connect(spinbox, QtCore.SIGNAL('valueChanged(int)'), self.setModified)
+                self.connect(spinbox,  QtCore.SIGNAL('valueChanged(int)'),
+                             spinbox.my_emiter)
+                self.connect(spinbox, QtCore.SIGNAL('paramValueChanged'),
+                             self.set_new_val)
+                self.connect(spinbox, QtCore.SIGNAL('valueChanged(int)'),
+                             self.setModified)
                 
             else:
                 value = float(value)
@@ -97,9 +97,12 @@ class SetParameters(QtGui.QWidget):
                     dec = 2
                 spinbox = DoubleParamBox(param, self)
                 spinbox.setDecimals(dec)
-                self.connect(spinbox,  QtCore.SIGNAL('valueChanged(double)'), spinbox.my_emiter)
-                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged'), self.set_new_val)
-                self.connect(spinbox, QtCore.SIGNAL('valueChanged(float)'), self.setModified)
+                self.connect(spinbox,  QtCore.SIGNAL('valueChanged(double)'),
+                             spinbox.my_emiter)
+                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged'),
+                             self.set_new_val)
+                self.connect(spinbox, QtCore.SIGNAL('valueChanged(float)'),
+                             self.setModified)
 
             spinbox.setSingleStep(p_step)
             spinbox.setRange(p_min,p_max)
@@ -125,22 +128,28 @@ class SetParameters(QtGui.QWidget):
 
     def set_new_val(self, param, val):
 
-        name = param.get("name")
-        old_value = param.get('value')
-        param.set("value", str(val))
-        
-        self.paramtree.change_dic(name, val, write = False, back_up = False, verbose = True)
+        name = param.get('name')
+        old_value = float(param.get('value'))
+        old_value_adim = self.paramtree.dic[name]
+        print old_value, old_value_adim
+
+        param.set('value', str(val))
+        try:
+            val_adim = val * old_value_adim / old_value
+        except ZeroDivisionError:
+            print('Warning, possible adimentionalisation error')
+            val_adim = val
+
+        self.paramtree.change_dic(name, val_adim, write = False,
+                                  back_up = False, verbose = True)
 
 
 class SetMeasures(SetParameters):
 
     def __init__(self, measuretree, parent = None):
         
-        SetParameters.__init__(self, measuretree, parent, adimentionalized = False)
+        SetParameters.__init__(self, measuretree, parent)
         self.setWindowTitle('Measures')
-        
-        params = self.paramtree.root.findall("param")
-        nb_params = len(params)
 
 
 

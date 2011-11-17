@@ -38,8 +38,19 @@ def indent(elem, level=0):
 
 
 class ParamTree(object):
+    '''
+    This class defines the container for the simulation parameters.
+    It wraps an ElementTree instance whose elements contains the
+    name, value (as a string), description and unit of each parameter and a
+    dictionnary that is used during the simulation.
 
-    def __init__(self, filename = None, root = None):
+
+    The 'value' attribute of the tree is not modified by adimentionalization,
+    whereas the value in the dictionnary is changed.
+    '''
+
+
+    def __init__(self, filename = None, root = None, adimentionalized = True):
 
         if filename is not None:
             self.filename = filename
@@ -50,12 +61,6 @@ class ParamTree(object):
 
         elif root is not None:
             self.root = root
-
-
-    def create_dic(self, adimentionalized = True):
-        '''creates a dictionnary of parameters as requested by the simulation
-        element should be the root of the parameters tree (i.e. parameters)  
-        '''
         list=[]
         a = self.root.findall("param")
         for i in a:
@@ -66,12 +71,12 @@ class ParamTree(object):
             else:
                 v = int(v)
             list.append((n, v))
-        self.scaled_dic = dict(list)
-        self.dic = self.scaled_dic
-        if adimentionalized:
+
+        self.absolute_dic = dict(list)
+        self.relative_dic = dict(list)
+        if adimentionalized :
             self.adimentionalize()
-
-
+            
     def has_unit(self, param, UNIT):
 
         unit_str = param.find("unit").text
@@ -81,69 +86,69 @@ class ParamTree(object):
             return False
 
     def adimentionalize(self):
+
         '''
         This function scales everything taking dt as unit time, Vk as
-        unit speed, Fk as unit force, dt as unit time step and d0 as
-        unit length. It relies on a correct definition of the units of
-        the elements of the param tree, thus a correct spelling in the
-        xml file, so please beware
+        unit speed, and Fk as unit force. It relies on a correct
+        definition of the units of the elements of the param tree,
+        thus a correct spelling in the xml file, so please beware
+
+        Note that the "value" attribute of the ElementTree instance are
+        NOT modified. Also, applying this function on an already
+        adimentionalized  dictionnary won"t change any thing
         '''
 
-        Vk = self.dic["Vk"]
-        Fk = self.dic["Fk"]
-        dt = self.dic["dt"]
-        d0 = self.dic["d0"]
+        Vk = self.absolute_dic["Vk"]
+        Fk = self.absolute_dic["Fk"]
+        dt = self.absolute_dic["dt"]
+        d0 = self.absolute_dic["d0"]
         params = self.root.findall("param")
 
         for param in params:
             key = param.get("name")
-            val = self.dic[key]
+            val = self.absolute_dic[key]
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
-            elif self.has_unit(param, DRAG_UNIT): #This shall be checked
-                val /= Fk/dt
+            elif self.has_unit(param, DRAG_UNIT):
+                val *= 1 / ( dt * Fk )
+                print val
             elif self.has_unit(param, SPEED_UNIT):
-                val *= 1/Vk
+                val /=  Vk
             elif self.has_unit(param, FREQ_UNIT):
                 val *= dt
             elif self.has_unit(param, FORCE_UNIT):
                 val /= Fk
-            # elif self.has_unit(param, LENGTH_UNIT):
-            #     val /= d0
-            self.dic[key] = val
-            # a = self.root.findall('param')
-            # for item in a:
-            #     if item.attrib['name'] == key:
-            #         item.attrib['value'] == str(val)
-            #         break
+            self.relative_dic[key] = val
 
-        self.dic["Vk"] =  Vk
-        self.dic["Fk"] = Fk
-        self.dic["dt"] = dt 
-
-        
-
-    def change_dic(self, key, new_value, write = True, back_up = False, verbose = True):
-        '''changes the Element tree and re-creates the associated dictionnary.
-        If write is True, re_writes the parameters files
-        (older version is backed up if back_up)
+    def change_dic(self, key, new_value, write = True, back_up = False,
+                   verbose = True):
         '''
-        if self.dic is None:
-            self.create_dic()
-
-        try:
-            self.dic[key] = new_value
-
-        except KeyError:
-            print "Couldn't find the parameter %s" %key
-            return 0
+        Changes the Element tree and re-creates the associated dictionnary.
+        If write is True, re_writes the parameters files
+        (older version is backed up if back_up is True)
         
+        new_value is absolute - it has units
+        '''
+        
+        if self.relative_dic is None:
+            self.create_dic()
         a = self.root.findall('param')
         for item in a:
             if item.attrib['name'] == key:
                 item.attrib['value'] = str(new_value)
+                try:
+                    old_abs_val = self.absolute_dic[key]
+                    old_rel_val = self.relative_dic[key]
+                    if abs(old_abs_val) > 1e-9:
+                        new_rel_val = new_value * old_rel_val / old_abs_val
+                    else:
+                        new_rel_val = new_value
+                    self.relative_dic[key] = new_rel_val
+                    self.absolute_dic[key] = new_value
+                except KeyError:
+                    print "Couldn't find the parameter %s" %key
+                    return 0
                 break
-        
         if write:
             indent(self)
             xf = open(self.filename, 'w+')
@@ -157,14 +162,13 @@ class ParamTree(object):
                 print "Backed up old parameter file as %s" %bck
             else :
                 print "Warning : %s changed without back up" %self.filename
-
             xf.write(tostring(self))
             xf.close
-
-            print "Changed parameter %s value to %03f in file %s" %(key, new_value, self.filename)
+            print "Changed  %s to %03f in file %s" %(key,
+                                                     new_value,
+                                                     self.filename)
         elif verbose:
             print "Warning: parameter %s changed but not written!" %key
-
 
         
 class ResultTree(ParamTree):    
@@ -210,7 +214,7 @@ class ResultTree(ParamTree):
 
     def get_kineto_trajs(self):
 
-        N = self.dic['N']
+        N = int(self.relative_dic['N'])
         cols = []
         for traj in self.tree.getiterator("trajectory"):
             if traj.get("name") == "rightkineto":
@@ -227,7 +231,9 @@ class ResultTree(ParamTree):
         return kineto_trajs
         
     def get_array(self, name, index = None):
-        ''' returns the array of the corresponding trajectory
+
+        ''' returns the array of
+        the corresponding trajectory
 
         name can be : {right | left}{spb | kineto | kMT | iMT}
         for spbs index is None

@@ -83,8 +83,9 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
     
     def __init__(self, paramtree, measuretree,
                  plug = None, parent = None):
+
         
-        paramtree.create_dic(adimentionalized = True)
+        #paramtree.create_dic(adimentionalized = True)
         Metaphase.__init__(self, paramtree, measuretree,
                            plug = plug)
         QtGui.QWidget.__init__(self, None)
@@ -121,7 +122,7 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
 
         self.paramtree = ParamTree(paramfile)
-        self.paramtree.create_dic(adimentionalized = False)
+        self.paramtree.create_dic(adimentionalized = True)
 
         self.measuretree = ParamTree(measurefile)
         self.measuretree.create_dic(adimentionalized = False)
@@ -263,6 +264,8 @@ class MainWindow(QtGui.QMainWindow):
         print self.paramtree.dic['fa']
         
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
+
+        print self.mt.KD.params['fa']
 
         self.progressBar.setMaximum(int(self.paramtree.dic['span']/
                                         self.paramtree.dic['dt']))
