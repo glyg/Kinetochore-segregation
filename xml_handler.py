@@ -38,6 +38,7 @@ def indent(elem, level=0):
 
 
 class ParamTree(object):
+
     '''
     This class defines the container for the simulation parameters.
     It wraps an ElementTree instance whose elements contains the
@@ -111,7 +112,6 @@ class ParamTree(object):
                 val /= Fk
             elif self.has_unit(param, DRAG_UNIT):
                 val *= 1 / ( dt * Fk )
-                print val
             elif self.has_unit(param, SPEED_UNIT):
                 val /=  Vk
             elif self.has_unit(param, FREQ_UNIT):
@@ -137,18 +137,13 @@ class ParamTree(object):
             if item.attrib['name'] == key:
                 item.attrib['value'] = str(new_value)
                 try:
-                    old_abs_val = self.absolute_dic[key]
-                    old_rel_val = self.relative_dic[key]
-                    if abs(old_abs_val) > 1e-9:
-                        new_rel_val = new_value * old_rel_val / old_abs_val
-                    else:
-                        new_rel_val = new_value
-                    self.relative_dic[key] = new_rel_val
                     self.absolute_dic[key] = new_value
                 except KeyError:
                     print "Couldn't find the parameter %s" %key
                     return 0
                 break
+        self.adimentionalize()
+
         if write:
             indent(self)
             xf = open(self.filename, 'w+')
@@ -169,6 +164,7 @@ class ParamTree(object):
                                                      self.filename)
         elif verbose:
             print "Warning: parameter %s changed but not written!" %key
+
 
         
 class ResultTree(ParamTree):    

@@ -406,18 +406,14 @@ if __name__ == '__main__':
     QtCore.qsrand(QtCore.QTime(0,0,0).secsTo(QtCore.QTime.currentTime()))
 
     paramtree = ParamTree(paramfile)
-    paramtree.create_dic(adimentionalized = False)
     
-    measuretree = ParamTree(measurefile)
-    measuretree.create_dic(adimentionalized = False)
-    measures = measuretree.dic
+    measuretree = ParamTree(measurefile, adimentionalized = False)
+    measures = measuretree.absolute_dic
 
 
     mt = SigMetaphase(paramtree, measuretree)
     widget = NakedWidget(mt)
     widget.setRenderHint(QtGui.QPainter.Antialiasing)
     widget.show()
-    
-    
     
     sys.exit(app.exec_())

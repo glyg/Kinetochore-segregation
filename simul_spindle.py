@@ -114,9 +114,8 @@ def reduce_params(paramtree, measuretree):
         print 'Time step changed' 
 
     mus = params['mus']
-    Fmz = Fk * N * Mk * alpha_mean * (1 + ( metaph_rate/2 ) *
-                                      (1 + mus / ( N * Mk * alpha_mean ))
-                                      / (1 -  metaph_rate / ( 2 * Vmz ) ))
+    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
+             - mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
     params['Fmz'] = Fmz
     mui = ( tau_i * kappa )
     params['mui'] = mui
@@ -125,8 +124,6 @@ def reduce_params(paramtree, measuretree):
 
     for key, val in params.items():
         paramtree.change_dic(key, val, write = False, verbose = False)
-
-    paramtree.adimentionalize()
 
 
 class Metaphase(object):

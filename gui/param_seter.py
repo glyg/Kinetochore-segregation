@@ -129,19 +129,8 @@ class SetParameters(QtGui.QWidget):
     def set_new_val(self, param, val):
 
         name = param.get('name')
-        old_value = float(param.get('value'))
-        old_value_adim = self.paramtree.dic[name]
-        print old_value, old_value_adim
-
+        self.paramtree.change_dic(name, val)
         param.set('value', str(val))
-        try:
-            val_adim = val * old_value_adim / old_value
-        except ZeroDivisionError:
-            print('Warning, possible adimentionalisation error')
-            val_adim = val
-
-        self.paramtree.change_dic(name, val_adim, write = False,
-                                  back_up = False, verbose = True)
 
 
 class SetMeasures(SetParameters):
