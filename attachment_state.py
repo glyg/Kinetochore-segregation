@@ -13,7 +13,8 @@ def get_history(kd):
     '''
     '''
     meros = hstack([array(ch.mero_history) for ch in kd.chromosomes.values()])
-    plugs = hstack([array(ch.pluged_history) for ch in kd.chromosomes.values()])    return plugs, meros
+    plugs = hstack([array(ch.pluged_history) for ch in kd.chromosomes.values()])
+    return plugs, meros
  
 
 def balance_histories(kd):

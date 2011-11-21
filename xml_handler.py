@@ -111,7 +111,7 @@ class ParamTree(object):
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
             elif self.has_unit(param, DRAG_UNIT):
-                val *= 1 / ( dt * Fk )
+                val *= Vk*Fk #Icant find whats going wrong here????
             elif self.has_unit(param, SPEED_UNIT):
                 val /=  Vk
             elif self.has_unit(param, FREQ_UNIT):

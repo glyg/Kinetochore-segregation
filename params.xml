@@ -32,7 +32,7 @@
       <unit>pN.s/&#181;m</unit>
       <description>Kt structural friction coef.</description>
     </param>
-  <param max="2000." min="1." name="mus" step="1." value="900.0">
+  <param max="2000." min="1." name="mus" step="1." value="1000.0">
       <unit>pN.s/&#181;m</unit>
       <description>Spb drag coefficient</description>
     </param>

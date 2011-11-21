@@ -114,8 +114,9 @@ def reduce_params(paramtree, measuretree):
         print 'Time step changed' 
 
     mus = params['mus']
-    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
-             - mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
+    Fmz =  Fk * N * Mk / 1.2
+    # Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
+    #          - mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
     params['Fmz'] = Fmz
     mui = ( tau_i * kappa )
     params['mui'] = mui
@@ -446,9 +447,8 @@ class Metaphase(object):
         try:
             axes.plot(self.timelapse, spbRtraj, color = 'r', ls = '-', lw=1)
             axes.plot(self.timelapse, spbLtraj, color = 'r', ls = '-', lw=1)
-        except AttributeError:
+        except ValueError:
             print 'please run the simulation before'
-            axes.close()
             return 0
 
         fmt_list = ['g-', 'b-', 'm-']

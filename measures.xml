@@ -1,6 +1,6 @@
 
 <parameters>
-  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.002">
+  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.001">
     <unit>&#181;m/s</unit>
     <description>Metaphase elongation rate</description>
   </param>
@@ -24,11 +24,11 @@
     <unit>&#181;m</unit>
     <description>kt-kt equilibrium distance</description>
   </param>
-  <param max="0.2" min="0." name="oi_dist" step="0.01" value="0.05">
+  <param max="0.2" min="0." name="oi_dist" step="0.01" value="0.2">
     <unit>&#181;m</unit>
-    <description>Mean outer-inner plate distance</description>
+    <description>Max outer-inner plate distance</description>
   </param>
-  <param max="60." min="5." name="tau_o" step="0.1" value="8.">
+  <param max="60." min="5." name="tau_o" step="0.1" value="12.">
     <unit>s</unit>
     <description>Kt pair relaxation rate</description>
   </param>
