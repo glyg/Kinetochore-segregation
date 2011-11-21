@@ -260,7 +260,7 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-        print self.paramtree.dic['fa']
+        print self.paramtree
         
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
 
@@ -288,7 +288,7 @@ class MainWindow(QtGui.QMainWindow):
                          self.iw.startAnim)
     
     def run_simulation(self):
-
+        
         self.prepare_simulation()
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.mt.sig_simul()
