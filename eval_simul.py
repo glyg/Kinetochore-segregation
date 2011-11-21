@@ -79,7 +79,7 @@ def anaphase_rate(KD):
 def metaph_rate(KD):
     '''Calculates metaphase elongation rate.
     '''
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     spindle_length = array(KD.spbR.traj) - array(KD.spbL.traj)
@@ -97,7 +97,7 @@ def metaph_kineto_dist(KD):
     '''calculates the mean and sdev of the distance between the kinetochores
     of each chromosome during metaphase. Returns a tuple (mean, sdev)
     '''
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)
@@ -135,7 +135,7 @@ def add_noise(KD, detect_noise = 65e-3, smth = 5):
         ch.lefttraj = convolve(ch.lefttraj, wd/sum(wd), mode = 'same')
 
 def metaph_kineto_dist_list(KD):
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)
@@ -151,7 +151,7 @@ def metaph_kineto_dist_list(KD):
 
 def poleward_speed(KD):
 
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     start = int(trans_MA/dt)
@@ -181,7 +181,7 @@ def poleward_speed(KD):
 
 def kt_rms_speed(KD):
 
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     stop = int(trans_MA/dt)
@@ -217,7 +217,7 @@ def time_of_arrival(KD):
 
 def pluged_stats(KD):
 
-    N = KD.params['N']
+    N = int(KD.params['N'])
     trans_MA = KD.params['trans']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)

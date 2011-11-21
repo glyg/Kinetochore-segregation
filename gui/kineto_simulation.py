@@ -49,8 +49,6 @@ class MyMplCanvas(FigureCanvas):
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-      
-
     def compute_initial_figure(self, span):
         self.axes.axis([0, span , -10, 10 ])
 
@@ -75,7 +73,8 @@ class MyMplCanvas(FigureCanvas):
 class SigMetaphase(Metaphase, QtGui.QWidget):
 
     '''
-    See if we can retrieve signals from this hybrid
+    The aim of this hybrid is to retrieve signals from the
+    simulation while it"s running.
 
     overrides _one_step method of the Metaphase class
 
@@ -83,8 +82,7 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
     
     def __init__(self, paramtree, measuretree,
                  plug = None, parent = None):
-        
-        paramtree.create_dic(adimentionalized = True)
+
         Metaphase.__init__(self, paramtree, measuretree,
                            plug = plug)
         QtGui.QWidget.__init__(self, None)
@@ -121,11 +119,9 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
 
         self.paramtree = ParamTree(paramfile)
-        self.paramtree.create_dic(adimentionalized = False)
 
-        self.measuretree = ParamTree(measurefile)
-        self.measuretree.create_dic(adimentionalized = False)
-        self.measures = self.measuretree.dic
+        self.measuretree = ParamTree(measurefile, adimentionalized = False)
+        self.measures = self.measuretree.absolute_dic
 
         self.mt = None
 
@@ -168,7 +164,7 @@ class MainWindow(QtGui.QMainWindow):
         self.simLog.setReadOnly(True)
 
         #Plotting Areas
-        span = self.paramtree.dic['span']
+        span = self.paramtree.relative_dic['span']
         self.plotarea1 = MyMplCanvas(span)
         mpl_toolbar = NavigationToolbar(self.plotarea1, self.centralwidget)
         vbox1 = QtGui.QVBoxLayout()
@@ -260,12 +256,14 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-        print self.paramtree
+        print self.paramtree.absolute_dic['fa']
+        print self.paramtree.relative_dic['fa']
         
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
+        print self.mt.KD.params['fa']
 
-        self.progressBar.setMaximum(int(self.paramtree.dic['span']/
-                                        self.paramtree.dic['dt']))
+        self.progressBar.setMaximum(int(self.paramtree.absolute_dic['span']))
+        
         self.progressBar.setMinimum(0)
         self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'),
                      self.active_checkpoint)

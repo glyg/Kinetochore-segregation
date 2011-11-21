@@ -156,8 +156,8 @@ def get_history(kd, fmt = '-'):
     Normaly num_plugs+num_synt+num_mono+num_mero+num_unplugs = N
     '''
 
-    Mk = kd.params['Mk']
-    N = kd.params['N']
+    Mk = int(kd.params['Mk'])
+    N = int(kd.params['N'])
     
     meros = []
     plugs = []
@@ -280,7 +280,7 @@ def explore_one(organism, num_steps, num_ech, display = False, full = False):
     only the plug/unplug sequence
     '''
 
-    N = organism['N']
+    N = int(organism['N'])
     dt = organism['dt']
     all_defects = {}
     for i in range(num_ech):
@@ -388,7 +388,7 @@ def fit_plugs(organism, plugs, num_steps):
 def fit_meros(organism, meros, num_steps):
 
     elapsed = arange(num_steps + 1)*organism['dt']
-    Mk = organism['Mk']
+    Mk = int(organism['Mk'])
     init = Mk/2, 100
     fit_param = leastsq(exp_err, init, (elapsed, meros))
 

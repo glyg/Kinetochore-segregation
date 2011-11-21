@@ -9,15 +9,11 @@
 
 from numpy import *
 
-
 def get_history(kd):
-
     '''
     '''
     meros = hstack([array(ch.mero_history) for ch in kd.chromosomes.values()])
-    plugs = hstack([array(ch.pluged_history) for ch in kd.chromosomes.values()])
-
-    return plugs, meros
+    plugs = hstack([array(ch.pluged_history) for ch in kd.chromosomes.values()])    return plugs, meros
  
 
 def balance_histories(kd):
@@ -28,7 +24,7 @@ def balance_histories(kd):
     for which each line gives the number of kt in each of the possible cases
     (i.e balance = -Mk+2, -Mk+3, .., Mk-2)   across time. 
     '''
-    Mk = kd.params['Mk']
+    Mk = int(kd.params['Mk'])
     num_steps = len(kd.spbR.traj)
 
     #The number of cases is (Mk-1) * 2 + 1
@@ -88,7 +84,7 @@ def transition_matrix(kd):
     
     def_tags = {'merotelic':3, 'syntelic':4, 'amphitelic':2,
                     'monotelic':1, 'unattached':0}
-    N = kd.params['N']
+    N = int(kd.params['N'])
     num_defects, were_defects = defect_histories(kd)
     trans_mat = zeros((5,5))
     for key, wd in were_defects.items():
@@ -126,8 +122,8 @@ def defect_histories(kd):
 
 
     '''     
-    Mk = kd.params['Mk']
-    N = kd.params['N']
+    Mk = int(kd.params['Mk'])
+    N = int(kd.params['N'])
     
     meros = [array(ch.mero_history) for ch in kd.chromosomes.values()]
     plugs = [array(ch.pluged_history) for ch in kd.chromosomes.values()]
