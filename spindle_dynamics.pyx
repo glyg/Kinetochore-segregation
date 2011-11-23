@@ -160,19 +160,15 @@ class KinetoDynamics(object) :
         '''
         cdef double ld0, ld_slope
         ld_slope = self.params['ld_slope']
-        if ld_slope == 0 :
-            return p * (1 + p) / 2
-
         ld0 = self.params['ld0']
         cdef double dist
         dist = abs(spos - pspos)
-        
         cdef double ldep
         ldep = ld_slope * dist + ld0
         if dist < 0.0001:
             ldep = dist  # No force when at pole
 
-        return p * (1 + p) / 2
+        return ldep * p * (1 + p) / 2
 
     #@cython.profile(False)
     def beta(self, double pspos, double spos, int p): #int n, int m, int side):
@@ -185,9 +181,6 @@ class KinetoDynamics(object) :
         cdef double ld0, ld_slope
 
         ld_slope = self.params['ld_slope']
-        if ld_slope == 0 :
-            return p * (p - 1) / 2
-
         ld0 = self.params['ld0']
         cdef double dist
         dist = abs(spos - pspos)
@@ -221,9 +214,7 @@ class KinetoDynamics(object) :
         cdef float pspos
         cdef int p, pR, pL
 
-
         A[0,0] = - 2 * mus - 4 * Fmz / Vmz
-
 
         # inner plate
         for n in range(N):
@@ -520,9 +511,9 @@ class KinetoDynamics(object) :
         cdef double dt = self.params['dt']
         cdef double Vk = self.params['Vk']
         
-        speeds *= Vk
-        self.spbR.pos += speeds[0] * dt
-        self.spbL.pos -= speeds[0] * dt
+        speeds *= Vk * dt #Back to real space
+        self.spbR.pos += speeds[0]
+        self.spbL.pos -= speeds[0]
         if self.spbR.pos <= self.spbL.pos + 0.2:
             print "Crossing "
             self.spbR.pos = 0.1
@@ -533,11 +524,11 @@ class KinetoDynamics(object) :
 
         for n in range(N):
             ch = self.chromosomes[n]
-            ch.rightpos += dt * speeds[self._idx[(0,n)]]
+            ch.rightpos += speeds[self._idx[(0,n)]]
             if ch.rightpos > self.spbR.pos:
                 ch.rightpos = self.spbR.pos
 
-            ch.leftpos += dt * speeds[self._idx[(1,n)]] 
+            ch.leftpos +=  speeds[self._idx[(1,n)]] 
             if ch.leftpos < self.spbL.pos:
                 ch.leftpos = self.spbL.pos
 
@@ -546,14 +537,14 @@ class KinetoDynamics(object) :
             #     ch.leftpos -= dt * speeds[self._idx[(1,n)]]
 
             for m in range(Mk):
-                ch.rplugs[m].pos += dt * speeds[self._idx[(0,n,m)]]
+                ch.rplugs[m].pos +=  speeds[self._idx[(0,n,m)]]
                 if self.spbL.pos > ch.rplugs[m].pos:
                    ch.rplugs[m].pos = self.spbL.pos
                 if self.spbR.pos < ch.rplugs[m].pos:
                    ch.rplugs[m].pos = self.spbR.pos
                 ch.rplugs[m].traj.append(ch.rplugs[m].pos)
                     
-                ch.lplugs[m].pos += dt * speeds[self._idx[(1,n,m)]]                
+                ch.lplugs[m].pos +=  speeds[self._idx[(1,n,m)]]                
                 if self.spbL.pos > ch.lplugs[m].pos:
                    ch.lplugs[m].pos = self.spbL.pos
                 if self.spbR.pos < ch.lplugs[m].pos:

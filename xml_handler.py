@@ -111,7 +111,7 @@ class ParamTree(object):
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
             elif self.has_unit(param, DRAG_UNIT):
-                val *= Vk*Fk #Icant find whats going wrong here????
+                val *= Vk/Fk  
             elif self.has_unit(param, SPEED_UNIT):
                 val /=  Vk
             elif self.has_unit(param, FREQ_UNIT):
@@ -119,6 +119,7 @@ class ParamTree(object):
             elif self.has_unit(param, FORCE_UNIT):
                 val /= Fk
             self.relative_dic[key] = val
+
 
     def change_dic(self, key, new_value, write = True, back_up = False,
                    verbose = True):
@@ -129,6 +130,7 @@ class ParamTree(object):
         
         new_value is absolute - it has units
         '''
+        
         
         if self.relative_dic is None:
             self.create_dic()

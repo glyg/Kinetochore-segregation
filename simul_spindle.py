@@ -99,7 +99,7 @@ def reduce_params(paramtree, measuretree):
         fd_eff = fd0
     
     # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
-    alpha_mean = float(1/(1 + fd_eff/fa))
+    alpha_mean = 1/(1 + fd_eff/fa)
     #Take metaphase kt pair distance as the maximum one
     kappa = Fk * Mk / ( max_metaph_k_dist - d0 )
     params['kappa'] = kappa
@@ -114,9 +114,10 @@ def reduce_params(paramtree, measuretree):
         print 'Time step changed' 
 
     mus = params['mus']
-    Fmz =  Fk * N * Mk / 1.2
-    # Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
-    #          - mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
+
+    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
+             + mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
+
     params['Fmz'] = Fmz
     mui = ( tau_i * kappa )
     params['mui'] = mui
@@ -190,17 +191,22 @@ class Metaphase(object):
             self.measuretree = measuretree
         if reduce_p:
             reduce_params(self.paramtree, self.measuretree)
+
+        params = self.paramtree.relative_dic
+        params['Vk'] = self.paramtree.absolute_dic['Vk']
+        params['Fk'] = self.paramtree.absolute_dic['Fk']
+        params['dt'] = self.paramtree.absolute_dic['dt']
             
-        self.KD = KinetoDynamics(self.paramtree.relative_dic,
+        self.KD = KinetoDynamics(params,
                                  plug = plug)
         dt = self.paramtree.absolute_dic['dt']
+
         duration = self.paramtree.absolute_dic['span']
         self.nb_steps = int(duration/dt)
         self.KD.anaphase = False
         self.timelapse = arange(0, duration + dt, dt)
         self.report = []
         self.delay = -1
-
 
 
     def __str__(self):

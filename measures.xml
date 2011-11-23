@@ -1,6 +1,6 @@
 
 <parameters>
-  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.001">
+  <param max="0.01" min="0." name="metaph_rate" step="0.001" value="0.002">
     <unit>&#181;m/s</unit>
     <description>Metaphase elongation rate</description>
   </param>
