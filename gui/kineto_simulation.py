@@ -118,8 +118,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, parent=None):
 
-        self.paramtree = ParamTree(paramfile)
 
+        self.paramtree = ParamTree(paramfile)
         self.measuretree = ParamTree(measurefile, adimentionalized = False)
         self.measures = self.measuretree.absolute_dic
 
@@ -129,7 +129,6 @@ class MainWindow(QtGui.QMainWindow):
         self.centralwidget = QtGui.QWidget()
 
         self.setCentralWidget(self.centralwidget)
-
         self.create_docks()
         self.create_tabs()
         self.create_buttons()
@@ -138,6 +137,7 @@ class MainWindow(QtGui.QMainWindow):
         
     def create_docks(self):
 
+
         #Parameter Setting in a Dock Widget
         self.paramdock = QtGui.QDockWidget('Parameters Setting')
         self.setParameters = SetParameters(self.paramtree)
@@ -145,7 +145,6 @@ class MainWindow(QtGui.QMainWindow):
         scrollArea.setWidget(self.setParameters)
         self.paramdock.setWidget(scrollArea)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
-        #
 
         #Measures Setting in another Dock Widget
         self.measuredock = QtGui.QDockWidget('Measures Setting')
@@ -154,7 +153,6 @@ class MainWindow(QtGui.QMainWindow):
         scrollArea.setWidget(self.setMeasures)
         self.measuredock.setWidget(scrollArea)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
-        #
 
     def create_tabs(self):
         #Text Area
@@ -524,6 +522,7 @@ class MainWindow(QtGui.QMainWindow):
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
+    
     mainwindow = MainWindow()
     mainwindow.show()
     sys.exit(app.exec_())

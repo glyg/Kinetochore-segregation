@@ -129,7 +129,9 @@ class SetParameters(QtGui.QWidget):
     def set_new_val(self, param, val):
 
         name = param.get('name')
-        self.paramtree.change_dic(name, val)
+        self.paramtree.change_dic(name, val,
+                                  write = False,
+                                  verbose = False)
         param.set('value', str(val))
 
 

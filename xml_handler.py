@@ -132,7 +132,7 @@ class ParamTree(object):
         '''
         
         
-        if self.relative_dic is None:
+        if self.absolute_dic is None:
             self.create_dic()
         a = self.root.findall('param')
         for item in a:
@@ -144,10 +144,16 @@ class ParamTree(object):
                     print "Couldn't find the parameter %s" %key
                     return 0
                 break
-        self.adimentionalize()
-
+        try:
+            self.adimentionalize()
+        except KeyError:
+            if 'metaph_rate' in self.absolute_dic.keys():
+                self.relative_dic = self.absolute_dic
+            else:
+                raise()
+            
         if write:
-            indent(self)
+            indent(self.root)
             xf = open(self.filename, 'w+')
             if back_up:
                 bck = self.filename+'.bck'
