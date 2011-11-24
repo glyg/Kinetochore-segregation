@@ -30,28 +30,28 @@ def load_paramtree():
     paramtree.create_dic()
 
     base = {}#paramtree.dic
-    base.update({'dt':2.})#, 'fa':0.01, 'fd':0.005})
+    base.update({'dt':2.})#, 'k_a':0.01, 'fd':0.005})
 
     pombe = base.copy()
     pombe.update({'N': 3, 'Mk':4, 'name':'Fission Yeast (Mk = 4)'})
 
     drosoS2 = base.copy()
     drosoS2.update({'N':4, 'Mk':15, 'name':'Drosophila S2 cell (Mk = 15)',
-                    'l0':2., 'd0':1.})
+                    'L0':2., 'd0':1.})
 
     haemanthus = base.copy()
     haemanthus.update({'N':14, 'Mk':80, 'name':'Haemanthus endosperm (Mk = 80)',
-                       'l0':10., 'd0':1.})
+                       'L0':10., 'd0':1.})
 
     hela = base.copy()
     hela.update({'N':23, 'Mk':30, 'name':'Homo sapiens (Mk = 30)'})
 
     ptk1 = base.copy()
-    ptk1.update({'N':6, 'Mk':40, 'name':'Ptk1 (Mk = 40)', 'l0':2., 'd0':1.})
+    ptk1.update({'N':6, 'Mk':40, 'name':'Ptk1 (Mk = 40)', 'L0':2., 'd0':1.})
 
     newt = base.copy()
     newt.update({'N':5, 'Mk':24, 'name':'Newt lung cell (Mk = 24)',
-                 'l0':2., 'd0':1.})
+                 'L0':2., 'd0':1.})
 
     organisms = [pombe, drosoS2,  ptk1,  haemanthus]
     return paramtree, organisms
@@ -67,16 +67,16 @@ pombe['measures'] = {'metaph_rate': 0.001,
                      'anaph_rate':0.022,
                      'metaph_k_dist':0.8,
                      'oi_dist':0.05,
-                     'tau_o':10.,
-                     'tau_i':10.,
+                     'tau_k':10.,
+                     'tau_c':10.,
                      'obs_d0':0.2}
 ptk1['measures'] = {'metaph_rate': 0.001,
                     'poleward_speed':  0.018,
                     'anaph_rate':0.022,
                     'metaph_k_dist':2.1,
                     'oi_dist':0.05,
-                    'tau_o':10.,
-                    'tau_i':10.,
+                    'tau_k':10.,
+                    'tau_c':10.,
                     'obs_d0':1.}
 
 #hela['measures'] = ptk1['measures']
@@ -93,7 +93,7 @@ def markov_plug(organism, num_steps):
         m.paramtree.change_dic(key, new_value, write = False,
                                back_up = False, verbose = False)
     #we don't want to execute anaphase during this kind of simulation
-    m.paramtree.change_dic('trans', num_steps, write = False,
+    m.paramtree.change_dic('t_A', num_steps, write = False,
                            back_up = False, verbose = False)
     
     m.__init__(num_steps, m.paramtree)
@@ -120,7 +120,7 @@ def full_simul(organism, num_steps, reduced = True):
         m.paramtree.change_dic(key, new_value, write = False,
                                back_up = False, verbose = False)
     #we don't want to execute anaphase during this kind of simulation
-    m.paramtree.change_dic('trans', num_steps, write = False,
+    m.paramtree.change_dic('t_A', num_steps, write = False,
                            back_up = False, verbose = False)
 
 
@@ -242,8 +242,8 @@ def explore_aurora(organism, num_steps, num_ech):
     #auroras = logspace(-1.5, .5, 20)
     auroras = logspace(-1.5, .2, 40)
     all_defects = {}
-    for aurora in auroras:
-        organism['aurora'] = aurora
+    for d_alpha in auroras:
+        organism['d_alpha'] = d_alpha
         ms, ps, defects = explore_one(organism, num_steps,
                                       num_ech, display = False, full = True)
         for key, value in defects.items():
@@ -256,7 +256,7 @@ def explore_aurora(organism, num_steps, num_ech):
 
 def explore_orientation(organism, num_steps, num_ech):
 
-    organism['aurora'] = 0
+    organism['d_alpha'] = 0
     fds = logspace(-2, 0., 40)
     all_defects = {}
 
@@ -331,8 +331,8 @@ def explore_all(num_steps, num_ech, display = False, base_name = None,
 
         auroras = logspace(-1, 1, 10)
         n = 0
-        for aurora in auroras:
-            organism['aurora'] = aurora
+        for d_alpha in auroras:
+            organism['d_alpha'] = d_alpha
         
             num_ech_eff = int(  num_ech /  float( organism['N'] ))
             if num_ech_eff < 2:
@@ -409,9 +409,9 @@ def get_biorientation_times():
 
     for organism in organisms:
         organism['bio_times'] = []
-    for aurora in auroras:
+    for d_alpha in auroras:
         for organism in organisms:
-            m_p = vstack(organism[aurora]).mean(axis = 0)
+            m_p = vstack(organism[d_alpha]).mean(axis = 0)
             organism['bio_times'].append(more_than(m_p, 0.01))
             
 
@@ -420,12 +420,12 @@ def get_biorientation_times():
 def reload_aurora(attch):
 
     auroras = logspace(-1, 1, 10)
-    for n, aurora in enumerate(auroras):
-        base_name = 'attach_only/aurora'
+    for n, d_alpha in enumerate(auroras):
+        base_name = 'attach_only/d_alpha'
         term = '_auro%i.txt.gz' %n
         reload_allsims(base_name, attch, term = term)
         for organism in organisms:
-            organism[aurora] = organism[attch]
+            organism[d_alpha] = organism[attch]
 
 def more_than(a, lim, axis = None):
     ''' 

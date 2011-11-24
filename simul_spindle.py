@@ -67,8 +67,8 @@ def reduce_params(paramtree, measuretree):
         mean_metaph_k_dist = measures['mean_metaph_k_dist']
         max_metaph_k_dist = measures['max_metaph_k_dist']        
         outer_inner_dist = measures['oi_dist']
-        tau_o = measures['tau_o'] 
-        tau_i = measures['tau_i'] 
+        tau_k = measures['tau_k'] 
+        tau_c = measures['tau_c'] 
         obs_d0 = measures['obs_d0']
 
     except KeyError:
@@ -79,12 +79,12 @@ def reduce_params(paramtree, measuretree):
         return 0
 
 
-    fa = params['fa'] # 'free' attachement event frequency
-    fd0 = params['fd0'] # 'free' detachement event frequency
-    aurora = params['aurora']
+    k_a = params['k_a'] # 'free' attachement event frequency
+    k_d0 = params['k_d0'] # 'free' detachement event frequency
+    d_alpha = params['d_alpha']
     N = int(params['N'])
     Mk = int(params['Mk'])
-    kop = params['kop']
+    kappa_k = params['kappa_k']
     Fk = params['Fk']
 
     #Let's go for the direct relations
@@ -92,37 +92,35 @@ def reduce_params(paramtree, measuretree):
     Vk = params['Vk'] = poleward_speed
     Vmz = params['Vmz'] = anaph_rate
     #Aurora modifies fd
-    if aurora != 0:
-        fd_eff = fa * aurora / mean_metaph_k_dist
+    if d_alpha != 0:
+        k_d_eff = k_a * d_alpha / mean_metaph_k_dist
     else:
         print "Warning; things don't go well without Aurora "
-        fd_eff = fd0
+        k_d_eff = k_d0
     
-    # alpha_mean = float(mean_attachment(fa/fd_eff) / Mk)
-    alpha_mean = 1/(1 + fd_eff/fa)
+    # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
+    alpha_mean = 1/(1 + k_d_eff/k_a)
     #Take metaphase kt pair distance as the maximum one
-    kappa = Fk * Mk / ( max_metaph_k_dist - d0 )
-    params['kappa'] = kappa
+    kappa_c = Fk * Mk / ( max_metaph_k_dist - d0 )
+    params['kappa_c'] = kappa_c
 
     #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
-    kop = Fk * Mk / ( 2 * outer_inner_dist )
-    params['kop'] = kop
+    kappa_k = Fk * Mk / ( 2 * outer_inner_dist )
+    params['kappa_k'] = kappa_k
     #Ensure we have sufficientely small time steps
     dt = params['dt']
-    params['dt'] = min( tau_i/4., tau_o/4., params['dt'])
+    params['dt'] = min( tau_c/4., tau_k/4., params['dt'])
     if params['dt'] != dt:
         print 'Time step changed' 
 
     mus = params['mus']
-
     Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
              + mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
-
     params['Fmz'] = Fmz
-    mui = ( tau_i * kappa )
-    params['mui'] = mui
-    muo = ( tau_o * kop )
-    params['muo'] = muo 
+    muc = ( tau_c * kappa_c )
+    params['muc'] = muc
+    muk = ( tau_k * kappa_k )
+    params['muk'] = muk 
 
     for key, val in params.items():
         paramtree.change_dic(key, val, write = False, verbose = False)
@@ -132,8 +130,6 @@ class Metaphase(object):
     
     """
     An instance of the Metaphase class is a wrapper around a whole simulation.
-
-
 
     Typical usage :
     >>> m = Metaphase()
@@ -268,7 +264,7 @@ class Metaphase(object):
         '''
 
         dt = self.KD.params['dt']
-        kappa = self.KD.params['kappa']
+        kappa_c = self.KD.params['kappa_c']
 
 
         for t in self.timelapse[1:]:
@@ -286,7 +282,7 @@ class Metaphase(object):
 
 
 
-        self.KD.params['kappa'] = kappa
+        self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
         s = "delay = %2d seconds" % self.delay
         self.report.append(s)
@@ -312,15 +308,15 @@ class Metaphase(object):
 
     def anaphase_test(self, t):
         
-        transition = int(self.KD.params['trans'])
+        t_A = int(self.KD.params['t_A'])
         if self.KD.anaphase:
             return True
             
-        if transition <= t and self._plug_checkpoint():
+        if t_A <= t and self._plug_checkpoint():
             if self.delay == -1 :
-                self.delay = t - transition 
+                self.delay = t - t_A 
                 #Then we just get rid of cohesin
-                self.KD.params['kappa'] = 0.
+                self.KD.params['kappa_c'] = 0.
                 self.KD.B_mat = self.KD.write_B()
                 self.nb_mero = self._mero_checkpoint()
                 if self.nb_mero:
@@ -340,8 +336,8 @@ class Metaphase(object):
             return 
 
         self.KD.params['Fmz'] = 0.
-        self.KD.params['fa'] = 0.
-        self.KD.params['fd0'] = 0.
+        self.KD.params['k_a'] = 0.
+        self.KD.params['k_d0'] = 0.
         for ch in self.KD.chromosomes.values():
             (right_pluged, left_pluged) = ch.pluged()
             (right_mero, left_mero) = ch.mero()
@@ -973,8 +969,6 @@ class Metaphase(object):
                 traj[:,n] = new_pos
 
         return trajectories
-
-
 
 
 def get_fromfile(xmlfname = "results.xml"):

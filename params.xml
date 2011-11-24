@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
   <parameters>
-    <param max="2000." min="0.1" name="span" step="10." value="1000.0">
+    <param max="2000." min="0.1" name="span" step="10." value="900.0">
       <unit>s</unit>
       <description>Simulation duration</description>
     </param>
@@ -12,23 +12,23 @@
       <unit> </unit>
       <description>Number of chromosomes</description>
     </param>
-    <param max="100" min="0" name="Mk" step="1" value="3">
+    <param max="100" min="0" name="Mk" step="1" value="4">
       <unit> </unit>
       <description>Number of attchmt sites</description>
     </param>
-    <param max="200." min="1." name="kappa" step="0" value="40.0">
+    <param max="200." min="1." name="kappa_c" step="0" value="40.0">
       <unit>pN/&#181;m</unit>
       <description>Cohesin spring constant</description>
     </param>
-    <param max="200." min="1." name="kop" step="0" value="50.0">
+    <param max="200." min="1." name="kappa_k" step="0" value="50.0">
       <unit>pN/&#181;m</unit>
       <description>Chromatid spring  constant</description>
     </param>
-    <param max="2000." min="0.1" name="mui" step="0" value="400.0">
+    <param max="2000." min="0.1" name="muc" step="0" value="400.0">
       <unit>pN.s/&#181;m</unit>
       <description>Chromatid drag coefficient</description>
     </param>
-  <param max="2000." min="1." name="muo" step="0" value="500.0">
+  <param max="2000." min="1." name="muk" step="0" value="500.0">
       <unit>pN.s/&#181;m</unit>
       <description>Kt structural friction coef.</description>
     </param>
@@ -36,7 +36,7 @@
       <unit>pN.s/&#181;m</unit>
       <description>Spb drag coefficient</description>
     </param>
-  <param max="15." min="0." name="l0" step="0.1" value="0.3">
+  <param max="15." min="0." name="L0" step="0.1" value="0.3">
       <unit>&#181;m</unit>
       <description>Spindle initial length</description>
     </param>
@@ -44,7 +44,7 @@
       <unit>&#181;m</unit>
       <description>Kinetochore - kinetochore rest length</description>
     </param>
-  <param max="100" min="0" name="aurora" step="0.1" value="0.1">
+  <param max="100" min="0" name="d_alpha" step="0.1" value="0.1">
       <unit>&#181;m</unit>
       <description>Aurora Pdet modifier</description>
     </param>
@@ -56,17 +56,13 @@
       <unit> </unit>
       <description>Non zero: spindle assembly checkpt </description>
     </param>
-  <param max="1." min="0." name="fa" step="0.001" value="0.06">
+  <param max="1." min="0." name="k_a" step="0.001" value="0.06">
       <unit>Hz</unit>
       <description>MT free attachement frequency</description>
     </param>  
-  <param max="1." min="0." name="fd0" step="0.001" value="0.06">
+  <param max="1." min="0." name="k_d0" step="0.001" value="0.06">
       <unit>Hz</unit>
       <description>MT free detachement frequency</description>
-    </param>
-  <param max="20." min="0.5" name="F0" step="0" value="10.0">
-      <unit>pN</unit>
-      <description>fd tension dependance</description>
     </param>
   <param max="2." min="0." name="ld_slope" step="0.1" value="0.">
       <unit> </unit>
@@ -92,7 +88,7 @@
       <unit>pN</unit>
       <description>Midzone stall Force</description>
     </param>
-  <param max="1000." min="0." name="trans" step="1." value="720.0">
+  <param max="1000." min="0." name="t_A" step="1." value="720.0">
       <unit>s</unit>
       <description>Anaphase A transition</description>
     </param>

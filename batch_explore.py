@@ -32,7 +32,7 @@ def full_simul(new_params, plug = 'monotelic'):
         m.paramtree.change_dic(key, new_value, write = False,
                                back_up = False, verbose = False)
     #we don't want to execute anaphase during this kind of simulation
-    m.paramtree.change_dic('trans', num_steps, write = False,
+    m.paramtree.change_dic('t_A', num_steps, write = False,
                            back_up = False, verbose = False)
     m.__init__(paramtree = m.paramtree,  plug = plug)
     m.simul()
@@ -51,8 +51,8 @@ def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt = 1):
     logfile = file('%s.log' %base_name, 'w+')
 
     for n, pcs1 in enumerate(pcs1s[20:]):
-        for m, aurora in enumerate(auroras):
-            new_params['aurora'] = aurora
+        for m, d_alpha in enumerate(auroras):
+            new_params['d_alpha'] = d_alpha
             new_params['orientation'] = pcs1
             new_params['span'] = num_steps * dt
             new_params['dt'] = dt
@@ -64,7 +64,7 @@ def explore_2D(pcs1s, auroras, num_steps, num_ech, plug, dt = 1):
                 mp.write_results(xmlfname, datafname)
                 del mp
             
-            logfile.write('ran plug = %s, pcs1 = %03f, aurora = %03f\n' %(plug, pcs1, aurora))
+            logfile.write('ran plug = %s, pcs1 = %03f, d_alpha = %03f\n' %(plug, pcs1, d_alpha))
 
     return 0
             
@@ -87,10 +87,10 @@ def explore_aurora2D(fd0s, auroras, num_steps, num_ech, plug):
 
     new_params = {}
     for i in range(num_ech):
-        for n, fd0 in enumerate(fd0s):
-            for m, aurora in enumerate(auroras):
-                new_params['aurora'] = aurora
-                new_params['fd0'] = fd0
+        for n, k_d0 in enumerate(fd0s):
+            for m, d_alpha in enumerate(auroras):
+                new_params['d_alpha'] = d_alpha
+                new_params['k_d0'] = k_d0
                 new_params['dt'] = 2.
 
                 mp = full_simul(new_params, num_steps, plug = plug)

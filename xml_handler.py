@@ -150,6 +150,7 @@ class ParamTree(object):
             if 'metaph_rate' in self.absolute_dic.keys():
                 self.relative_dic = self.absolute_dic
             else:
+                print 'Oooups'
                 raise()
             
         if write:

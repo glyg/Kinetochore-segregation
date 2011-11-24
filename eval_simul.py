@@ -63,7 +63,7 @@ def anaph_transAB(KD):
 def anaphase_rate(KD):
     '''Calculates anaphase B elongation rate.
     '''
-    trans_MA = KD.params['trans']
+    t_A_MA = KD.params['t_A']
     dt = KD.params['dt']
     trans_AB = anaph_transAB(KD)
     stop = len(KD.spbR.traj)*dt
@@ -80,7 +80,7 @@ def metaph_rate(KD):
     '''Calculates metaphase elongation rate.
     '''
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    t_A_MA = KD.params['t_A']
     dt = KD.params['dt']
     spindle_length = array(KD.spbR.traj) - array(KD.spbL.traj)
     if spindle_length.size >= int(trans_MA/dt):
@@ -98,7 +98,7 @@ def metaph_kineto_dist(KD):
     of each chromosome during metaphase. Returns a tuple (mean, sdev)
     '''
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)
     average = 0
@@ -136,7 +136,7 @@ def add_noise(KD, detect_noise = 65e-3, smth = 5):
 
 def metaph_kineto_dist_list(KD):
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)
     dist_list = []
@@ -152,11 +152,11 @@ def metaph_kineto_dist_list(KD):
 def poleward_speed(KD):
 
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     start = int(trans_MA/dt)
     
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     trans_AB = anaph_transAB(KD)
 
@@ -182,7 +182,7 @@ def poleward_speed(KD):
 def kt_rms_speed(KD):
 
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     stop = int(trans_MA/dt)
     rms_speeds = []
@@ -218,7 +218,7 @@ def time_of_arrival(KD):
 def pluged_stats(KD):
 
     N = int(KD.params['N'])
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     trans_MA = int(trans_MA/dt)
     tot_avg = 0
@@ -246,7 +246,7 @@ def auto_corel(KD, smooth = 10.):
     Pitch detection algorithm
     '''
 
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     pitches = []
     if len(KD.spbR.traj) <= trans_MA/dt: #no anaphase execution
@@ -285,7 +285,7 @@ def auto_corel(KD, smooth = 10.):
 
 def max_freqs(KD, show_fig = True):
 
-    trans_MA = KD.params['trans']
+    trans_MA = KD.params['t_A']
     dt = KD.params['dt']
     smth = int(10./dt)
     elapsed = arange(0, trans_MA , dt)

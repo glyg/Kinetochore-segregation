@@ -254,11 +254,11 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-        print self.paramtree.absolute_dic['fa']
-        print self.paramtree.relative_dic['fa']
+        print self.paramtree.absolute_dic['k_a']
+        print self.paramtree.relative_dic['k_a']
         
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
-        print self.mt.KD.params['fa']
+        print self.mt.KD.params['k_a']
 
         self.progressBar.setMaximum(int(self.paramtree.absolute_dic['span']))
         

@@ -265,14 +265,14 @@ def check_fO( span, num_ech = 50, num_rep = 1, logscale = False):
         samples = []
         for k in range(num_rep):
             T = Metaphase(800)
-            back_fa = T.KD.params['fa']
+            back_k_a = T.KD.params['fa']
             back_fd = T.KD.params['fd']
-            T.KD.params['fa'] = val * back_fa
+            T.KD.params['k_a'] = val * back_fa
             #T.KD.params['fd'] = val * back_fd
             T.simul()
             obs = auto_corel(T.KD)
             samples.append(obs)
-            T.KD.params['fa'] = back_fa
+            T.KD.params['k_a'] = back_fa
             #T.KD.params['fd'] = back_fd
         observations.append(array(samples))
 
