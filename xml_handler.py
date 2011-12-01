@@ -62,6 +62,9 @@ class ParamTree(object):
 
         elif root is not None:
             self.root = root
+        else:
+            print 'A etree root or a filename should be provided'
+
         list=[]
         a = self.root.findall("param")
         for i in a:
@@ -181,7 +184,7 @@ class ResultTree(ParamTree):
     def __init__(self, xmlfname = "resuts.xml"):
 
         xmlfname = os.path.abspath(xmlfname)
-        ParamTree.__init__(self, xmlfname)
+        ParamTree.__init__(self, xmlfname, adimentionalized = False)
         
         datafname = self.root.get("datafile")
         if not os.path.isabs(datafname):

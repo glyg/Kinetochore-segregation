@@ -4,7 +4,7 @@
       <unit>s</unit>
       <description>Simulation duration</description>
     </param>
-    <param max="2." min="0.1" name="dt" step="0.1" value="1.">
+    <param max="2." min="0.1" name="dt" step="0.1" value="0.5">
       <unit>s</unit>
       <description>Time step</description>
     </param>

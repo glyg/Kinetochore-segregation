@@ -63,7 +63,7 @@ def anaph_transAB(KD):
 def anaphase_rate(KD):
     '''Calculates anaphase B elongation rate.
     '''
-    t_A_MA = KD.params['t_A']
+    t_A = KD.params['t_A']
     dt = KD.params['dt']
     trans_AB = anaph_transAB(KD)
     stop = len(KD.spbR.traj)*dt
@@ -80,12 +80,14 @@ def metaph_rate(KD):
     '''Calculates metaphase elongation rate.
     '''
     N = int(KD.params['N'])
-    t_A_MA = KD.params['t_A']
+    t_A = KD.params['t_A']
     dt = KD.params['dt']
     spindle_length = array(KD.spbR.traj) - array(KD.spbL.traj)
-    if spindle_length.size >= int(trans_MA/dt):
-        elapsed = arange(trans_MA, step = dt)
-        (a, b)=polyfit(elapsed, spindle_length[:int(trans_MA/dt)], 1)
+    if spindle_length.size >= int(t_A/dt):
+        elapsed = arange(t_A, step = dt)
+        (a, b)=polyfit(elapsed, spindle_length[:elapsed.shape[0]], 1)
+        print dt
+
     else:
         elapsed = arange(spindle_length.size*dt, step = dt)
         (a, b)=polyfit(elapsed, spindle_length, 1)
@@ -257,7 +259,7 @@ def auto_corel(KD, smooth = 10.):
     
     for ch in KD.chromosomes.values():
 
-        ktR = array(ch.righttraj)[:int(trans_MA/dt)]
+        ktR = array(ch.righttraj)[:elapsed.shape[0]]
         # In order to compare with the 'real world' tracked kinetochores
         # we smooth by a factor smooth/dt
         ktR_tck = splrep(elapsed, ktR, t = elapsed[smth:-smth:smth])
@@ -267,7 +269,7 @@ def auto_corel(KD, smooth = 10.):
         co_ktR = correlate(ktR_sc, ktR_sc, 'full') / ktR_sc.size
         pitches.append(first_min(co_ktR[-co_ktR.size//2:]))
 
-        ktL = array(ch.lefttraj)[:int(trans_MA/dt)]
+        ktL = array(ch.lefttraj)[:elapsed.shape[0]]
         # In order to compare with the 'real world' tracked kinetochores
         # we smooth by a factor smooth/dt
         ktL_tck = splrep(elapsed, ktL, t = elapsed[smth:-smth:smth])
@@ -293,12 +295,12 @@ def max_freqs(KD, show_fig = True):
     max_fs = []
     for ch in KD.chromosomes.values():
         cen = (array(ch.righttraj) + array(ch.lefttraj))/2
-        cen_m = cen[:int(trans_MA/dt)]
+        cen_m = cen[:elapsed.shape[0]]
         knots = elapsed[smth:-smth:smth]
         tck = splrep(elapsed, cen_m, t = knots)
         sp_speed = splev(elapsed, tck, der = 1)
         sp_fft = rfft(sp_speed)
-        freqs = fftfreq(int(trans_MA/dt), dt)
+        freqs = fftfreq(elapsed.shape[0], dt)
         m_freq = freqs[argmax(sp_fft)]
         max_fs.append(m_freq)
         if show_fig:

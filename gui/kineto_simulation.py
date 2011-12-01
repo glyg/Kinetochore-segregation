@@ -18,7 +18,7 @@ import pyximport
 pyximport.install()
 
 
-from kt_simul.simul_spindle import Metaphase, paramfile, measurefile
+from kt_simul.simul_spindle import Metaphase, paramfile, measurefile, get_fromfile
 from param_seter import SetParameters, SetMeasures
 from game import InteractiveCellWidget
 
@@ -27,6 +27,7 @@ from kt_simul.xml_handler import ParamTree
 
 
 __all__ = ['MainWindow']
+
 
 #matplotlib.use('Qt4Agg') #Useless
 
@@ -238,15 +239,17 @@ class MainWindow(QtGui.QMainWindow):
         
         self.createToolBars()
         self.createStatusBar()
+        currentDirName = os.path.abspath(os.path.curdir)
+        
         currentFileName = '_'.join(time.asctime().split()[:-1])
         currentFileName = 'simul_'+'_'.join(currentFileName.split(':'))+'.xml'
-        currentFileName = os.path.join(os.path.dirname(__file__),
-                                       'simulations', currentFileName)        
+        currentFileName = os.path.join(currentDirName, currentFileName)        
+        
         self.setCurrentFile(currentFileName)
         self.setWindowTitle(self.tr("Kinetochore Dynamics Simulation"))
         self.setMinimumSize(160,160)
         self.resize(1000,600)
-
+        
 
 
     def prepare_simulation(self):
@@ -254,11 +257,7 @@ class MainWindow(QtGui.QMainWindow):
         plug_idx = self.attachCombo.currentIndex()
         plug = self.attachment_list[plug_idx]
 
-        print self.paramtree.absolute_dic['k_a']
-        print self.paramtree.relative_dic['k_a']
-        
         self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
-        print self.mt.KD.params['k_a']
 
         self.progressBar.setMaximum(int(self.paramtree.absolute_dic['span']))
         
@@ -342,19 +341,32 @@ class MainWindow(QtGui.QMainWindow):
                                                          filter = "XML files (*.xml);;All Files (*.*)")
             if not fileName.isEmpty():
                 self.loadFile(fileName)
+        self.setCurrentFile(fileName)
 
+        
     def save(self):
-        #if not os.path.isfile(self.curFile):
-        return self.saveAs()
+        # if not os.path.isfile(self.curFile):
+        #     self.curFile = default_filename
+        #     #return self.saveAs()
         # else:
-        #     return self.saveFile(self.curFile)
+        return self.saveFile(QtCore.QString(self.curFile))
 
-    def saveAs(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self)
-        if fileName.isEmpty():
-            return False
+    # TODO: The saveAs functions trigs a segfault
+    # def saveAs(self):
+    #     #QtCore.QString('test_save')#
+    #     saveDiag = QtGui.QFileDialog()
+    #     fileName = saveDiag.getSaveFileName(self,
+    #                                         self.tr("Save Simulation"),
+    #                                         self.tr("default.xml"),
+    #                                         self.tr("Simulations (*.xml)"))
+    ### SegFaults here, I don't know why ###
+    #     print filename
+    #     if fileName.isEmpty():
+    #         fileName = QtCore.QString("default.xml")
+        
+    #     self.saveFile(fileName)
+    #     del saveDiag
 
-        return self.saveFile(fileName)
 
     def about(self):
         QtGui.QMessageBox.about(self, self.tr("About Application"),
@@ -381,9 +393,9 @@ class MainWindow(QtGui.QMainWindow):
         self.saveAct.setStatusTip(self.tr("Save the simulation to disk"))
         self.connect(self.saveAct, QtCore.SIGNAL("triggered()"), self.save)
 
-        self.saveAsAct = QtGui.QAction(self.tr("Save &As..."), self)
-        self.saveAsAct.setStatusTip(self.tr("Save the simulation under a new name"))
-        self.connect(self.saveAsAct, QtCore.SIGNAL("triggered()"), self.saveAs)
+        # self.saveAsAct = QtGui.QAction(self.tr("Save &As..."), self)
+        # self.saveAsAct.setStatusTip(self.tr("Save the simulation under a new name"))
+        # self.connect(self.saveAsAct, QtCore.SIGNAL("triggered()"), self.saveAs)
 
         self.exitAct = QtGui.QAction(self.tr("E&xit"), self)
         self.exitAct.setShortcut(self.tr("Ctrl+Q"))
@@ -404,7 +416,7 @@ class MainWindow(QtGui.QMainWindow):
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAct)
         self.fileMenu.addAction(self.saveAct)
-        self.fileMenu.addAction(self.saveAsAct)
+        # self.fileMenu.addAction(self.saveAsAct)
         self.fileMenu.addSeparator();
         self.fileMenu.addAction(self.exitAct)
 
@@ -477,15 +489,6 @@ class MainWindow(QtGui.QMainWindow):
         del tmp_m
         self.mt.emit(QtCore.SIGNAL('simulDone'),self.mt.report)
 
-        # self.removeDockWidget (self.dock)
-        # del self.dock
-        # self.dock = QtGui.QDockWidget('Parameters Setting')
-        # self.setParameters = SetParameters(self.paramtree)
-        # scrollArea = QtGui.QScrollArea()
-        # scrollArea.setWidget(self.setParameters)
-        # self.dock.setWidget(scrollArea)
-        # self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.dock);
-
         QtGui.QApplication.restoreOverrideCursor()
 
         self.setCurrentFile(fileName)
@@ -495,12 +498,12 @@ class MainWindow(QtGui.QMainWindow):
     def saveFile(self, fileName):
 
         if not fileName.endsWith('.xml'):
-            xmlfname = fileName+'xml'
+            xmlfname = fileName+'.xml'
             datafname = fileName+'_data.npy'
         else:
             xmlfname = fileName
             datafname = fileName.split('.')[-2]+'_data.npy'
-            
+
         self.mt.write_results(str(xmlfname), str(datafname))
 
         self.setCurrentFile(fileName);

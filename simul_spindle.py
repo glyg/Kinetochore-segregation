@@ -651,6 +651,8 @@ class Metaphase(object):
         else:
             dataout.write("# desciptor: "+xmlfname+"\n")
             savetxt(dataout, data, delimiter=' ')
+        print "Simulation saved to file %s " %datafname
+
 
     def _make_movie(self, t, imsize):
 
