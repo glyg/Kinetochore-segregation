@@ -4,6 +4,7 @@
 
 ### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
+
 try:
     from pylab import figure, show
 except RuntimeError:
@@ -22,109 +23,24 @@ import os
 import pyximport
 pyximport.install()
 
-
 ## local imports
-#from kt_simul import 
 from kt_simul.spindle_dynamics import KinetoDynamics
 from kt_simul.xml_handler import ParamTree, indent, ResultTree
-
 import kt_simul.eval_simul as eval_simul
 
-
-
 __all__ = ["Metaphase", "reduce_params", "paramfile", "measurefile", "get_fromfile"]
-
 try:
-    paramfile = os.path.join(os.path.dirname(__file__), 'params.xml')
-    measurefile = os.path.join(os.path.dirname(__file__), 'measures.xml')
+    paramfile = os.path.join(os.path.dirname(__file__),
+                             'default', 'params.xml')
+    measurefile = os.path.join(os.path.dirname(__file__),
+                             'default', 'measures.xml')
 except NameError:
-    paramfile = 'params.xml'
-    measurefile = 'measures.xml'
+    paramfile = 'default/params.xml'
+    measurefile = 'default/measures.xml'
 
     
 measuretree = ParamTree(measurefile, adimentionalized = False)
 MEASURES = measuretree.absolute_dic
-
-
-def reduce_params(paramtree, measuretree):
-
-    ''' This functions changes the paramters so that the average behaviour
-    complies with the measures.
-
-    input:
-    paramtree : ParamTree instance
-    measures : a dictionary of measures
-    paramtree is modified in place
-
-    '''
-    params = paramtree.absolute_dic
-    measures = measuretree.absolute_dic
-
-    try:
-        poleward_speed = measures['poleward_speed'] 
-        metaph_rate = measures['metaph_rate']  
-        anaph_rate = measures['anaph_rate']   
-        mean_metaph_k_dist = measures['mean_metaph_k_dist']
-        max_metaph_k_dist = measures['max_metaph_k_dist']        
-        outer_inner_dist = measures['oi_dist']
-        tau_k = measures['tau_k'] 
-        tau_c = measures['tau_c'] 
-        obs_d0 = measures['obs_d0']
-
-    except KeyError:
-        
-        print "The measures dictionary should contain at least the following "
-        print "keys "
-        print MEASURES.keys()
-        return 0
-
-
-    k_a = params['k_a'] # 'free' attachement event frequency
-    k_d0 = params['k_d0'] # 'free' detachement event frequency
-    d_alpha = params['d_alpha']
-    N = int(params['N'])
-    Mk = int(params['Mk'])
-    kappa_k = params['kappa_k']
-    Fk = params['Fk']
-
-    #Let's go for the direct relations
-    d0 = params['d0'] = obs_d0
-    Vk = params['Vk'] = poleward_speed
-    Vmz = params['Vmz'] = anaph_rate
-    #Aurora modifies fd
-    if d_alpha != 0:
-        k_d_eff = k_a * d_alpha / mean_metaph_k_dist
-    else:
-        print "Warning; things don't go well without Aurora "
-        k_d_eff = k_d0
-    
-    # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
-    alpha_mean = 1/(1 + k_d_eff/k_a)
-    #Take metaphase kt pair distance as the maximum one
-    kappa_c = Fk * Mk / ( max_metaph_k_dist - d0 )
-    params['kappa_c'] = kappa_c
-
-    #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
-    kappa_k = Fk * Mk / ( 2 * outer_inner_dist )
-    params['kappa_k'] = kappa_k
-    #Ensure we have sufficientely small time steps
-    dt = params['dt']
-    params['dt'] = min( tau_c/4., tau_k/4., params['dt'])
-    if params['dt'] != dt:
-        print 'Time step changed' 
-
-    mus = params['mus']
-    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
-             + mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
-    params['Fmz'] = Fmz
-    muc = ( tau_c * kappa_c )
-    params['muc'] = muc
-    muk = ( tau_k * kappa_k )
-    params['muk'] = muk 
-
-    for key, val in params.items():
-        paramtree.change_dic(key, val, write = False, verbose = False)
-
 
 class Metaphase(object):
     
@@ -135,8 +51,13 @@ class Metaphase(object):
     >>> m = Metaphase()
     >>> m.simul()
     >>> m.show_trajs()
-    >>> m.write_results('docstring_params.xml', 'docstring_results.xml')
-     
+    >>> m.write_results('docstring_results.xml', 'docstring_data.npy')
+    From already ran simulations:
+    >>> m1 = get_fromfile('docstring_results.xml')
+    >>> m1.show_one(1) #This shows the trajactory of the chromosome 1
+    >>> m2 = Metaphase(m1.paramtree, m1.measuretree) #A new simulation
+    >>> m2.simul(ablat = 600) #this time with spindle ablation    
+
     Public methods:
     simul() : runs the simulation
     show_trajs() : displays the trajectories
@@ -162,13 +83,13 @@ class Metaphase(object):
             simulation if paramtree is None, the parameters are read
             from the file paramfile. Defaults to None
         paramfile : a xml file to read the parameters from. Defaults to the
-            file params.xml in the module's directory. Other parameter files
+            file params.xml in the module's default/ directory. Other parameter files
             can be produced by editing and changing the default one
         reduce_p  : if True, changes the parameters according to the measures
             so that the simulation average behaviour complies with
             the data in the measures dictionary
         measurefile : a xml file to read the measures from. Defaults to the
-            file measures.xml in the module's directory. Other parameter files
+            file measures.xml in the module's default/ directory. Other measure files
             can be produced by editing and changing the default one
         measures  : a dictionary containing the observed characteristics
             of the mitosis e.g. metaphase spindle elongation rate, etc.
@@ -203,7 +124,6 @@ class Metaphase(object):
         self.timelapse = arange(0, duration + dt, dt)
         self.report = []
         self.delay = -1
-
 
     def __str__(self):
 
@@ -972,6 +892,79 @@ class Metaphase(object):
 
         return trajectories
 
+def reduce_params(paramtree, measuretree):
+
+    ''' This functions changes the paramters so that the average behaviour
+    complies with the measures.
+
+    input:
+    paramtree : ParamTree instance
+    measures : a dictionary of measures
+    paramtree is modified in place
+    '''
+    params = paramtree.absolute_dic
+    measures = measuretree.absolute_dic
+    try:
+        poleward_speed = measures['poleward_speed'] 
+        metaph_rate = measures['metaph_rate']  
+        anaph_rate = measures['anaph_rate']   
+        mean_metaph_k_dist = measures['mean_metaph_k_dist']
+        max_metaph_k_dist = measures['max_metaph_k_dist']        
+        outer_inner_dist = measures['oi_dist']
+        tau_k = measures['tau_k'] 
+        tau_c = measures['tau_c'] 
+        obs_d0 = measures['obs_d0']
+    except KeyError:
+        print "The measures dictionary should contain at least the following "
+        print "keys "
+        print MEASURES.keys()
+        return 0
+
+    k_a = params['k_a'] # 'free' attachement event frequency
+    k_d0 = params['k_d0'] # 'free' detachement event frequency
+    d_alpha = params['d_alpha']
+    N = int(params['N'])
+    Mk = int(params['Mk'])
+    kappa_k = params['kappa_k']
+    Fk = params['Fk']
+
+    #Let's go for the direct relations
+    d0 = params['d0'] = obs_d0
+    Vk = params['Vk'] = poleward_speed
+    Vmz = params['Vmz'] = anaph_rate
+    #Aurora modifies fd
+    if d_alpha != 0:
+        k_d_eff = k_a * d_alpha / mean_metaph_k_dist
+    else:
+        print "Warning; things don't go well without Aurora "
+        k_d_eff = k_d0
+    
+    # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
+    alpha_mean = 1/(1 + k_d_eff/k_a)
+    #Take metaphase kt pair distance as the maximum one
+    kappa_c = Fk * Mk / ( max_metaph_k_dist - d0 )
+    params['kappa_c'] = kappa_c
+
+    #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
+    kappa_k = Fk * Mk / ( 2 * outer_inner_dist )
+    params['kappa_k'] = kappa_k
+    #Ensure we have sufficientely small time steps
+    dt = params['dt']
+    params['dt'] = min( tau_c/4., tau_k/4., params['dt'])
+    if params['dt'] != dt:
+        print 'Time step changed' 
+
+    mus = params['mus']
+    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
+             + mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
+    params['Fmz'] = Fmz
+    muc = ( tau_c * kappa_c )
+    params['muc'] = muc
+    muk = ( tau_k * kappa_k )
+    params['muk'] = muk 
+    for key, val in params.items():
+        paramtree.change_dic(key, val, write = False, verbose = False)
+
 
 def get_fromfile(xmlfname = "results.xml"):
 
@@ -1019,10 +1012,6 @@ def get_fromfile(xmlfname = "results.xml"):
     metaphase.KD = KD
 
     return metaphase
-
-
-
-
 
 def scale(x, size, pix_size = 0.0645):
     '''
