@@ -9,6 +9,9 @@
 This module calculates the transition matrix of attachment/detachment mechanism
 In its present form, it is limited to Mk = 4 and merotelic attachment is not
 accounted for.
+
+
+
 """
 
 

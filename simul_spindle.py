@@ -5,7 +5,7 @@
 ### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
 
-try:
+try: #That may trig the segfault with the QtFileDialog widget
     from pylab import figure, show
 except RuntimeError:
     print 'No display..'

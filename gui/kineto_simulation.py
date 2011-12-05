@@ -10,9 +10,8 @@ import sys, os, random, time
 from PyQt4 import QtCore, QtGui
 from numpy import arange, sin, pi, array, linalg, mod
 import matplotlib
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvasfrom matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 
 import pyximport
 pyximport.install()
