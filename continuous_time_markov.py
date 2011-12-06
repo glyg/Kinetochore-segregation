@@ -73,115 +73,119 @@ from scipy.linalg import eig
 
 from pylab import figure, plot
 
+
+
 ### Initialisation des paramètres
 k_a = 0.06
 beta = 1
-N = 4
+N = 10
 
+def calc_rates(k_a, beta, N):
  
-Q=zeros((N + 1,) * 8)
+    Q=zeros((N + 1,) * 8)
+
+    # On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
+    # passer aux differents etat qu'on peut atteindre en une etape. 
+
+    for NAG in range(N + 1):
+        for NAD in range(N + 1):
+            for NBG in range(N + 1 ):
+                for NBD in range(N + 1):
+                    if not(NAD + NAG > N or NBG + NBD > N) :
+
+                        # Calcul du taux de detachement.
+                        forceA = NAD - NAG
+                        forceB = NBD - NBG
+                        if sign( forceA * forceB ) <= 0: 
+                            M = abs(forceA - forceB)
+                        else : 
+                            M = - 4 / 3. # pour que 1+3M/8 = 1/2
+
+                        k_d = k_a / (3 * ( 1 + 3 * M / 8. ))
+
+                        # Taux des differents detachements
+                        if NAG > 0:
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG - 1, NAD, NBG, NBD] = k_d * NAG
+
+                        if NAD > 0:
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD - 1, NBG, NBD] = k_d * NAD
+
+                        if NBG > 0:
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD, NBG - 1, NBD] = k_d * NBG
+
+                        if NBD > 0:
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD, NBG, NBD - 1] = k_d * NBD
+
+                        # Taux d'attachement (avec proba pour droit ou gauche)
+
+                        if NAG + NAD == 0 :  # sinon division par zero
+                            Pe = 0.5
+                        else :
+                            Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
+
+                        if NAG < N :
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
+                        if NAD < N :
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD) * (1-Pe)
+
+                        if NBG + NBD == 0 : # sinon division par zero
+                            Pe = 0.5
+                        else : 
+                            Pe = 0.5 + beta * (NBG - NBD) / (2. * (NBG + NBD))
+
+                        if NBG < N :
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD) * Pe 
+                        if NBD < N :
+                            Q[NAG, NAD, NBG, NBD,
+                              NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
+
+    ### Transformation du tableau en une matrice 
+    # Correspondance des indices. 
+
+    compteur = 0
+    AG = []
+    AD = []
+    BG = []
+    BD = []
+    for NAG in range(N + 1) :
+        for NAD in range(N + 1) :
+            for NBG in range(N + 1) :
+                for NBD in range(N + 1) :
+                    if not(NAD + NAG > N or NBG + NBD > N) :
+                        AG.append(NAG)
+                        AD.append(NAD)
+                        BG.append(NBG)
+                        BD.append(NBD)                    
+                        compteur += 1
+
+    AG = array(AG)
+    AD = array(AD)
+    BG = array(BG)
+    BD = array(BD)
+
+    taille=compteur   # taille de la matrice obtenue. 
+    QQ=zeros((taille,taille)) # Initialisation 
+
+
+    # La matrice 
+    for i in range(taille):
+        for j in range(taille):
+            QQ[i,j] = Q[AG[i],AD[i],BG[i],BD[i],
+                        AG[j],AD[j],BG[j],BD[j]]
+
+    # Coefficients diagonaux
+
+    for i in range(taille):
+        QQ[i,i] = - sum(QQ[i,:])   
  
-# On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
-# passer aux differents etat qu'on peut atteindre en une etape. 
- 
-for NAG in range(N + 1):
-    for NAD in range(N + 1):
-        for NBG in range(N + 1 ):
-            for NBD in range(N + 1):
-                if (NAD + NAG > N or NBG + NBD > N) :
 
-                    # Calcul du taux de detachement.
-                    forceA = NAD - NAG
-                    forceB = NBD - NBG
-                    if sign( forceA * forceB ) <= 0: 
-                        M = abs(forceA + forceB)
-                    else : 
-                        M = - 4 / 3. # pour que 1+3M/8 = 1/2
-
-                    k_d = k_a / (3 * ( 1 + 3 * M / 8. ))
-                    
-                    # Taux des differents detachements
-                    if NAG > 0:
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG - 1, NAD, NBG, NBD] = k_d * NAG
-
-                    if NAD > 0:
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD - 1, NBG, NBD] = k_d * NAD
-
-                    if NBG > 0:
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD, NBG - 1, NBD] = k_d * NBG
-
-                    if NBD > 0:
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD, NBG, NBD - 1] = k_d * NBD
-                    
-                    # Taux d'attachement (avec proba pour droit ou gauche)
-                
-                    if NAG + NAD == 0 :  # sinon division par zero
-                        Pe = 0.5
-                    else :
-                        Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
- 
-                    if NAG < N :
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
-                    if NAD < N :
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD) * (1-Pe)
- 
-                    if NBG + NBD == 0 : # sinon division par zero
-                        Pe = 0.5
-                    else : 
-                        Pe = 0.5 + beta * (NBG - NBD)/ (2 * (NBG + NBD))
-
-                    if NBG < N :
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD) * Pe 
-                    if NBD < N :
-                        Q[NAG, NAD, NBG, NBD,
-                          NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
-
-### Transformation du tableau en une matrice 
-# Correspondance des indices. 
-
-compteur = 0
-AG = []
-AD = []
-BG = []
-BD = []
-for NAG in range(N + 1) :
-    for NAD in range(N + 1) :
-        for NBG in range(N + 1) :
-            for NBD in range(N + 1) :
-                if not(NAD + NAG > N or NBG + NBD > N) :
-                    AG.append(NAG)
-                    AD.append(NAD)
-                    BG.append(NBG)
-                    BD.append(NBD)                    
-                    compteur += 1
-
-AG = array(AG)
-AD = array(AD)
-BG = array(BG)
-BD = array(BD)
-
-taille=compteur   # taille de la matrice obtenue. 
-QQ=zeros((taille,taille)) # Initialisation 
-
- 
-# La matrice 
-for i in range(taille):
-    for j in range(taille):
-        QQ[i,j] = Q[AG[i],AD[i],BG[i],BD[i],
-                    AG[j],AD[j],BG[j],BD[j]]
-
-# Coefficients diagonaux
-
-for i in range(taille):
-    QQ[i,i] = - sum(QQ[i,:])   
- 
 ### Affichage des taux de transition partant de chaque état
 # Bien sûr completement facultatif
 
