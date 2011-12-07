@@ -20,10 +20,16 @@ def get_history(kd):
 def balance_histories(kd):
 
     '''
-    This function returns the difference between the number of correctly and erroneously attached
-    plug sites when those two are != 0. This is  stored in an 2D array
-    for which each line gives the number of kt in each of the possible cases
-    (i.e balance = -Mk+2, -Mk+3, .., Mk-2)   across time. 
+    input: a kt_simul.spindle_dynamics.KinetochoreDynamics()
+    after a simulation instance.
+
+    Returns the difference between the number of correctly
+    and erroneously attached plug sites when those two are != 0.
+    This is  stored in an 2D array for which each line gives the
+    number of kt in each of the possible cases
+    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point. 
+    
+    
     '''
     Mk = int(kd.params['Mk'])
     num_steps = len(kd.spbR.traj)

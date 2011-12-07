@@ -7,6 +7,12 @@
 ## Commentary: Python version of X. Bressaud matlab code
 
 
+from numpy import zeros, sign, floor, array, r_
+from numpy import ndindex, hstack, identity, real
+from scipy.linalg import eig 
+
+from pylab import figure, plot
+
  
 #####################################
 ### Modele
@@ -68,189 +74,198 @@
 
 
 
-from numpy import zeros, sign, floor, array, r_
-from scipy.linalg import eig 
-
-from pylab import figure, plot
-
 
 
 ### Initialisation des paramètres
 k_a = 0.06
 beta = 1
-N = 10
+N = 4
+kappa = 3/8.
+d_alpha = 1/3.
 
-def calc_rates(k_a, beta, N):
+def get_valid_states(N):
+    #On commence par trouver les combinaisons d'etats valide
+    #donc telles que NAD + NAG <= N et NBG + NBD <= N)
+    
+    # Correspondance des indices. 
+    compteur = 0
+    AG = []
+    AD = []
+    BG = []
+    BD = []
+
+    for NAG, NAD, NBG, NBD in ndindex(N+1, N+1, N+1, N+1):
+        if not(NAD + NAG > N or NBG + NBD > N) :
+            AG.append(NAG)
+            AD.append(NAD)
+            BG.append(NBG)
+            BD.append(NBD)                    
+
+    AG = array(AG)
+    AD = array(AD)
+    BG = array(BG)
+    BD = array(BD)
+    valid_states = array([AG, AD, BG, BD])
+
+    return valid_states
+
+def calc_rates(k_a, beta, N, kappa, d_alpha):
  
     Q=zeros((N + 1,) * 8)
 
     # On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
     # passer aux differents etat qu'on peut atteindre en une etape. 
 
-    for NAG in range(N + 1):
-        for NAD in range(N + 1):
-            for NBG in range(N + 1 ):
-                for NBD in range(N + 1):
-                    if not(NAD + NAG > N or NBG + NBD > N) :
+    valid_states = get_valid_states(N)
 
-                        # Calcul du taux de detachement.
-                        forceA = NAD - NAG
-                        forceB = NBD - NBG
-                        if sign( forceA * forceB ) <= 0: 
-                            M = abs(forceA - forceB)
-                        else : 
-                            M = - 4 / 3. # pour que 1+3M/8 = 1/2
+    for psi in valid_states.T : #On itère sur tous les etats valides
 
-                        k_d = k_a / (3 * ( 1 + 3 * M / 8. ))
+        NAG, NAD, NBG, NBD = psi
+        # Calcul du taux de detachement.
+        forceA = NAD - NAG
+        forceB = NBD - NBG
+        #With Fk as unit force and d_0 the unit distance:
+        if sign( forceA * forceB ) <= 0:
 
-                        # Taux des differents detachements
-                        if NAG > 0:
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG - 1, NAD, NBG, NBD] = k_d * NAG
+            d_eq =  1. + abs(forceA - forceB) / kappa 
+            k_d = k_a * d_alpha / d_eq
 
-                        if NAD > 0:
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD - 1, NBG, NBD] = k_d * NAD
+        else:
+            k_d = k_a * 10.
 
-                        if NBG > 0:
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD, NBG - 1, NBD] = k_d * NBG
+        # Taux des differents detachements
+        if NAG > 0:
+            Q[NAG, NAD, NBG, NBD,
+              NAG - 1, NAD, NBG, NBD] = k_d * NAG
 
-                        if NBD > 0:
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD, NBG, NBD - 1] = k_d * NBD
+        if NAD > 0:
+            Q[NAG, NAD, NBG, NBD,
+              NAG, NAD - 1, NBG, NBD] = k_d * NAD
 
-                        # Taux d'attachement (avec proba pour droit ou gauche)
+        if NBG > 0:
+            Q[NAG, NAD, NBG, NBD,
+              NAG, NAD, NBG - 1, NBD] = k_d * NBG
 
-                        if NAG + NAD == 0 :  # sinon division par zero
-                            Pe = 0.5
-                        else :
-                            Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
+        if NBD > 0:
+            Q[NAG, NAD, NBG, NBD,
+              NAG, NAD, NBG, NBD - 1] = k_d * NBD
 
-                        if NAG < N :
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
-                        if NAD < N :
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD) * (1-Pe)
+        # Taux d'attachement (avec proba pour droit ou gauche)
+        if NAG + NAD == 0 :  # sinon division par zero
+            Pe = 0.5
+        else :
+            Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
 
-                        if NBG + NBD == 0 : # sinon division par zero
-                            Pe = 0.5
-                        else : 
-                            Pe = 0.5 + beta * (NBG - NBD) / (2. * (NBG + NBD))
+        if NAG < N :
+            Q[NAG, NAD, NBG, NBD,
+              NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
+        if NAD < N :
+            Q[NAG, NAD, NBG, NBD,
+              NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD) * (1-Pe)
 
-                        if NBG < N :
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD) * Pe 
-                        if NBD < N :
-                            Q[NAG, NAD, NBG, NBD,
-                              NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
+        if NBG + NBD == 0 : # sinon division par zero
+            Pe = 0.5
+        else : 
+            Pe = 0.5 + beta * (NBG - NBD) / (2. * (NBG + NBD))
+        if NBG < N :
+            Q[NAG, NAD, NBG, NBD,
+              NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD) * Pe 
+        if NBD < N :
+            Q[NAG, NAD, NBG, NBD,
+                  NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
+
+    return valid_states, Q
+
+
+
+def get_matrix(valid_states, Q):
 
     ### Transformation du tableau en une matrice 
-    # Correspondance des indices. 
-
-    compteur = 0
-    AG = []
-    AD = []
-    BG = []
-    BD = []
-    for NAG in range(N + 1) :
-        for NAD in range(N + 1) :
-            for NBG in range(N + 1) :
-                for NBD in range(N + 1) :
-                    if not(NAD + NAG > N or NBG + NBD > N) :
-                        AG.append(NAG)
-                        AD.append(NAD)
-                        BG.append(NBG)
-                        BD.append(NBD)                    
-                        compteur += 1
-
-    AG = array(AG)
-    AD = array(AD)
-    BG = array(BG)
-    BD = array(BD)
-
-    taille=compteur   # taille de la matrice obtenue. 
+    taille = valid_states.shape[1]
     QQ=zeros((taille,taille)) # Initialisation 
-
-
     # La matrice 
     for i in range(taille):
         for j in range(taille):
-            QQ[i,j] = Q[AG[i],AD[i],BG[i],BD[i],
-                        AG[j],AD[j],BG[j],BD[j]]
-
+            indices = tuple(hstack((valid_states[:,i],
+                                    valid_states[:,j])))
+            QQ[i,j] = Q[indices]
+            
     # Coefficients diagonaux
-
     for i in range(taille):
         QQ[i,i] = - sum(QQ[i,:])   
- 
 
-### Affichage des taux de transition partant de chaque état
-# Bien sûr completement facultatif
+    return QQ
 
- 
-# for i=1:compteur
-#     ou=find(QQ(i,:));
-#     alors=[AG(i)-1 AD(i)-1 BG(i)-1 BD(i)-1]
-#     donc=[];
-#     for j=1:length(ou)
-#     donc=[donc;AG(ou(j))-1 AD(ou(j))-1 BG(ou(j))-1 BD(ou(j))-1 QQ(i,ou(j))];
-#     end
-#     donc
-#     #Alors= [AG(i)+AD(i) BG(i)+BD(i)]
-#     #Donc= [donc(:,1)+donc(:,2) donc(:,3)+donc(:,4)]
-# end
+def get_corrects(valid_states):
 
-### Recherche du noyau, i.e. de la mesure invariante
- 
-#[V,D] = eig(QQ'); # V les vecteurs propres, D la matrice diagonale. 
-#en python:
+    taille = valid_states.shape[1]
 
-valeurs_propres, vecteurs_propres = eig(QQ.T)
- 
-# Attention, QQ.T est la transposee de QQ. 
-# En effet, on a toujours QQ.1 = 0 (vu ce qu'on a mis sur la diagonale)
-# et nous, on cherche le vecteur V tel que V'. QQ=0, soit QQ'.V=0
- 
-# Determination de l'indice de la valeur propre qui est nulle
+    permutations = zeros((4, 4, taille))
+    new_states = valid_states.copy() #AC, AE, BC, BE
+    
+    for i, state in enumerate(valid_states.T) : #On itere entre 0 et taille - 1
+        AG, AD, BG, BD = state
+        
+        if AG + BD >= AD + BG:
+            AC, AE, BC, BE  = AG, AD, BG, BD 
+            permutations[:,:,i] = identity(4)
+        else:
+            AC, AE, BC, BE  = AD, AG, BD, BG 
+            permutations[:,:,i] = array([[0, 1, 0, 0],
+                                         [1, 0, 0, 0],
+                                         [0, 0, 0, 1],
+                                         [0, 0, 1, 0]])
+        new_states[...,i] = AC, AE, BC, BE
 
- 
-for i, v in enumerate(valeurs_propres):
-    if abs(v)< 1e-10:
-         uu = i
- 
-# dot(QQ, ones(taille)) # pour verifier que la somme des lignes est nulle
-# dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu est bien le noyau
- 
-# Le vecteur ppre normalise donne la proba invariante
+    return permutations, new_states
 
-mes = vecteurs_propres[:,uu]/sum(vecteurs_propres[:,uu]) 
- 
-# Pour voir mieux, je regroupe les etats en termes de la distance d
-# Pour l'instant, je classe violemment en fonction de la difference des
-# forces. Mais il faudra affiner. 
 
- 
-M = floor(abs( AG + BD - AD - BG ) )
- 
-# Visualisation des configurations associée a chaque valeur de M, et de la
-# proba invariante de cet configuration
- 
-#Voir=[mes, M.T, AG.T, AD.T, BG.T, BD.T]
+def find_kernel(QQ):
 
- 
-# On cumule les proba des etats donnant la meme valeur à M
-pp = zeros(2*N + 1)
+    ### Recherche du noyau, i.e. de la mesure invariante
+    valeurs_propres, vecteurs_propres = eig(QQ.T)
 
-for i, m in enumerate(mes):
-    pp[M[i]] += m
- 
-# Affichage du resultat 
+    # Attention, QQ.T est la transposee de QQ. 
+    # En effet, on a toujours QQ.1 = 0 (vu ce qu'on a mis sur la diagonale)
+    # et nous, on cherche le vecteur V tel que V'. QQ=0, soit QQ'.V=0
 
-#Distance=[pp (0:2*N)']
+    # Determination de l'indice de la valeur propre qui est nulle
+    for i, v in enumerate(valeurs_propres):
+        if abs(v)< 1e-10:
+             uu = i
+    # dot(QQ, ones(taille)) # pour verifier que la somme des lignes est nulle
+    # dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu est bien le noyau    # Le vecteur ppre normalise donne la proba invariante
+    mes = vecteurs_propres[:,uu]/sum(vecteurs_propres[:,uu]) 
+    return mes
+    
+def show_invariant(mes, states):
 
- 
-# Tracé de la loi obtenue: 
-# figure(1)
-# plot(r_[0:2*N+1], pp, '*-')
+    AC, AE, BC, BE = states
+
+    corrects = AC + BC
+    errones = AE + BE
+    total = abs(AC - AE - BC + BE)
+
+    # On cumule les proba des etats donnant la meme valeur à M
+    p_cor = zeros(2*N + 1)
+    p_err = zeros(2*N + 1)
+    
+    p_force = zeros(2*N + 1)
+    
+    for i, m in enumerate(real(mes)):
+        p_cor[corrects[i]] += m
+        p_err[errones[i]] += m
+        p_force[total[i]] += m
+        
+        
+    # Tracé de la loi obtenue: 
+    figure(1)
+    plot(r_[0:2*N+1], p_cor, 'gv-')
+    plot(r_[0:2*N+1], p_err, 'ro-')
+    figure(2)
+    plot(r_[0:2*N+1], p_force, 'ko-')
+
+
+    return corrects, errones
+
+    
