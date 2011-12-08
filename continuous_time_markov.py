@@ -7,12 +7,11 @@
 ## Commentary: Python version of X. Bressaud matlab code
 
 
-from numpy import zeros, sign, floor, array, r_
-from numpy import ndindex, hstack, identity, real
+from numpy import zeros, ones, sign, floor, array, r_, linspace
+from numpy import ndindex, hstack, identity, real, logspace
 from scipy.linalg import eig 
 
-from pylab import figure, plot
-
+from pylab import *
  
 #####################################
 ### Modele
@@ -78,45 +77,118 @@ from pylab import figure, plot
 
 ### Initialisation des paramètres
 k_a = 0.06
-beta = 1
+beta = 1.
 N = 4
 kappa = 3/8.
 d_alpha = 1/3.
 
-def get_valid_states(N):
-    #On commence par trouver les combinaisons d'etats valide
-    #donc telles que NAD + NAG <= N et NBG + NBD <= N)
+betas = linspace(0,1,20) 
+d_alphas = logspace(-2, 1, 20)
+
+
+def explore(betas = betas, d_alphas = d_alphas):
+
+    espace = StateSpace(N)
+    pcs, pes, measures = [], [], []
+
+    for d_alpha in d_alphas:
+        print 'd_alpha = %.3f' %d_alpha
+        for beta in betas:
+            mes = find_invariant(espace.valid_states,
+                                 d_alpha = d_alpha, beta = beta)
+            measures.append(mes)
+
+    return measures
+
+
+
+
+def all_defects(espace, measures, d_alphas = d_alphas, betas = betas, N = N):
+
+    all_defect_probs = {'amphiteliques':zeros(len(measures)),
+                        'monoteliques':zeros(len(measures)),
+                        'meroteliques':zeros(len(measures)),
+                        'synteliques':zeros(len(measures)),
+                        'unattached':zeros(len(measures))}
+
+    all_p_cor, all_p_err, all_p_force = (zeros((len(measures), 2 * N + 1)),) * 3
+
+    for i, mes in enumerate(measures):
+        probas = show_invariant(mes, espace, display = False)
+        defect_probs, p_cor, p_err, p_force = probas
+
+        for key, prob in defect_probs.items():
+            all_defect_probs[key][i] = prob
+        all_p_cor[i, :] = p_cor 
+        all_p_err[i, :] = p_err 
+        all_p_force[i, :] = p_force 
+
+    for key, probs in all_defect_probs.items():
+        all_defect_probs[key] = probs.reshape((d_alphas.size, betas.size))
+
+    all_p_cor = all_p_cor.reshape((d_alphas.size, betas.size, 2 * N + 1))
+    all_p_err = all_p_err.reshape((d_alphas.size, betas.size, 2 * N + 1))
+    all_p_force = all_p_force.reshape((d_alphas.size, betas.size, 2 * N + 1))
     
-    # Correspondance des indices. 
-    compteur = 0
-    AG = []
-    AD = []
-    BG = []
-    BD = []
+    probas = all_defect_probs, all_p_cor, all_p_err, all_p_force
+    return probas
 
-    for NAG, NAD, NBG, NBD in ndindex(N+1, N+1, N+1, N+1):
-        if not(NAD + NAG > N or NBG + NBD > N) :
-            AG.append(NAG)
-            AD.append(NAD)
-            BG.append(NBG)
-            BD.append(NBD)                    
+def show_all_defects(probas, d_alphas = d_alphas, betas = betas):
 
-    AG = array(AG)
-    AD = array(AD)
-    BG = array(BG)
-    BD = array(BD)
-    valid_states = array([AG, AD, BG, BD])
+    defect_probs, p_cor, p_err, p_force = probas
+    
+    total = zeros((d_alphas.size, betas.size))
 
-    return valid_states
+    nd = zeros(d_alphas.size + 1)
+    nb = zeros(betas.size + 1)
 
-def calc_rates(k_a, beta, N, kappa, d_alpha):
+    nd[:d_alphas.size] = d_alphas
+    nd[-1] = 2 * d_alphas[-1] - d_alphas[-2]
+    nb[:betas.size] = betas
+    nb[-1] = 2 * betas[-1] - betas[-2]
+    d_alphas, betas = nd, nb
+
+    figure()
+    i = 1
+    for key, defect in defect_probs.items():
+        if 'amphi' not in key:
+            subplot(2,2,i)
+            total += defect
+            pcolor(d_alphas, betas, defect,
+                   vmin = 0., vmax = 1.)
+            colorbar()
+            xscale('log')
+            ylabel(r'Orientation effect $\beta$')
+            xlabel(r'$d_\alpha$')
+            axis((d_alphas.min(), d_alphas.max(), 0, 1))
+            title(key)
+            i+=1
+
+    figure()
+    pcolor(d_alphas, betas, total)
+    colorbar()
+    xscale('log')
+    axis((d_alphas.min(), d_alphas.max(), 0, 1))
+    ylabel(r'Orientation effect $\beta$')
+    xlabel(r'$d_\alpha$')
+    title('Total')
+
+
+
+def find_invariant(valid_states, k_a = k_a, beta = beta,
+                   N = N, kappa = kappa, d_alpha = d_alpha):
+    
+    Q = calc_rates(valid_states, k_a, beta, N, kappa, d_alpha)
+    QQ = get_matrix(valid_states, Q)
+    mes = find_kernel(QQ)
+    return real(mes)
+
+def calc_rates(valid_states, k_a, beta, N, kappa, d_alpha):
  
     Q=zeros((N + 1,) * 8)
 
     # On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
     # passer aux differents etat qu'on peut atteindre en une etape. 
-
-    valid_states = get_valid_states(N)
 
     for psi in valid_states.T : #On itère sur tous les etats valides
 
@@ -126,12 +198,10 @@ def calc_rates(k_a, beta, N, kappa, d_alpha):
         forceB = NBD - NBG
         #With Fk as unit force and d_0 the unit distance:
         if sign( forceA * forceB ) <= 0:
-
             d_eq =  1. + abs(forceA - forceB) / kappa 
             k_d = k_a * d_alpha / d_eq
-
         else:
-            k_d = k_a * 10.
+            k_d = k_a * 5. 
 
         # Taux des differents detachements
         if NAG > 0:
@@ -149,7 +219,7 @@ def calc_rates(k_a, beta, N, kappa, d_alpha):
         if NBD > 0:
             Q[NAG, NAD, NBG, NBD,
               NAG, NAD, NBG, NBD - 1] = k_d * NBD
-
+            
         # Taux d'attachement (avec proba pour droit ou gauche)
         if NAG + NAD == 0 :  # sinon division par zero
             Pe = 0.5
@@ -174,8 +244,7 @@ def calc_rates(k_a, beta, N, kappa, d_alpha):
             Q[NAG, NAD, NBG, NBD,
                   NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
 
-    return valid_states, Q
-
+    return Q
 
 
 def get_matrix(valid_states, Q):
@@ -196,30 +265,6 @@ def get_matrix(valid_states, Q):
 
     return QQ
 
-def get_corrects(valid_states):
-
-    taille = valid_states.shape[1]
-
-    permutations = zeros((4, 4, taille))
-    new_states = valid_states.copy() #AC, AE, BC, BE
-    
-    for i, state in enumerate(valid_states.T) : #On itere entre 0 et taille - 1
-        AG, AD, BG, BD = state
-        
-        if AG + BD >= AD + BG:
-            AC, AE, BC, BE  = AG, AD, BG, BD 
-            permutations[:,:,i] = identity(4)
-        else:
-            AC, AE, BC, BE  = AD, AG, BD, BG 
-            permutations[:,:,i] = array([[0, 1, 0, 0],
-                                         [1, 0, 0, 0],
-                                         [0, 0, 0, 1],
-                                         [0, 0, 1, 0]])
-        new_states[...,i] = AC, AE, BC, BE
-
-    return permutations, new_states
-
-
 def find_kernel(QQ):
 
     ### Recherche du noyau, i.e. de la mesure invariante
@@ -234,38 +279,130 @@ def find_kernel(QQ):
         if abs(v)< 1e-10:
              uu = i
     # dot(QQ, ones(taille)) # pour verifier que la somme des lignes est nulle
-    # dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu est bien le noyau    # Le vecteur ppre normalise donne la proba invariante
+    # dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu est bien le noyau        # Le vecteur ppre normalise donne la proba invariante
     mes = vecteurs_propres[:,uu]/sum(vecteurs_propres[:,uu]) 
     return mes
     
-def show_invariant(mes, states):
-
-    AC, AE, BC, BE = states
-
-    corrects = AC + BC
-    errones = AE + BE
-    total = abs(AC - AE - BC + BE)
-
-    # On cumule les proba des etats donnant la meme valeur à M
+def show_invariant(mes, espace, display = True):
+    
     p_cor = zeros(2*N + 1)
     p_err = zeros(2*N + 1)
-    
     p_force = zeros(2*N + 1)
+    defect_probs = {}
     
+    for key, defect in espace.defects.items():
+        defect_probs[key] = sum(mes * defect)
+
+
+    # On cumule les proba des etats donnant les memes valeurs
     for i, m in enumerate(real(mes)):
-        p_cor[corrects[i]] += m
-        p_err[errones[i]] += m
-        p_force[total[i]] += m
-        
-        
-    # Tracé de la loi obtenue: 
-    figure(1)
-    plot(r_[0:2*N+1], p_cor, 'gv-')
-    plot(r_[0:2*N+1], p_err, 'ro-')
-    figure(2)
-    plot(r_[0:2*N+1], p_force, 'ko-')
+        p_cor[espace.sum_corrects[i]] += m
+        p_err[espace.sum_errones[i]] += m
+        p_force[espace.force_totale[i]] += m
+
+    if display == True:
+        for key, proba in defect_probs.items():
+            print 'P(%s) = %.03f' %(key, proba)
+
+        #Trace de la loi obtenue: 
+        figure(1)
+        plot(r_[0:2*N+1], p_cor, 'gv-')
+        plot(r_[0:2*N+1], p_err, 'ro-')
+        figure(2)
+        plot(r_[0:2*N+1], p_force, 'ko-')
 
 
-    return corrects, errones
+    probas = defect_probs, p_cor, p_err, p_force
+    return probas
 
     
+class StateSpace():
+
+
+    def __init__(self, N):
+
+        self.N = N
+        self.get_valid_states()
+        self.get_correct_states()
+        self.get_defects()
+        
+    def get_valid_states(self):
+
+        N = self.N
+
+        #On commence par trouver les combinaisons d'etats valides
+        #donc telles que NAD + NAG <= N et NBG + NBD <= N)
+        compteur = 0
+        AG = []
+        AD = []
+        BG = []
+        BD = []
+
+        for NAG, NAD, NBG, NBD in ndindex(N+1, N+1, N+1, N+1):
+            if not(NAD + NAG > N or NBG + NBD > N) :
+                AG.append(NAG)
+                AD.append(NAD)
+                BG.append(NBG)
+                BD.append(NBD)                    
+
+        AG = array(AG)
+        AD = array(AD)
+        BG = array(BG)
+        BD = array(BD)
+        self.valid_states = array([AG, AD, BG, BD])
+
+
+    def get_correct_states(self):
+
+        AG, AD, BG, BD = self.valid_states
+        AC, AE, BE, BC = self.valid_states.copy()
+
+        switch = AG + BD < AD + BG
+        
+        AC[switch] = AD[switch]
+        AE[switch] = AG[switch]
+
+        BC[switch] = BG[switch]
+        BE[switch] = BD[switch]
+        self.new_states = array([AC, AE, BE, BC])
+
+
+    def get_defects(self):
+
+        AC, AE, BE, BC = self.new_states
+
+        unattached = zeros(AE.shape)
+        unattached[AC +AE + BE + BC == 0] += 1
+
+        meroteliques = zeros(AE.shape)
+        meroteliques[AC * AE != 0 ] += 1
+        meroteliques[BC * BE != 0 ] += 1
+        # On compte les doubles comme un seul..
+        meroteliques[meroteliques == 2] = 1
+
+
+        monoteliques = zeros(AE.shape)
+        monoteliques[AC + AE == 0] += 1
+        monoteliques[BC + BE == 0] += 1
+        monoteliques[AC + AE + BC + BE == 0] = 0
+        monoteliques[meroteliques != 0] = 0
+
+        synteliques = zeros(AE.shape)
+        synteliques[AC * BE != 0] += 1
+        synteliques[AE * BC != 0] += 1
+        synteliques[meroteliques != 0] = 0
+        
+        amphiteliques = ones(AE.shape)
+        amphiteliques[AE + BE != 0] = 0
+        amphiteliques[AC * BC == 0] = 0
+
+
+        self.defects = {'amphiteliques':amphiteliques,
+                        'monoteliques':monoteliques,
+                        'meroteliques':meroteliques,
+                        'synteliques':synteliques,
+                        'unattached':unattached}
+
+        self.sum_corrects = AC + BC
+        self.sum_errones = AE + BE
+        self.force_totale = abs(AC + BC - AE - BE )
