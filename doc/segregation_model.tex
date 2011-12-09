@@ -1,0 +1,452 @@
+\documentclass[a4paper,12pt]{article}
+
+
+\usepackage[english]{babel}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{upgreek}
+\usepackage[colorlinks=True,%
+linkcolor=black,%
+citecolor=black,%
+urlcolor=black]{hyperref}
+
+\usepackage{natbib}
+\usepackage{times}
+
+\newcommand{\UM}{\upmu\mbox{m}}
+\newcommand{\UMS}{\upmu\mbox{m}.\mbox{s}^{-1}}
+\setlength{\voffset}{-1in}
+\setlength{\hoffset}{-0.9in}
+\setlength{\textwidth}{18cm}
+\setlength{\textheight}{26cm}
+
+
+\newcommand{\Pp}{prophase}
+\newcommand{\PMp}{prometaphase}
+\newcommand{\Mp}{metaphase}
+\newcommand{\Ap}{anaphase}
+
+\usepackage{natbib}
+
+
+
+
+
+
+\title{Chromosome segregation model - detailed description}
+
+
+\author{Guillaume Gay, Xavier Bressaud}
+\date{}
+
+
+\begin{document}
+\bibliographystyle{plainnat}
+
+\maketitle{}
+
+
+\section*{Introduction}
+
+This is a more detailed version of the kinetochore segregation model
+published in \cite{gayJCB12}, which should be referred to for
+all the experimental, biological and non-technical aspects of this
+work.
+
+ 
+\section{Definitions}
+\label{sec:defs}
+
+\subsection{State vector}
+
+The mitotic spindle is described by the speeds and position along the
+$x$ axis of two spindle pole bodies, $N$ chromosomes with two
+centromeres and $M_k$ attachment sites per centromere.
+
+Positions are noted as follow:
+\begin{itemize}
+\item The left and right spindle pole bodies ( SPBs ), $x_s^L$ and $x_s^R$
+\item The $N$ centromeres, $x_n^A, \, x_n^B, n \in \{1,\cdots, N\}$
+\item The $M_k$ attachment sites of each centromere, $x_{nm}^A, \,
+  x_{nm}^B, n \in \{1, \cdots, N \}, m \in \{1, \cdots, M_k\}$
+\end{itemize}
+The speeds are noted with a dot: $dx / dt = \dot{x}$.
+
+As all the interactions are assumed to be parallel to the spindle
+axis, only the positions along this axis are considered, in a coordinate
+system with its origin at the center of the spindle, which means that
+$x_s^L(t) = - x_s^R(t)\, \forall t$.
+
+The following interactions are considered:
+
+\subsubsection{Forces at the right SPB :}
+\begin{itemize}
+\item Friction forces (viscous drag):  $F_s^f = -\mu_s \dot{x_s}^R$
+\item Midzone force generators (applied at the right SPB): 
+  $$F_{mid} = F_z\left(1 - (\dot{x}^R_s - \dot{x}_s^L)/V_z\right) =
+  F_z\left(1 - 2\dot{x}^R_s / V_z\right) $$
+\item Total kinetochore microtubules force generators:
+  \begin{align}
+    F_{kMT}^T = \sum_{n = 1}^{N}\sum_{m = 1}^{M_k} & - \rho_{nm}^A\,F_k\left( 1 -
+      (\dot{x}^A_{nm} - \dot{x}^R_s)/V_k\right)\\
+    & + \lambda_{nm}^A\,F_k\left(1 -
+      (\dot{x}^A_{nm} + \dot{x}^R_s)/V_k\right)\\
+    & - \rho_{nm}^B\,F_k\left( 1 -
+      (\dot{x}^B_{nm} - \dot{x}^R_s)/V_k\right)\\
+    & + \lambda_{nm}^A\,F_k\left(1 -
+      (\dot{x}^B_{nm} + \dot{x}^R_s)/V_k\right)
+  \end{align}
+\end{itemize}
+
+\subsubsection{Forces at centromere $An$}
+
+\begin{itemize}
+\item Drag: $F_c^f = -\mu_c \dot{x_n}^A$
+\item Cohesin bond (Hook spring) restoring force exerted by centromere
+  B: $$F_{BA} = -\kappa_c (x_n^A - x_n^B - d_0),
+  \mbox{with } F_{BA} = - F_{AB}$$
+\item Total visco-elastic bond between the centromere A and the attachment
+  sites:
+  $$ F_v^T = \sum_{m = 1}^{M_k} -\kappa_k(x_n^A - x_{nm}^A) 
+  - \mu_k(\dot{x}_n^A - \dot{x}_{nm}^A) $$
+\end{itemize}
+
+\subsubsection{Forces at attachment site $Anm$}
+
+\begin{itemize}
+\item Visco-elastic bond between the centromere A and the
+  attachment sites:
+  $$F_v =  \kappa_k(x_n^A - x_{nm}^A) 
+  + \mu_k(\dot{x}_n^A - \dot{x}_{nm}^A) $$
+\item Kinetochore microtubules force generators:
+  $$F_{kMT}^A = \rho_{nm}^A\,F_k\left(1 - (\dot{x}^A_{nm} -
+    \dot{x}^R_s)/V_k\right) - \lambda_{nm}^A\,F_k\left(1 -
+    (\dot{x}^A_{nm} - \dot{x}^L_s)/V_k\right) $$
+\end{itemize}
+
+Here, $\rho_{nm}^A$ and $\lambda_{nm}^A$ are two random variables that govern
+the attachment state of the site $x_{nm}^A$, such that:
+\begin{align}
+  \label{eq:rholambda}
+  \rho_{nm}^A &= 
+  \begin{cases}
+    1 &\text{if the site is attached to the right SPB}\\
+    0 &\text{otherwise}\\
+  \end{cases}\\
+  \lambda_{nm}^A &=
+  \begin{cases}
+    1 &\text{if the site is attached to the left SPB}\\
+    0 &\text{otherwise}\\
+  \end{cases}
+\end{align}
+
+Note that $\rho_{nm}^A$ and $\lambda_{nm}^A$ are not independent, as
+an attachment site can't be attached to both poles. To take this into
+account, we can define the variable $p_{nm}^A = \rho_{nm}^A -
+\lambda_{nm}^A$ such that:
+\begin{equation}
+  \label{eq:rholambda}
+  p_{nm}^A = 
+  \begin{cases}
+    - 1 &\text{if the site is attached to the left SPB}\\
+    0 &\text{if the site is not attached}\\
+    1 &\text{if the site is attached to the right SPB}\\
+  \end{cases}\\
+\end{equation}
+We have:
+\begin{align}
+  \lambda_{nm}^A &= p_{nm}^A\left(p_{nm}^A - 1\right)/2\\
+  \rho_{nm}^A &= p_{nm}^A\left(p_{nm}^A + 1\right)/2
+\end{align}
+We also define $N_n^{AL}$ and $N_n^{AR}$ as the number of ktMTs of
+centromere A attached to the left and right SPBs, respectively:
+\begin{equation}
+  \label{eq:NAL}
+  N_n^{AL} = \sum_{m = 1}^{M_k}\lambda_{nm}^A \mbox{ and }%
+  N_n^{AR} = \sum_{m = 1}^{M_k}\rho_{nm}^A 
+\end{equation}
+Note that $N_n^{AL} + N_n^{AR} \leq M_k\, \forall\, p_{nm} $
+The same definitions apply for the centromere B and left SPB.
+
+\subsection{Set of first order coupled equations}
+
+In the viscous nucleoplasm, inertia is negligible. Newton first
+principle thus reduces to: $ \sum F = 0 $, all the equations are
+gathered together in the system of equations:
+$$
+\mathbf{A}\dot{X} + \mathbf{B}X + C = 0
+$$
+The vector $X$ has $1 + 2N(M_k + 1)$ elements and is defined as follow:
+\begin{equation*}
+  X = \{x_s^R, \{x_n^A, \{x_{nm}^A\},  x_n^B,% 
+  \{x_{nm}^B \}\}\}\mbox{ with } n \in 1 \cdots N %
+  \mbox{ and } m \in 1 \cdots M_k
+\end{equation*}
+With this order, the index of the $n^{th}$ centromere A, noted
+$i_{n}^A$ is given by $i_{n}^A = 2n(M_k+1) + 2$. Similarly, we have:
+$$ \begin{aligned}
+i_{n}^B &= 2n(M_k+1) + M_k + 3 \\
+i_{nm}^A &= 2n(M_k+1) + 3 + m \\
+i_{nm}^B &= 2n(M_k+1) + M_k + 4 + m \\
+\end{aligned}$$
+
+To simplify the equations, we set $F_k$ as unit force and $V_k$ as unit
+speed, thus $F_k/V_k = 1$. From the above we have:
+\begin{equation}
+  \begin{aligned}
+    A = &% 
+    \begin{pmatrix}
+      a_{1,1} & \hdotsfor{1} & a_{1, i_{nm}^A} &%
+      \hdotsfor{1} & a_{1, i_{nm}^B}\\
+      %%%%% Centromere A %%%%
+      \hdotsfor{1} & a_{i_{n}^A, i_{n}^A}& %
+      a_{i_{n}^A, i_{nm}^A} & \hdotsfor{1}\\
+      %%%%% Att. Site A %%%%
+      a_{i_{nm}^A, 1} & a_{i_{nm}^A, i_{n}^A} & a_{i_{nm}^A, i_{nm}^A}&%
+      \hdotsfor{2}\\
+      %%%%% Centromere B %%%%
+      \hdotsfor{3} & a_{i_{n}^B, i_{n}^B}& a_{i_{n}^B, i_{nm}^B}\\
+      %%%%% Att. Site B %%%%
+      a_{i_{nm}^B,1} & \hdotsfor{2} &  a_{i_{n}^B, i_{nm}^B} &%
+      a_{i_{nm}^B, i_{nm}^B}\\
+    \end{pmatrix}\\
+    =  & \begin{pmatrix}
+      %%%%% SPB %%%%
+      -\mu_s - F_z/V_z - \sum (p_{nm}^A + p_{nm}^B)& \hdotsfor{1} & p_{nm}^A &%
+      \hdotsfor{1} &  p_{nm}^B\\
+      %%%%% Centromere A %%%%
+      \hdotsfor{1} &  -\mu_c - M_k \mu_k& \mu_k & \hdotsfor{2}\\
+      %%%%% Att. Site A %%%%
+      p_{nm}^A & \mu_k & - \mu_k + p_{nm}^A & \hdotsfor{2}\\
+      %%%%% Centromere B %%%%
+      \hdotsfor{3} & -\mu_c - M_k \mu_k & \mu_k\\
+      %%%%% Att. Site B %%%%
+      p_{nm}^B & \hdotsfor{2} & \mu_k & - \mu_k + p_{nm}^B \\
+    \end{pmatrix}, \\
+    B = &%
+    \begin{pmatrix}
+      \,0\, & \hdotsfor{4}\\
+      \hdotsfor{1} & - \kappa_c - M_k \kappa_k & \kappa_k &%
+      \kappa_c & \hdotsfor{1} \\
+      \hdotsfor{1} & \kappa_k & -\kappa_k &  \hdotsfor{2}\\
+      \hdotsfor{1} & \kappa_c & \hdotsfor{1} &%
+      -\kappa_c - M_k \kappa_k & \kappa_k \\
+      \hdotsfor{3}  & \kappa_k & - \kappa_k\\
+    \end{pmatrix}% 
+    \quad \mbox{and} \quad C = %
+    \begin{pmatrix}
+      0\\
+      0\\
+      d_0\\
+      0\\
+      d_0\\
+      0\\
+    \end{pmatrix}
+  \end{aligned}
+\end{equation}
+
+\section{Continuous time Markov chain description\\
+ of the attachment -- detachment process}
+\label{sec:markov}
+
+
+\subsection{Attachment and detachment rates}
+
+The attachment sites attach or detach stochastically with rates $k_a^{R/L}$
+and $k_d$, i.e:
+\begin{equation}
+  \begin{aligned}
+    p_{nm}^A = 1 &\xrightarrow{\quad k_d \quad}& p_{nm}^A = 0%
+    &\xrightarrow{\quad k_a^R \quad}& p_{nm}^A = 1\\
+    p_{nm}^A= -1 &\xrightarrow{\quad k_d \quad}& p_{nm}^A = 0%
+    &\xrightarrow{\quad k_a^L \quad}& p_{nm}^A = -1\\
+  \end{aligned}
+\end{equation}
+The detachment rate depends on the position of the attached site with
+respect to the chromosome center:
+\begin{equation}
+  \label{eq:k_d}
+  k_d = k_ad_\alpha / d, \mbox{with } d = \left| x^A_{nm} - %
+  \left(x^A_{n}+ x^B_{n}\right) / 2 \right|
+\end{equation}
+The attachment rate depends on the state of the other attachment
+sites:
+\begin{equation}
+  \label{eq:k_a}
+  k_a^R = k_a\left( 1/2 + \beta\frac{N_n^{AR} - N_n^{AL}}%
+    {2\left(N_n^{AR} + N_n^{AL}\right)}\right)
+\end{equation}
+  
+\subsection{Discrete state-space approximation of the stochastic
+  process}
+\label{sec:Defintions}
+
+The coupling of $k_d$ with the mechanical aspects of the global model
+prevents a straightforward description of the model as a continuous
+time Markov chain. This section presents a discrete approximation, as
+a first attempt.
+
+We now consider only one chromosome with two centromeres and $M_k$
+attachment sites. The state of this model is then completely specified
+by the four random variables $N^{AL}, N^{AR}, N^{BL}, N^{BR}$ as
+defined in equation \ref{eq:NAL}. 
+
+Considering for example the variable $N^{AL}$, we have: $N^{AL} $  
+\begin{equation}
+    N^{AL} \xrightarrow{\quad N^{AL}k_d \quad} N^{AL}- 1%
+\end{equation}
+
+We define the variables $P^A$ (and similarly $P^B$):
+\begin{equation}
+  \label{eq:PA}
+  P^A = N^{AL}, N^{AR} = \sum_{M_k} p_m^A
+\end{equation}
+With $p_m^A$ as defined in equation \ref{eq:rholambda}. $P^A$ can be
+viewed as the force balance at the centromere A. 
+
+
+In the model, the detachment rate $k_d$ depends on the distance
+between the centromeres. At equilibrium, this distance is proportional
+to the net force applied to the chromosome by the attached
+microtubules, i.e. to   $P^A  + P^B$  
+\begin{equation}
+  \label{eq:def_kf_markov}
+  k_d =%
+  \begin{cases}
+    k_a d_{\alpha} / d_{eq}  \mbox{ with } d_{eq} = 1 + \frac{P^A  +%
+      P^B}{\kappa_c} & \mbox{ if } P^AP^B < 0 \\
+    k_a * d_{\alpha} &  \mbox{ if }  P^AP^B \geq 0\\
+  \end{cases}
+\end{equation}
+
+        % #With Fk as unit force and d_0 the unit distance:
+        % if sign( forceA * forceB ) <= 0:
+        %     d_eq =  1. + abs(forceA - forceB) / kappa 
+        %     k_d = k_a * d_alpha / d_eq
+        % else:
+        %     k_d = k_a * 5. 
+
+
+
+
+% On veut evaluer les taux de transition en fonction de l'etat.
+% Pour chacune des composantes, le raisonnement est le même:
+
+ 
+% Regardons NAG
+
+ 
+% NAG peut diminuer de 1. 
+
+ 
+% Cela arrive avec un taux proportionnel a NAG-1.
+% C'est aussi fonction de la "distance". 
+% On ecrit: Kd=Ka d_alpha/ d
+% ou d_alpha de l'ordre de 3 d_0 (d_0 a lequilibre)
+% et d la distance réelle entre les deux kinteomachin. 
+% On ecrit d=(1 + 3M/8) d_0, 
+% de maniere a ce que si M=0 on obtienne d_0 et si M=8, 4 d_0
+% Pour evaluer M on distingue les cas ou les forces exercées sur A et B
+% sont de même signe, de signes opposés 
+% Si elles sont de signe opposé, on pose M= somme des val abs de ces forces
+% cad: M= abs(NAG + NBD - NAD - NBG)
+% Sinon on pose M=-4/3 pour avoir d= d_0/2  
+% Si les deux sont nulles, on s'en fout puisque personne attaché. 
+
+ 
+
+ 
+% NAD+NAG peut augmenter de 1.
+
+ 
+% Le taux est proportionnel au nombre de recepteurs libres, i.e. a N-NAG-NAD
+% La constante est Ka
+% Mais alors c'est NAG ou NAD qui augmente de 1 ; la proba que ce soit NAG
+% est donnée par 1/2 + beta x (NAG-NBG) / 2 (NAG-1 + NAD-1)
+
+
+
+\end{document}
+
+We give in the following
+the explicit expressions of the equations.
+
+\subsection{Centromere}
+
+\begin{equation}\label{eq:fkt}
+  \begin{aligned}
+    \mu_i \dot{x}_n &= -\kappa_i(x_n - x_n^{\dagger}-d_0) +
+    \sum_m\left[ -\kappa_o(x_n - x_{nm}) - \mu_o(\dot{x}_n -
+      \dot{x}_{nm})\right]\\
+    \mu_i \dot{x}_n^{\dagger} &= -\kappa_i(x_n^{\dagger} - x_n + d_0)
+    + \sum_m\left[ -\kappa_o(x_n^{\dagger} - x_{nm}^{\dagger}) -
+      \mu_o(\dot{x}_n^{\dagger} - \dot{x}_{nm}^{\dagger})\right]\\
+  \end{aligned}
+\end{equation}
+
+\subsection{Attachment sites}
+
+\begin{equation}\label{eq:fMk}
+  \begin{aligned}
+    \mu_{o}(\dot{x}_{nm} - \dot{x}_{n}) &= -\kappa_o(x_{nm} -x_n) +
+    \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
+        \dot{x}_s}{V_k}\right) - \beta_{nm}F_k\left(1 -
+      \frac{\dot{x}_s^{\dagger} - \dot{x}_{nm}}{V_k}\right)\\
+    \mu_{o}(\dot{x}_{nm}^{\dagger} - \dot{x}^{\dagger}_{n}) &=
+    -\kappa_o(x_{nm}^{\dagger} -x_n^{\dagger}) - \alpha_{nm}^{\dagger}F_k\left(1
+      - \frac{\dot{x}_{s}^{\dagger} - \dot{x}_{nm}^{\dagger}}{V_k}\right) +
+    \beta_{nm}^{\dagger}F_k\left(1 -
+      \frac{\dot{x}_{nm}^{\dagger} - \dot{x}_s}{V_k}\right)\\
+  \end{aligned}
+\end{equation}
+
+With $\alpha_{nm} = 1$ if the attachment site is attached to the
+correct SPB, 0 otherwise and   $\beta_{nm} = 1$ if it is attached
+erroneously\footnote{This means that the attachment of this site
+  contributes to an incorrect attachment of the chromosome, either
+  merotelic, syntelic or monotelic}, 0 otherwise.
+
+\subsection{Spindle Pole Bodies}
+
+\begin{equation}\label{eq:spb}
+  \begin{aligned}
+    \mu_s\dot{x}_s &= F_z\left(1 - \frac{\dot{x}_s -
+        \dot{x}_s^{\dagger}}{V_z}\right) + \sum_n\sum_m\left[-
+      \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
+          \dot{x}_s}{V_k}\right) - \beta_{nm}^{\dagger}F_k\left(1 -
+        \frac{\dot{x}_{nm}^{\dagger} - \dot{x}_s}{V_k}\right)\right]\\
+    \mu_s\dot{x}_s^{\dagger} &= - F_z\left(1 - \frac{\dot{x}_s -
+        \dot{x}_s^{\dagger}}{V_z}\right) +
+    \sum_n\sum_m\left[\alpha_{nm}^{\dagger}F_k\left(1 -
+        \frac{\dot{x}_{s}^{\dagger} -
+          \dot{x}_{nm}^{\dagger}}{V_k}\right) + \beta_{nm}F_k\left(1 -
+        \frac{\dot{x}_s^{\dagger} - \dot{x}_{nm}}{V_k}\right)\right]\\
+  \end{aligned}
+\end{equation}
+$x_s^{\dagger} = -x_s\, \forall\, t \Rightarrow$
+%\begin{equation}
+\begin{multline}
+  2\mu_s \dot{x}_s = 2F_z\left(1 - \frac{2\dot{x}_s}{V_z}\right) +
+  \sum_n\sum_m\Biggl[- \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
+      \dot{x}_s}{V_k}\right) - \beta_{nm}^{\dagger}F_k\left(1 -
+    \frac{\dot{x}_{nm}^{\dagger} -
+      \dot{x}_s}{V_k}\right)\\
+  - \alpha_{nm}^{\dagger}F_k\left(1 -
+    \frac{-\dot{x}_{s} -
+      \dot{x}_{nm}^{\dagger}}{V_k}\right) - \beta_{nm}F_k\left(1 -
+    \frac{- \dot{x}_s - \dot{x}_{nm}}{V_k}\right)\Biggr]
+\end{multline}
+% \end{equation}
+
+
+
+<!-- Local IspellDict: english -->
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -77,13 +77,13 @@ class KinetoDynamics(object) :
         idxs = {}
         for n in range(N):
             
-            idxs.update([((0,n), 2*n*(Mk+1) + 1)])
-            idxs.update([((1,n), 2*n*(Mk+1) + 2 + Mk)])
+            idxs[(0,n)] =  2*n*(Mk+1) + 1
+            idxs.[(1,n)] = 2*n*(Mk+1) + 2 + Mk
 
             for m in range(Mk):
-                idxs.update([((0,n,m),2*n*(Mk + 1) + 2 + m)])
-                idxs.update([((1,n,m), 2*n*(Mk + 1) + 3 + Mk + m)])
-
+                idxs.[(0,n,m)] = 2*n*(Mk + 1) + 2 + m
+                idxs.[(1,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
+                
         return idxs
                 
 
