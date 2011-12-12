@@ -77,42 +77,38 @@ from pylab import *
 
 ### Initialisation des paramètres
 k_a = 0.06
-beta = 1.
+beta = 0.5
 N = 4
 kappa = 3/8.
 d_alpha = 1/3.
 
-betas = linspace(0,1,20) 
-d_alphas = logspace(-2, 1, 20)
+betas = linspace(0,1,10) 
+d_alphas = logspace(-2, 2, 10)
 
 
 def explore(betas = betas, d_alphas = d_alphas):
-
+    
     espace = StateSpace(N)
-    pcs, pes, measures = [], [], []
-
-    for d_alpha in d_alphas:
-        print 'd_alpha = %.3f' %d_alpha
-        for beta in betas:
-            mes = find_invariant(espace.valid_states,
-                                 d_alpha = d_alpha, beta = beta)
-            measures.append(mes)
-
+    measures = []
+    for beta in betas:
+        for d_alpha in d_alphas:
+            print 'beta = %.3f' %beta
+            generateur = ChainGenerator(espace, beta = beta,
+                                        d_alpha = d_alpha)
+            measures.append(real(generateur.measure))
     return measures
 
-
-
-
-def all_defects(espace, measures, d_alphas = d_alphas, betas = betas, N = N):
+def all_defects_probas(espace, measures,
+                       d_alphas = d_alphas,
+                       betas = betas, N = N):
 
     all_defect_probs = {'amphiteliques':zeros(len(measures)),
                         'monoteliques':zeros(len(measures)),
                         'meroteliques':zeros(len(measures)),
                         'synteliques':zeros(len(measures)),
                         'unattached':zeros(len(measures))}
-
-    all_p_cor, all_p_err, all_p_force = (zeros((len(measures), 2 * N + 1)),) * 3
-
+    all_p_cor, all_p_err, all_p_force = (zeros((len(measures),
+                                                2 * N + 1)),) * 3
     for i, mes in enumerate(measures):
         probas = show_invariant(mes, espace, display = False)
         defect_probs, p_cor, p_err, p_force = probas
@@ -136,7 +132,6 @@ def all_defects(espace, measures, d_alphas = d_alphas, betas = betas, N = N):
 def show_all_defects(probas, d_alphas = d_alphas, betas = betas):
 
     defect_probs, p_cor, p_err, p_force = probas
-    
     total = zeros((d_alphas.size, betas.size))
 
     nd = zeros(d_alphas.size + 1)
@@ -156,11 +151,22 @@ def show_all_defects(probas, d_alphas = d_alphas, betas = betas):
             total += defect
             pcolor(d_alphas, betas, defect,
                    vmin = 0., vmax = 1.)
-            colorbar()
             xscale('log')
-            ylabel(r'Orientation effect $\beta$')
-            xlabel(r'$d_\alpha$')
-            axis((d_alphas.min(), d_alphas.max(), 0, 1))
+            axis((d_alphas.min(), d_alphas.max(),
+                  betas.min(), betas.max()))
+            if i == 1 or i == 3:
+                ylabel(r'Orientation effect $\beta$')
+            if i == 3 or i == 4:
+                xlabel(r'$d_\alpha$')
+
+            if i == 2:
+                xticks(())
+                yticks(())
+            if i == 4:
+                yticks(())
+            if i == 1:
+                xticks(())
+
             title(key)
             i+=1
 
@@ -175,127 +181,155 @@ def show_all_defects(probas, d_alphas = d_alphas, betas = betas):
 
 
 
-def find_invariant(valid_states, k_a = k_a, beta = beta,
-                   N = N, kappa = kappa, d_alpha = d_alpha):
-    
-    Q = calc_rates(valid_states, k_a, beta, N, kappa, d_alpha)
-    QQ = get_matrix(valid_states, Q)
-    mes = find_kernel(QQ)
-    return real(mes)
+class ChainGenerator():
 
-def calc_rates(valid_states, k_a, beta, N, kappa, d_alpha):
+    def __init__(self, state_space, k_a = k_a, beta = beta,
+                 N = N, kappa = kappa, d_alpha = d_alpha):
+        '''
+        Intanciation method for a ChainGenerator
+        The following attributes are caclulated :
+
+        self.Q : a 8 * taille array (vector in / vector out)
+        self.QQ: the actual matrix which is the generator of the chain
+        self.vecteurs_prore, self.valeurs_propres: result of eig(self.QQ.T)
+        self.measure: the invariant measure
+        self.show_invariant(display = True) 
+        '''
+
+        valid_states = state_space.valid_states
+        self.calc_rates(valid_states, k_a, beta,
+                        N, kappa, d_alpha)
+        self.get_matrix(valid_states)
+        self.find_kernel()
+
+    
+    def calc_rates(self, valid_states, k_a,
+                   beta, N, kappa, d_alpha):
  
-    Q=zeros((N + 1,) * 8)
+        self.Q=zeros((N + 1,) * 8)
 
-    # On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
-    # passer aux differents etat qu'on peut atteindre en une etape. 
+        # On remplit les cases. Pour chaque etat, on calcule a quel taux on peut
+        # passer aux differents etat qu'on peut atteindre en une etape. 
 
-    for psi in valid_states.T : #On itère sur tous les etats valides
+        for psi in valid_states.T : #On itère sur tous les etats valides
 
-        NAG, NAD, NBG, NBD = psi
-        # Calcul du taux de detachement.
-        forceA = NAD - NAG
-        forceB = NBD - NBG
-        #With Fk as unit force and d_0 the unit distance:
-        if sign( forceA * forceB ) <= 0:
-            d_eq =  1. + abs(forceA - forceB) / kappa 
+            NAG, NAD, NBG, NBD = psi
+            if NAG + NBD >=  NAD +  NBG:
+                sigma = 1
+            else:
+                sigma = -1
+
+            d_eq = 1 + sigma * 3. * (NBD - NBG + NAG - NAD) / (2. * N)
+            # Calcul du taux de detachement.
             k_d = k_a * d_alpha / d_eq
-        else:
-            k_d = k_a * 5. 
-
-        # Taux des differents detachements
-        if NAG > 0:
-            Q[NAG, NAD, NBG, NBD,
-              NAG - 1, NAD, NBG, NBD] = k_d * NAG
-
-        if NAD > 0:
-            Q[NAG, NAD, NBG, NBD,
-              NAG, NAD - 1, NBG, NBD] = k_d * NAD
-
-        if NBG > 0:
-            Q[NAG, NAD, NBG, NBD,
-              NAG, NAD, NBG - 1, NBD] = k_d * NBG
-
-        if NBD > 0:
-            Q[NAG, NAD, NBG, NBD,
-              NAG, NAD, NBG, NBD - 1] = k_d * NBD
             
-        # Taux d'attachement (avec proba pour droit ou gauche)
-        if NAG + NAD == 0 :  # sinon division par zero
-            Pe = 0.5
-        else :
-            Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
+            #la vieille definition
+            # forceA=NAD-NAG
+            # forceB=NBD-NBG
+            # if sign(forceA*forceB)<=0 :
+            #     M=abs(NAG+NBD - NAD - NBG); #i.e. somme des valabs des forces
+            # else:
+            #     M=-1/3 # pour que 1+3M/8 = 1/2
+            # k_d= k_a / (3. * ( 1 + 3. * M / 8))
 
-        if NAG < N :
-            Q[NAG, NAD, NBG, NBD,
-              NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
-        if NAD < N :
-            Q[NAG, NAD, NBG, NBD,
-              NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD) * (1-Pe)
+            # Taux des differents detachements
+            if NAG > 0:
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG - 1, NAD, NBG, NBD] = k_d * NAG
 
-        if NBG + NBD == 0 : # sinon division par zero
-            Pe = 0.5
-        else : 
-            Pe = 0.5 + beta * (NBG - NBD) / (2. * (NBG + NBD))
-        if NBG < N :
-            Q[NAG, NAD, NBG, NBD,
-              NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD) * Pe 
-        if NBD < N :
-            Q[NAG, NAD, NBG, NBD,
-                  NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD) * (1 - Pe )
+            if NAD > 0:
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD - 1, NBG, NBD] = k_d * NAD
 
-    return Q
+            if NBG > 0:
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD, NBG - 1, NBD] = k_d * NBG
 
+            if NBD > 0:
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD, NBG, NBD - 1] = k_d * NBD
 
-def get_matrix(valid_states, Q):
+            # Taux d'attachement (avec proba pour droit ou gauche)
+            if NAG + NAD == 0 :  # sinon division par zero
+                Pe = 0.5
+            else :
+                Pe = 0.5 + beta * (NAG - NAD) / (2. * (NAG + NAD)) 
 
-    ### Transformation du tableau en une matrice 
-    taille = valid_states.shape[1]
-    QQ=zeros((taille,taille)) # Initialisation 
-    # La matrice 
-    for i in range(taille):
-        for j in range(taille):
-            indices = tuple(hstack((valid_states[:,i],
-                                    valid_states[:,j])))
-            QQ[i,j] = Q[indices]
-            
-    # Coefficients diagonaux
-    for i in range(taille):
-        QQ[i,i] = - sum(QQ[i,:])   
+            if NAG < N :
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG + 1, NAD, NBG, NBD] = k_a * (N - NAG - NAD) * Pe
+            if NAD < N :
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD + 1, NBG, NBD] = k_a * (N - NAG - NAD
+                                                        ) * ( 1 - Pe )
 
-    return QQ
+            if NBG + NBD == 0 : # sinon division par zero
+                Pe = 0.5
+            else : 
+                Pe = 0.5 + beta * (NBG - NBD) / (2. * (NBG + NBD))
+            if NBG < N :
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD, NBG + 1, NBD] = k_a * (N - NBG - NBD
+                                                        ) * Pe 
+            if NBD < N :
+                self.Q[NAG, NAD, NBG, NBD,
+                       NAG, NAD, NBG, NBD + 1] = k_a * (N - NBG - NBD
+                                                        ) * (1 - Pe )
 
-def find_kernel(QQ):
+    def get_matrix(self, valid_states):
 
-    ### Recherche du noyau, i.e. de la mesure invariante
-    valeurs_propres, vecteurs_propres = eig(QQ.T)
+        ### Transformation du tableau en une matrice 
+        taille = valid_states.shape[1]
+        self.QQ=zeros((taille,taille)) # Initialisation 
+        # La matrice 
+        for i,j in ndindex((taille, taille)):
+            self.QQ[i,j] =self.Q[valid_states[0,i],
+                                 valid_states[1,i],
+                                 valid_states[2,i],
+                                 valid_states[3,i],
+                                 valid_states[0,j],
+                                 valid_states[1,j],
+                                 valid_states[2,j],
+                                 valid_states[3,j]]
+        # Coefficients diagonaux
+        for i in range(taille):
+            self.QQ[i,i] = - sum(self.QQ[i,:])   
 
-    # Attention, QQ.T est la transposee de QQ. 
-    # En effet, on a toujours QQ.1 = 0 (vu ce qu'on a mis sur la diagonale)
-    # et nous, on cherche le vecteur V tel que V'. QQ=0, soit QQ'.V=0
+    def find_kernel(self):
 
-    # Determination de l'indice de la valeur propre qui est nulle
-    for i, v in enumerate(valeurs_propres):
-        if abs(v)< 1e-10:
-             uu = i
-    # dot(QQ, ones(taille)) # pour verifier que la somme des lignes est nulle
-    # dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu est bien le noyau        # Le vecteur ppre normalise donne la proba invariante
-    mes = vecteurs_propres[:,uu]/sum(vecteurs_propres[:,uu]) 
-    return mes
+        ### Recherche du noyau, i.e. de la mesure invariante
+        self.valeurs_propres, self.vecteurs_propres = eig(self.QQ.T)
+
+        # Attention, QQ.T est la transposee de QQ. 
+        # En effet, on a toujours QQ.1 = 0 (vu ce qu'on a mis sur la diagonale)
+        # et nous, on cherche le vecteur V tel que V'. QQ=0, soit QQ'.V=0
+
+        # Determination de l'indice de la valeur propre qui est nulle
+        for i, v in enumerate(self.valeurs_propres):
+            if abs(v)< 1e-10:
+                 uu = i
+        # dot(QQ, ones(taille)) # pour verifier que la somme des lignes
+        # est nulle
+        # dot(QQ.T, V[:,uu]) # pour verifier que le vecteur obtenu
+        # est bien le noyau
+        # Le vecteur ppre normalise donne la proba invariante
+        self.measure = self.vecteurs_propres[:,uu]/sum(
+            self.vecteurs_propres[:,uu]) 
     
-def show_invariant(mes, espace, display = True):
-    
+def show_invariant(measure, espace, display = True):
+
     p_cor = zeros(2*N + 1)
     p_err = zeros(2*N + 1)
     p_force = zeros(2*N + 1)
+
     defect_probs = {}
-    
+
     for key, defect in espace.defects.items():
-        defect_probs[key] = sum(mes * defect)
+        defect_probs[key] = sum(measure * defect)
 
 
     # On cumule les proba des etats donnant les memes valeurs
-    for i, m in enumerate(real(mes)):
+    for i, m in enumerate(real(measure)):
         p_cor[espace.sum_corrects[i]] += m
         p_err[espace.sum_errones[i]] += m
         p_force[espace.force_totale[i]] += m
@@ -303,24 +337,36 @@ def show_invariant(mes, espace, display = True):
     if display == True:
         for key, proba in defect_probs.items():
             print 'P(%s) = %.03f' %(key, proba)
-
         #Trace de la loi obtenue: 
         figure(1)
-        plot(r_[0:2*N+1], p_cor, 'gv-')
-        plot(r_[0:2*N+1], p_err, 'ro-')
+        plot(r_[0:2*N+1], p_cor, 'gv-', label='Corectly attached')
+        plot(r_[0:2*N+1], p_err, 'ro-', label='Erroneously attached')
         figure(2)
         plot(r_[0:2*N+1], p_force, 'ko-')
-
-
+        title('Force totale')
     probas = defect_probs, p_cor, p_err, p_force
     return probas
 
     
 class StateSpace():
+    '''
+    For a given number of attachment site per chromosomes, calculates the
+    valid state space (such that NAD + NAG <= N et NBG + NBD <= N)
 
+    attributes:
+    self.valid_states a (N, number_of_states) array ({\Psi} in the text)
+    self.new_states: a (N, number_of_states) array ({\Phi} in the text)
+    self.defects = {'amphitelics':amphiteliques,
+                    'monotelics':monoteliques,
+                    'merotelics':meroteliques,
+                    'syntelics':synteliques,
+                    'unattached':unattached}
+    where amphiteliques, monoteliques, etc. are 1D array such that
+    if amphitelique[i]==1, then the state self.valid_states[i] is amphitelic.
+    '''
 
     def __init__(self, N):
-
+        
         self.N = N
         self.get_valid_states()
         self.get_correct_states()
@@ -406,3 +452,14 @@ class StateSpace():
         self.sum_corrects = AC + BC
         self.sum_errones = AE + BE
         self.force_totale = abs(AC + BC - AE - BE )
+
+
+if __name__ == "__main__":
+
+    print 'usage (for example):'
+    print 'espace = StateSpace(N) #N is the number of attachment sites'
+    print 'generateur = ChainGenerator(espace, beta = beta,'
+    print '                            d_alpha = d_alpha)'
+    print 'generateur.show_invariant(espace, display = True)'
+    print 'see also the explore() function'
+    

@@ -285,6 +285,8 @@ sites:
   process}
 \label{sec:Defintions}
 
+\subsubsection{Definitions}
+
 The coupling of $k_d$ with the mechanical aspects of the global model
 prevents a straightforward description of the model as a continuous
 time Markov chain. This section presents a discrete approximation, as
@@ -293,156 +295,166 @@ a first attempt.
 We now consider only one chromosome with two centromeres and $M_k$
 attachment sites. The state of this model is then completely specified
 by the four random variables $N^{AL}, N^{AR}, N^{BL}, N^{BR}$ as
-defined in equation \ref{eq:NAL}. 
-
-Considering for example the variable $N^{AL}$, we have: $N^{AL} $  
-\begin{equation}
-    N^{AL} \xrightarrow{\quad N^{AL}k_d \quad} N^{AL}- 1%
-\end{equation}
+defined in equation \ref{eq:NAL}.  
 
 We define the variables $P^A$ (and similarly $P^B$):
 \begin{equation}
   \label{eq:PA}
-  P^A = N^{AL}, N^{AR} = \sum_{M_k} p_m^A
+  P^A = N^{AR} - N^{AL} = \sum_{M_k} p_m^A
 \end{equation}
 With $p_m^A$ as defined in equation \ref{eq:rholambda}. $P^A$ can be
-viewed as the force balance at the centromere A. 
+viewed as the force balance at the centromere A. Each of those
+variables can change of one unit at a time, reflecting the attachment
+or detachment of one kinetochore microtubule.
 
+\subsubsection{Correct and erroneous attachment}
 
-In the model, the detachment rate $k_d$ depends on the distance
-between the centromeres. At equilibrium, this distance is proportional
-to the net force applied to the chromosome by the attached
-microtubules, i.e. to   $P^A  + P^B$  
+In the above definitions, the role of centromere A and B are
+completely symmetrical with respect to the left and right pole. Yet,
+the whole point is to segregate centromere A to one pole and
+centromere B to the other. We define the correct and erroneous
+attachments $N^{AC}$ and $N^{AE}$ to take this into account.
+
+For example, in the case of A being linked mainly toward the left SPB
+and B toward the right SPB, correct attachments are given by $ N^{AC}
+= N^{AL}$ and $N^{BC} = N^{BR}$. More generaly, the correct directions
+are the one exerting the maximal traction force:
 \begin{equation}
-  \label{eq:def_kf_markov}
-  k_d =%
+  \label{eq:corect_erron}
+  \begin{aligned}
+    \mathrm{if}\, N^{AL} +  N^{BR} \geq N^{AR} +  N^{BL}:& N^{AC}&= N^{AL},\\
+                                                      &  N^{BC}&= N^{BR},\\
+                                                      &  N^{AE}&= N^{AR},\\
+                                                      &  N^{BE}&= N^{BL}\\
+    \mathrm{if}\, N^{AL} +  N^{BR} < N^{AR} +  N^{BL}  :&  N^{AC}&= N^{AR},\\
+                                                      &  N^{BC}&= N^{BL},\\
+                                                      &  N^{AE}&= N^{AL},\\
+                                                      &  N^{BE}&= N^{BR}\\
+  \end{aligned}
+\end{equation}
+For commodity, we define the factor $\sigma$ such that:
+\begin{equation}
+  \label{eq:factS}
+  \sigma =%
   \begin{cases}
-    k_a d_{\alpha} / d_{eq}  \mbox{ with } d_{eq} = 1 + \frac{P^A  +%
-      P^B}{\kappa_c} & \mbox{ if } P^AP^B < 0 \\
-    k_a * d_{\alpha} &  \mbox{ if }  P^AP^B \geq 0\\
+    1 &\mathrm{if}\, N^{AL} +  N^{BR} \geq N^{AR} +  N^{BL}\\
+    -1 &\mathrm{if}\, N^{AL} +  N^{BR} < N^{AR} +  N^{BL}\\
   \end{cases}
 \end{equation}
-
-        % #With Fk as unit force and d_0 the unit distance:
-        % if sign( forceA * forceB ) <= 0:
-        %     d_eq =  1. + abs(forceA - forceB) / kappa 
-        %     k_d = k_a * d_alpha / d_eq
-        % else:
-        %     k_d = k_a * 5. 
+And the state vector $Phi = (N^{AC}, N^{AE}, N^{BE}, N^{BC}$.
 
 
+\subsubsection{Detachment process}
+
+Considering for example the detachment for $N^{AL}$:
+\begin{equation}
+    N^{AL} \xrightarrow{\quad N^{AL}k_d \quad} N^{AL}- 1%
+\end{equation}
+
+In the mechanical model, the detachment rate $k_d$ depends on the
+distance between the centromeres. Here, we consider that at
+equilibrium, this distance $d_{eq}$ varies linearly with the net force
+applied to the chromosome by the attached microtubules. If centromere
+B goes to the right and centromere A goes to the left ($S = 1$):
+$$ d_{eq} = d_0 + F_k (P^B - P^A)/\kappa_c$$
+\emph{In vivo}, the distance between the centromeres
+never exceeds several times the rest length $d_0$. A typical value for
+$d_{max}$ (around $1.2 \UM$) is four times $d_0$ ($0.3 \UM$). Taking
+$d_0$ as unit length and $F_k$ as unit force, and substituting $P^A +
+P^B$ by $2M_k$ in the above equation, we have:
+$$ 
+d_{max} = 1 + 2M_k/\kappa_c  \simeq 4 \Rightarrow \kappa_c \simeq 3/2*M_k
+$$
+
+And thus:
+\begin{equation}
+  \label{eq:deq}
+  d_{eq} = 1 + \sigma 3 \left(P^B - P^A\right)/2M_k
+\end{equation}
+
+We thus calculate the detachment rate $k_d$ with:
+\begin{equation}
+  \label{eq:def_kf_markov}
+  k_d  =   k_a d_{\alpha} / (1 + \sigma \left(P^A - P^B\right)/M_k) 
+\end{equation}
 
 
-% On veut evaluer les taux de transition en fonction de l'etat.
-% Pour chacune des composantes, le raisonnement est le même:
-
- 
-% Regardons NAG
-
- 
-% NAG peut diminuer de 1. 
-
- 
-% Cela arrive avec un taux proportionnel a NAG-1.
-% C'est aussi fonction de la "distance". 
-% On ecrit: Kd=Ka d_alpha/ d
-% ou d_alpha de l'ordre de 3 d_0 (d_0 a lequilibre)
-% et d la distance réelle entre les deux kinteomachin. 
-% On ecrit d=(1 + 3M/8) d_0, 
-% de maniere a ce que si M=0 on obtienne d_0 et si M=8, 4 d_0
-% Pour evaluer M on distingue les cas ou les forces exercées sur A et B
-% sont de même signe, de signes opposés 
-% Si elles sont de signe opposé, on pose M= somme des val abs de ces forces
-% cad: M= abs(NAG + NBD - NAD - NBG)
-% Sinon on pose M=-4/3 pour avoir d= d_0/2  
-% Si les deux sont nulles, on s'en fout puisque personne attaché. 
-
- 
-
- 
-% NAD+NAG peut augmenter de 1.
-
- 
-% Le taux est proportionnel au nombre de recepteurs libres, i.e. a N-NAG-NAD
-% La constante est Ka
-% Mais alors c'est NAG ou NAD qui augmente de 1 ; la proba que ce soit NAG
-% est donnée par 1/2 + beta x (NAG-NBG) / 2 (NAG-1 + NAD-1)
+\subsubsection{Attachment process}
 
 
+The total number of attached ktMTs at centromere A can augment of one
+unit, with a rate proportional to the number of unattached sites, $M_k
+ -  N^{AL} -  N^{AR} $:
+\begin{equation}
+  N^{AL} + N^{AR} \xrightarrow{\left(M_k -
+      N^{AL}-N^{AR}\right)k_a} N^{AL}+ N^{AR} + 1%
+\end{equation}
+To decide whether $N^{AL}$ or $N^{AR}$ augment, we state that the
+probability that it is $N^{AL}$ is given by 
+$$P_L^A = 1/2 + \beta\left(N^{AL} - N^{AR}\right)/2(N^{AL} + N^{AR})$$
+if $N^{AL} + N^{AR} \neq 0$ and $P_L^A = 1/2$ if $N^{AL} + N^{AR} =
+0$.  Consequently:
+\begin{equation}
+  \begin{aligned}
+    N^{AL}&\xrightarrow{P_L^A\left(M_k -
+        N^{AL}-N^{AR}\right)k_a} N^{AL} + 1\\
+    N^{AR}&\xrightarrow{\left(1 - P_L^A\right)\left(M_k -
+        N^{AL}-N^{AR}\right)k_a} N^{AR} + 1\\
+  \end{aligned}
+\end{equation}
+
+
+\subsubsection{Markov chain generator}
+\label{sec:mcg}
+
+The matrix $Q$ is the generator of the Markov chain. Let $\Psi_i = (
+N^{AL}, N^{AR}, N^{BL}, N^{BR})$ and $\Psi_j = (
+{N^{AL}}', {N^{AR}}', {N^{BL}}', {N^{BR}}')$, then the transition rate between
+$\Psi_i$ and $\Psi_j$ is given by $q_{ij}$ if $i \neq j$, the diagonal
+terms $q_{ii}$ are given by $q_{ii} = - \sum_{j \neq i} q_{ij} $. 
+
+We used the above rules for the transition rates to write the matrix
+$Q$ for all the acceptable vectors $\Psi$. The invariant measure of
+the process is then given by the normalized  vector
+$\mathbf{\mu}$ such that: $\mathbf{\mu}^TQ = 0$.
+
+
+\section{Classification of the defects and analysis}
+
+We base the analysis of the invariant measure on the classification
+between correct and erroneous attachment described above (equation
+\ref{eq:corect_erron}).
+
+We follow the biological classification of the mitotic defects. With
+$Phi = (N^{AC}, N^{AE}, N^{BE}, N^{BC}$, the chromosome can be either
+(modulo a permutation between A and B):
+\begin{itemize}
+\item Unattached if $\Phi = (0,0,0,0)$,
+\item Monotelic if $\Phi \in \{(0,0,0, N^{BC}),N^{BC}> 0\}$,
+\item Syntelic if $\Phi \in \{(N^{AC},0,N^{BE},0),N^{AC}> 0, N^{AE}> 0\}$ or
+\item Merotelic if $\Phi \in \{(N^{AC},N^{AE},N^{BC},N^{BE}), N^{AC}>
+    0, N^{AE}> 0, \forall N^{BC}, N^{BE}\}  $
+\end{itemize}
+
+
+
+\subsection{Dependance on $d_{\alpha}$ and $\beta$}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=4in]{total_defects}
+  \caption{Fraction totale de défauts pour différentes valeurs de $d_{\alpha}$ et $\beta$}
+  \label{fig:total}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=4in]{details_defects}
+  \caption{Répartition pour différentes valeurs de $d_{\alpha}$ et $\beta$}
+  \label{fig:total}
+\end{figure}
 
 \end{document}
-
-We give in the following
-the explicit expressions of the equations.
-
-\subsection{Centromere}
-
-\begin{equation}\label{eq:fkt}
-  \begin{aligned}
-    \mu_i \dot{x}_n &= -\kappa_i(x_n - x_n^{\dagger}-d_0) +
-    \sum_m\left[ -\kappa_o(x_n - x_{nm}) - \mu_o(\dot{x}_n -
-      \dot{x}_{nm})\right]\\
-    \mu_i \dot{x}_n^{\dagger} &= -\kappa_i(x_n^{\dagger} - x_n + d_0)
-    + \sum_m\left[ -\kappa_o(x_n^{\dagger} - x_{nm}^{\dagger}) -
-      \mu_o(\dot{x}_n^{\dagger} - \dot{x}_{nm}^{\dagger})\right]\\
-  \end{aligned}
-\end{equation}
-
-\subsection{Attachment sites}
-
-\begin{equation}\label{eq:fMk}
-  \begin{aligned}
-    \mu_{o}(\dot{x}_{nm} - \dot{x}_{n}) &= -\kappa_o(x_{nm} -x_n) +
-    \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
-        \dot{x}_s}{V_k}\right) - \beta_{nm}F_k\left(1 -
-      \frac{\dot{x}_s^{\dagger} - \dot{x}_{nm}}{V_k}\right)\\
-    \mu_{o}(\dot{x}_{nm}^{\dagger} - \dot{x}^{\dagger}_{n}) &=
-    -\kappa_o(x_{nm}^{\dagger} -x_n^{\dagger}) - \alpha_{nm}^{\dagger}F_k\left(1
-      - \frac{\dot{x}_{s}^{\dagger} - \dot{x}_{nm}^{\dagger}}{V_k}\right) +
-    \beta_{nm}^{\dagger}F_k\left(1 -
-      \frac{\dot{x}_{nm}^{\dagger} - \dot{x}_s}{V_k}\right)\\
-  \end{aligned}
-\end{equation}
-
-With $\alpha_{nm} = 1$ if the attachment site is attached to the
-correct SPB, 0 otherwise and   $\beta_{nm} = 1$ if it is attached
-erroneously\footnote{This means that the attachment of this site
-  contributes to an incorrect attachment of the chromosome, either
-  merotelic, syntelic or monotelic}, 0 otherwise.
-
-\subsection{Spindle Pole Bodies}
-
-\begin{equation}\label{eq:spb}
-  \begin{aligned}
-    \mu_s\dot{x}_s &= F_z\left(1 - \frac{\dot{x}_s -
-        \dot{x}_s^{\dagger}}{V_z}\right) + \sum_n\sum_m\left[-
-      \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
-          \dot{x}_s}{V_k}\right) - \beta_{nm}^{\dagger}F_k\left(1 -
-        \frac{\dot{x}_{nm}^{\dagger} - \dot{x}_s}{V_k}\right)\right]\\
-    \mu_s\dot{x}_s^{\dagger} &= - F_z\left(1 - \frac{\dot{x}_s -
-        \dot{x}_s^{\dagger}}{V_z}\right) +
-    \sum_n\sum_m\left[\alpha_{nm}^{\dagger}F_k\left(1 -
-        \frac{\dot{x}_{s}^{\dagger} -
-          \dot{x}_{nm}^{\dagger}}{V_k}\right) + \beta_{nm}F_k\left(1 -
-        \frac{\dot{x}_s^{\dagger} - \dot{x}_{nm}}{V_k}\right)\right]\\
-  \end{aligned}
-\end{equation}
-$x_s^{\dagger} = -x_s\, \forall\, t \Rightarrow$
-%\begin{equation}
-\begin{multline}
-  2\mu_s \dot{x}_s = 2F_z\left(1 - \frac{2\dot{x}_s}{V_z}\right) +
-  \sum_n\sum_m\Biggl[- \alpha_{nm}F_k\left(1 - \frac{\dot{x}_{nm} -
-      \dot{x}_s}{V_k}\right) - \beta_{nm}^{\dagger}F_k\left(1 -
-    \frac{\dot{x}_{nm}^{\dagger} -
-      \dot{x}_s}{V_k}\right)\\
-  - \alpha_{nm}^{\dagger}F_k\left(1 -
-    \frac{-\dot{x}_{s} -
-      \dot{x}_{nm}^{\dagger}}{V_k}\right) - \beta_{nm}F_k\left(1 -
-    \frac{- \dot{x}_s - \dot{x}_{nm}}{V_k}\right)\Biggr]
-\end{multline}
-% \end{equation}
-
-
 
 <!-- Local IspellDict: english -->
 
