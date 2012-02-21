@@ -19,6 +19,9 @@ urlcolor=black]{hyperref}
 
 \newcommand{\UM}{\upmu\mbox{m}}
 \newcommand{\UMS}{\upmu\mbox{m}.\mbox{s}^{-1}}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+
 \setlength{\voffset}{-1in}
 \setlength{\hoffset}{-0.9in}
 \setlength{\textwidth}{18cm}
@@ -33,15 +36,9 @@ urlcolor=black]{hyperref}
 \usepackage{natbib}
 
 
-
-
-
-
 \title{Chromosome segregation model - detailed description}
 
-
-\author{Guillaume Gay, Xavier Bressaud}
-\date{}
+%\date{}
 
 
 \begin{document}
@@ -53,7 +50,7 @@ urlcolor=black]{hyperref}
 \section*{Introduction}
 
 This is a more detailed version of the kinetochore segregation model
-published in \cite{gayJCB12}, which should be referred to for
+to be published in the JCB article, which should be referred to for
 all the experimental, biological and non-technical aspects of this
 work.
 
@@ -81,7 +78,7 @@ axis, only the positions along this axis are considered, in a coordinate
 system with its origin at the center of the spindle, which means that
 $x_s^L(t) = - x_s^R(t)\, \forall t$.
 
-The following interactions are considered:
+The following force balances are considered:
 
 \subsubsection{Forces at the right SPB :}
 \begin{itemize}
@@ -90,7 +87,7 @@ The following interactions are considered:
   $$F_{mid} = F_z\left(1 - (\dot{x}^R_s - \dot{x}_s^L)/V_z\right) =
   F_z\left(1 - 2\dot{x}^R_s / V_z\right) $$
 \item Total kinetochore microtubules force generators:
-  \begin{align}
+$$  \begin{aligned}
     F_{kMT}^T = \sum_{n = 1}^{N}\sum_{m = 1}^{M_k} & - \rho_{nm}^A\,F_k\left( 1 -
       (\dot{x}^A_{nm} - \dot{x}^R_s)/V_k\right)\\
     & + \lambda_{nm}^A\,F_k\left(1 -
@@ -99,7 +96,8 @@ The following interactions are considered:
       (\dot{x}^B_{nm} - \dot{x}^R_s)/V_k\right)\\
     & + \lambda_{nm}^A\,F_k\left(1 -
       (\dot{x}^B_{nm} + \dot{x}^R_s)/V_k\right)
-  \end{align}
+  \end{aligned}
+$$
 \end{itemize}
 
 \subsubsection{Forces at centromere $An$}
@@ -341,7 +339,7 @@ For commodity, we define the factor $\sigma$ such that:
     -1 &\mathrm{if}\, N^{AL} +  N^{BR} < N^{AR} +  N^{BL}\\
   \end{cases}
 \end{equation}
-And the state vector $Phi = (N^{AC}, N^{AE}, N^{BE}, N^{BC}$.
+And the state vector $\Phi = \left(N^{AC}, N^{AE}, N^{BE}, N^{BC}\right)$.
 
 
 \subsubsection{Detachment process}
@@ -355,7 +353,7 @@ In the mechanical model, the detachment rate $k_d$ depends on the
 distance between the centromeres. Here, we consider that at
 equilibrium, this distance $d_{eq}$ varies linearly with the net force
 applied to the chromosome by the attached microtubules. If centromere
-B goes to the right and centromere A goes to the left ($S = 1$):
+B goes to the right and centromere A goes to the left ($\sigma = 1$):
 $$ d_{eq} = d_0 + F_k (P^B - P^A)/\kappa_c$$
 \emph{In vivo}, the distance between the centromeres
 never exceeds several times the rest length $d_0$. A typical value for
@@ -369,13 +367,14 @@ $$
 And thus:
 \begin{equation}
   \label{eq:deq}
-  d_{eq} = 1 + \sigma 3 \left(P^B - P^A\right)/2M_k
+  d_{eq} = 1 +  3 \sigma \left(P^B - P^A\right)/2M_k
 \end{equation}
 
 We thus calculate the detachment rate $k_d$ with:
 \begin{equation}
   \label{eq:def_kf_markov}
-  k_d  =   k_a d_{\alpha} / (1 + \sigma \left(P^A - P^B\right)/M_k) 
+  k_d  =   k_a \frac{d_{\alpha}}{1 + 3 \sigma \left(P^B - P^A\right)/2
+    M_k} 
 \end{equation}
 
 
@@ -435,8 +434,6 @@ $Phi = (N^{AC}, N^{AE}, N^{BE}, N^{BC}$, the chromosome can be either
 \item Merotelic if $\Phi \in \{(N^{AC},N^{AE},N^{BC},N^{BE}), N^{AC}>
     0, N^{AE}> 0, \forall N^{BC}, N^{BE}\}  $
 \end{itemize}
-
-
 
 \subsection{Dependance on $d_{\alpha}$ and $\beta$}
 

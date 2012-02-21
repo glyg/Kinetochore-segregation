@@ -78,11 +78,11 @@ class KinetoDynamics(object) :
         for n in range(N):
             
             idxs[(0,n)] =  2*n*(Mk+1) + 1
-            idxs.[(1,n)] = 2*n*(Mk+1) + 2 + Mk
+            idxs[(1,n)] = 2*n*(Mk+1) + 2 + Mk
 
             for m in range(Mk):
-                idxs.[(0,n,m)] = 2*n*(Mk + 1) + 2 + m
-                idxs.[(1,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
+                idxs[(0,n,m)] = 2*n*(Mk + 1) + 2 + m
+                idxs[(1,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
                 
         return idxs
                 
