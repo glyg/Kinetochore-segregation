@@ -7,7 +7,7 @@ from Cython.Distutils import build_ext
 ext_modules = [Extension("spindle_dynamics", ["spindle_dynamics.pyx"])]
 
 setup(name='kt_simul',
-      version='1.0',
+      version='0.5',
       description='Kinetochore dynamics simulation',
       author='Guillaume Gay',
       author_email='gllm.gay@gmail.com',

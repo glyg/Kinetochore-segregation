@@ -1,4 +1,3 @@
 include *.txt
 recursive-include examples *.pdf *.xml *.npy
-prune examples/sample?/build
 
