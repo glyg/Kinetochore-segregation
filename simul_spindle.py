@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
 ### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
 
-try: #That may trig the segfault with the QtFileDialog widget
+
+try:
     from pylab import figure, show
 except RuntimeError:
     print 'No display..'
@@ -48,17 +48,25 @@ class Metaphase(object):
     An instance of the Metaphase class is a wrapper around a whole simulation.
 
     Typical usage :
+    ---------------
+    >>> from kt_simul.simul_spindle import Metaphase
     >>> m = Metaphase()
     >>> m.simul()
     >>> m.show_trajs()
-    >>> m.write_results('docstring_results.xml', 'docstring_data.npy')
+    >>> m.write_results('examples/docstring_results.xml', 'examples/docstring_data.npy')
+
     From already ran simulations:
-    >>> m1 = get_fromfile('docstring_results.xml')
+    -----------------------------
+    
+    >>> from kt_simul.simul_spindle import Metaphase
+    >>> m1 = get_fromfile('examples/docstring_results.xml')
     >>> m1.show_one(1) #This shows the trajactory of the chromosome 1
     >>> m2 = Metaphase(m1.paramtree, m1.measuretree) #A new simulation
     >>> m2.simul(ablat = 600) #this time with spindle ablation    
 
     Public methods:
+    ---------------
+    
     simul() : runs the simulation
     show_trajs() : displays the trajectories
     show_one() : displays one of the chromosomes' trajectories
@@ -71,30 +79,55 @@ class Metaphase(object):
     """
 
     def __init__(self,  paramtree=None, measuretree=None,
-                 paramfile=paramfile, measurefile=measurefile, plug=None, 
+                 paramfile=paramfile, measurefile=measurefile, plug='random', 
                  reduce_p=True):
 
         """
         Metaphase instanciation method
+        ------------------------------
         
         Key-word arguments:
-        duration  : the duration of the mitosis in seconds (defaults to 900)
-        paramtree : a ParamTree instance containing the parameters for the
-            simulation if paramtree is None, the parameters are read
-            from the file paramfile. Defaults to None
-        paramfile : a xml file to read the parameters from. Defaults to the
-            file params.xml in the module's default/ directory. Other parameter files
+        -------------------
+        
+        duration  : a float
+            the duration of the mitosis in seconds (defaults to 900)
+
+        paramtree : a ParamTree instance or None
+            The paramtree contains the parameters for the simulation
+            if paramtree is None, the parameters are read
+            from the file paramfile. Defaults to None.
+ 
+        measuretree : a ParamTree instance or None
+            The measuretree contains the observed characteristics
+            of the mitosis e.g. metaphase spindle elongation rate, etc.
+            if measuretree is None, the measures are read from the file
+            indicated by the measurefile argument. Defaults to None.
+
+        paramfile : string
+            Path to a xml file to read the parameters from. Defaults to the
+            file params.xml in the module's default directory. Other parameter files
+            can be produced by editing and changing the default one.
+            If the paramtree argument is not None,  paramfile is ignored
+
+        measurefile : string
+            Path to a xml file to read the measures from. Defaults to the
+            file measures.xml in the module's default directory. Other measure files
             can be produced by editing and changing the default one
-        reduce_p  : if True, changes the parameters according to the measures
+            If the measuretree argument is not None,  measurefile is ignored
+
+        plug : string or None
+            Defines globally the initial attachment states.
+            This argument can have the following values: 
+            'null': all kinetochores are detached
+            'amphitelic': all chromosmes are amphitelic
+            'random': all attachement site can be bound to either pole or deteched with equal prob.
+            'monotelic': right kinetochores are attached to the same pole, left ones detached
+            'syntelic' : all kinetochores are attached to the same pole
+            
+        reduce_p  : bool
+            If True, changes the parameters according to the measures
             so that the simulation average behaviour complies with
             the data in the measures dictionary
-        measurefile : a xml file to read the measures from. Defaults to the
-            file measures.xml in the module's default/ directory. Other measure files
-            can be produced by editing and changing the default one
-        measures  : a dictionary containing the observed characteristics
-            of the mitosis e.g. metaphase spindle elongation rate, etc.
-            Defaults to the data provided by the file measures.xml in
-            the module's directory
         """
 
         if paramtree is None:
@@ -162,14 +195,7 @@ class Metaphase(object):
             
         A = self.KD.calcA()
         b = - self.KD.calcb()
-        #Linalg solves A.x = b and not A.x + b = 0 !!!!! (F**cking shit)
         speeds = linalg.solve(A,b)
-
-        # sparse.linalg.use_solver( useUmfpack = False )
-        # A = A.astype('f')
-        # speeds = sparse.linalg.spsolve(A,b)
-
-
         self.KD.position_update(speeds)#[0])
 
     def simul(self, movie = False, ablat = None): 
@@ -177,15 +203,19 @@ class Metaphase(object):
         ''' The simulation main loop. 
         
         Keyword arguments:
-        movie: if True, runs make_movie (default False)
-        ablat: timepoint at which ablation takes place. If None (default)
-        no ablation is performed
+        ------------------
+        
+        movie: bool, optional
+        If True, runs make_movie (default False)
+
+        ablat: float, optional
+        Timepoint at which ablation takes place. If None (default)
+        no ablation is performed.
 
         '''
 
         dt = self.KD.params['dt']
         kappa_c = self.KD.params['kappa_c']
-
 
         for t in self.timelapse[1:]:
             # Ablation test
@@ -194,13 +224,10 @@ class Metaphase(object):
             # Anaphase transition ?
             if self.anaphase_test(t):
                 self.toa_test(t)
-
             self._one_step()
             
             if movie and t/dt % 15 == 0: #One picture every 15 time point
                 self._make_movie(t, (50, 100,  3))
-
-
 
         self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
@@ -209,9 +236,6 @@ class Metaphase(object):
         k_dist = eval_simul.metaph_kineto_dist(self.KD)
         s = "Mean Kt - Kt distance: %.3f m" % k_dist[0]
         self.report.append(s)
-        #self.evaluate()
-        #         for l in self.report:
-        #             print l
 
     def toa_test(self, t):
         

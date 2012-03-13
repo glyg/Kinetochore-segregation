@@ -1,17 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# cython: profile=True
-# filename: calc_pi.pyx
 
 
 ### From Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
 ### doi: 10.1529/biophysj.105.078691
-
-### Major change since previous version (0.8): analytical solution at anaphase
-### Merotelic attachment.
-### Degrees of freedom: Position of iner plate + positions of each attachmnt site
-### Major change (june 9 2009): Anaphase doesn't receive any special treatment, 
-### we only assume kappa_c = 0. Remove all the anaphase terms in the code
 
 """
 This module defines all the objects considered in the simulation
