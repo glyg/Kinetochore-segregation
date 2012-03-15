@@ -1,7 +1,6 @@
 
-
 ABOUT:
-------------
+~~~~~~~
 This python module provides the simulation of mitotic spindle elements (for now, the
 kinetochore and the spindle pole bodies), during cell division in
 fission yeast.
@@ -17,12 +16,12 @@ accurately describes fission yeast chromosome segregation* J. Cell Biol 2012 ``d
 This article should be used for any citation of this work.
 
 LICENCE:
---------
+~~~~~~~~
 This code is provided under the GPL compatible CeCILL licence (see
 LICENCE.txt for full details).
 
 DEPENDENCIES:
--------------
+~~~~~~~~~~~~~
 Package manager versions of the python libraries should work.
  
  * Python >= 2.5
@@ -31,7 +30,7 @@ Package manager versions of the python libraries should work.
  * Qt4 and PyQt4
 
 INSTALLATION:
--------------
+~~~~~~~~~~~~
 You should first clone the github version of this code, then
 use the setup script, whether via:
 
@@ -45,13 +44,13 @@ for a system install.
 You will need a C compiler for the cython part.
 
 USAGE:
-------
+~~~~~
  
- >>> import kt_simul.simul_spindle as sim
- >>> metaph = sim.Metaphase()
- >>> metaph.simul()
- >>> metaph.show_one()
- >>> help(metaph)
+>>> import kt_simul.simul_spindle as sim
+>>> metaph = sim.Metaphase()
+>>> metaph.simul()
+>>> metaph.show_one()
+>>> help(metaph)
 
 Should provide a first view of the simulation.
 Using the GUI:
