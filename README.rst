@@ -6,8 +6,9 @@ kinetochore and the spindle pole bodies), during cell division in
 fission yeast.
 
 If you're interested in this code, please contact :
-* Sylvie Tournier (sylvie.tournier-gachet - at - univ-tlse3.fr)
-* Guillaume Gay (gllm.gay - at - gmail.com) for all aspects related to the code
+
+ * Sylvie Tournier (sylvie.tournier-gachet - at - univ-tlse3.fr)
+ * Guillaume Gay (gllm.gay - at - gmail.com) for all aspects related to the code
 
 The underlying model is fully described in:
 **G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet** *A stochastic model of kinetochore–microtubule attachment
