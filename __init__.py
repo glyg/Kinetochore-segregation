@@ -13,8 +13,8 @@ modules provided:
 __all__ = ["simul_spindle", "explore_params"]
 
 
-import simul_spindle 
-import eval_simul
+import core.simul_spindle 
+import analysis.eval_simul
 #import gui
 
 
