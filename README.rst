@@ -13,7 +13,7 @@ If you're interested in this work, please contact :
 
 The underlying model is fully described in:
 
-**G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet** *A stochastic model of kinetochore–microtubule attachment
+G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet. *A stochastic model of kinetochore–microtubule attachment
 accurately describes fission yeast chromosome segregation* J. Cell Biol 2012 ``doi: 10.1083/jcb.201107124``
 
 This article should be used for any citation of this work.
