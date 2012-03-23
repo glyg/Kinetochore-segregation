@@ -4,10 +4,10 @@
 # Handler for the parameters xml files -- to allow phase space exploration
 
 import sys, os
+import numpy as np
 
 from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import parse, tostring
-from numpy import loadtxt, load
 
 #Those strings should be respected in the xml file
 SPRING_UNIT=u'pN/µm' 
@@ -34,8 +34,6 @@ def indent(elem, level=0):
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = i
-
-
 
 class ParamTree(object):
 
@@ -201,9 +199,9 @@ class ResultTree(ParamTree):
             raise ValueError, "Corresponding data file not specified"
 
         if self.datafname.endswith('.npy'):
-            self.data = load(self.datafname)
+            self.data = np.load(self.datafname)
         else:
-            self.data = loadtxt(self.datafname, delimiter=' ',
+            self.data = np.loadtxt(self.datafname, delimiter=' ',
                                 comments = '#')        
     
     def get_spb_trajs(self):
@@ -256,7 +254,7 @@ class ResultTree(ParamTree):
                 if index is None or traj.get("index") == str(index) :
                     col = int(traj.get("column"))
                     print col
-                    return loadtxt(f, delimiter = ' ', usecols= (col, )) 
+                    return np.loadtxt(f, delimiter = ' ', usecols= (col, )) 
         
         print "trajectory not Found !"
         

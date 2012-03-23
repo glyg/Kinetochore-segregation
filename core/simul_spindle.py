@@ -1,16 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""
+This module provides the core simulation functionalities.
 
-### Adapted from Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
-### doi: 10.1529/biophysj.105.078691
-### More details in Gay et al. JCB 2012
-import numpy as np
+See Gay et al. J. Cell Biol., 2012 http://dx.doi.org/10.1083/jcb.201107124
+The original framework was adapted from:
+Civelekoglu-Scholey et al. Biophys. J. 90(11), 2006
+http://dx.doi.org/10.1529/biophysj.105.078691
+
+"""
 
 import time
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
 from scipy import linalg
 from numpy.random import normal
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -18,29 +21,26 @@ from Image import fromarray as image_fromarray
 
 import pyximport
 pyximport.install()
-
 ## local imports
 from .spindle_dynamics import KinetoDynamics
 from .xml_handler import ParamTree, indent, ResultTree
-import ..analysis.eval_simul as eval_simul
+from ..analysis.eval_simul import evaluations # as eval_simul
 
-__all__ = ["Metaphase", "reduce_params", "paramfile", "measurefile", "get_fromfile"]
 
-try:
-    paramfile = os.path.join(os.path.dirname(__file__),
-                             'default', 'params.xml')
-    measurefile = os.path.join(os.path.dirname(__file__),
-                             'default', 'measures.xml')
-except NameError:
-    paramfile = 'default/params.xml'
-    measurefile = 'default/measures.xml'
-    
-measuretree = ParamTree(measurefile, adimentionalized = False)
-MEASURES = measuretree.absolute_dic
+__all__ = ["Metaphase", "reduce_params", "paramfile",
+           "measurefile", "get_fromfile"]
+
+CURRENT_DIR = os.path.dirname(__file__)
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+PARAMFILE = os.path.join(ROOT_DIR, 'default', 'params.xml')
+MEASUREFILE = os.path.join(ROOT_DIR, 'default', 'measures.xml')
+MEASURETREE = ParamTree(MEASUREFILE, adimentionalized = False)
+MEASURES = MEASURETREE.absolute_dic
 
 
 class Metaphase(object):
-    """An instance of the Metaphase class is a wrapper around a whole simulation.
+    """An instance of the Metaphase class is a wrapper around
+    the whole simulation.
 
     Typical usage :
     ---------------
@@ -52,8 +52,8 @@ class Metaphase(object):
     >>> m.write_results('examples/docstring_results.xml',
                         'examples/docstring_data.npy')
 
-    From already ran simulations:
-    -----------------------------
+    From an already runned simulation:
+    ----------------------------------
     
     >>> from kt_simul.simul_spindle import Metaphase
     >>> m1 = get_fromfile('examples/docstring_results.xml')
@@ -69,7 +69,7 @@ class Metaphase(object):
     show_one_article() : another display style
     evaluate() : calculates the characteristics of the simulation
     write_results() : saves the trajectories, evaluations and parameters
-    write_asoctave() : save the trajectories with a different txt organisation
+    write_asoctave() : save the trajectories with a different data layout
     get_ch(n) : returns chromosome n object
     get_2Dtraj_list : returns 2D trajectories of the spindle elements
     
@@ -92,7 +92,7 @@ class Metaphase(object):
 
 
     def __init__(self,  paramtree=None, measuretree=None,
-                 paramfile=paramfile, measurefile=measurefile,
+                 paramfile=PARAMFILE, measurefile=MEASUREFILE,
                  plug='random', reduce_p=True):
 
         """Metaphase instanciation method
@@ -170,6 +170,7 @@ class Metaphase(object):
         self.timelapse = np.arange(0, duration + dt, dt)
         self.report = []
         self.delay = -1
+        self.observations = {}
 
     def __str__(self):
         lines = []
@@ -186,23 +187,15 @@ class Metaphase(object):
                 lines.append(line)
         except AttributeError:
             pass
-        try:
-            lines.append('')
-            lines.append('Observations:')
+        lines.append('')
+        lines.append('Observations:')
+        if len(self.observations.keys()) > 0:
             for line in str(self.observations).split(','):
                 lines.append(line)
-        except AttributeError:
+        else:
             lines.append('Not yet evaluated')
-            pass
         return '\n'.join(lines)
     
-    def _one_step(self):
-        if not self.KD.anaphase:
-            self.KD.plug_unplug()
-        A = self.KD.calcA()
-        b = - self.KD.calcb()
-        speeds = linalg.solve(A,b)
-        self.KD.position_update(speeds)
 
     def simul(self, movie = False, ablat = None): 
         """ The simulation main loop. 
@@ -212,7 +205,8 @@ class Metaphase(object):
         
         movie: bool, optional
             If True, runs _make_movie (default False) during the simulation.
-            TODO: implement a public make_movie method that can be runned after the simulation 
+            TODO: implement a public make_movie method that can be runned after
+            the simulation 
         ablat: float, optional
             Timepoint at which ablation takes place. If None (default)
             no ablation is performed.
@@ -229,16 +223,24 @@ class Metaphase(object):
             if self._anaphase_test(t):
                 self._toa_test(t)
             self._one_step()
-            
             if movie and t/dt % 15 == 0: #One picture every 15 time point
                 self._make_movie(t, (50, 100,  3))
-
         self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
-        s = "delay = %2d seconds" % self.delay
-        self.report.append(s)
+        delay_str = "delay = %2d seconds" % self.delay
+        self.report.append(delay_str)
+
+    def _one_step(self):
+        """elementary step"""
+        if not self.KD.anaphase:
+            self.KD.plug_unplug()
+        A = self.KD.calcA()
+        b = - self.KD.calcb()
+        speeds = linalg.solve(A, b)
+        self.KD.position_update(speeds)
 
     def _toa_test(self, t):
+        """measures kinetochores time of arrival at the pole """
         for n, ch in self.KD.chromosomes.items():    
             if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
                 ch.right_toa = t
@@ -252,6 +254,10 @@ class Metaphase(object):
                 self.report.append(s)
 
     def _anaphase_test(self, t):
+        """returns True if anaphase has been executed.
+        At anaphase onset, set the cohesin spring constent to 0 and
+        self.KD.anaphase to True.
+        """
         t_A = int(self.KD.params['t_A'])
         if self.KD.anaphase:
             return True
@@ -261,10 +267,10 @@ class Metaphase(object):
                 #Then we just get rid of cohesin
                 self.KD.params['kappa_c'] = 0.
                 self.KD.B_mat = self.KD.write_B()
-                self.nb_mero = self._mero_checkpoint()
-                if self.nb_mero:
+                nb_mero = self._mero_checkpoint()
+                if nb_mero:
                     s = ("There were %d merotelic MT at anaphase onset"
-                         %self.nb_mero)
+                         % nb_mero)
                     self.report.append(s)
                 self.KD.anaphase = True
                 self.KD.test_anaphase_switch()
@@ -272,6 +278,15 @@ class Metaphase(object):
         return False
 
     def _ablation(self, pos = None):
+        """Simulate a laser ablation: detaches all the kinetochores
+        and sets the midzone stall force Fmz to 0
+
+        Parameter:
+        ----------
+            pos: float or None, optional
+                position of the laser beam
+        
+        """
         if pos == None: pos = self.KD.spbR.pos
         if not self.KD.spbL.pos <= pos <= self.KD.spbR.pos:
             print 'Missed shot, same player play again!'
@@ -320,7 +335,7 @@ class Metaphase(object):
         """
         sac = self.KD.params['sac']
         if sac == 0:
-             return True
+            return True
         
         for ch in self.KD.chromosomes.values() :
             if not np.all(ch.pluged()) :
@@ -359,17 +374,10 @@ class Metaphase(object):
 
         """
         if len(self.KD.spbR.traj) < 2:
-            print "No simulation was ran ... exiting"
+            print "No simulation was runned ... exiting"
             return 0
-        
-        observations = {'anaphase_rate' : eval_simul.anaphase_rate(self.KD),
-                        'metaph_rate' : eval_simul.metaph_rate(self.KD),
-                        'mean_metaph_k_dist': eval_simul.metaph_kineto_dist(self.KD),
-                        'pitch' : eval_simul.auto_corel(self.KD, smooth = 5.),
-                        'poleward_speed' : eval_simul.poleward_speed(self.KD),
-                        'kt_rms_speed' : eval_simul.kt_rms_speed(self.KD),
-                        'times_of_arrival' : eval_simul.time_of_arrival(self.KD),
-                        'pluged_stats' : eval_simul.pluged_stats(self.KD)}
+        for name, function in evaluations.items():
+            self.observations[name] = function(self.KD)
 
 
     def show_trajs(self, axes = None): 
@@ -380,7 +388,6 @@ class Metaphase(object):
         if axes == None:
             fig = plt.figure()
             axes = fig.gca()
-
         spbRtraj = np.array(self.KD.spbR.traj)
         spbLtraj = np.array(self.KD.spbL.traj)
         try:
@@ -396,18 +403,11 @@ class Metaphase(object):
             right_traj = np.array(ch.righttraj)
             left_traj = np.array(ch.lefttraj)
             fmt = fmt_list[np.mod(n, 3)]
-            line1 = axes.plot(self.timelapse,right_traj, fmt, alpha=0.5)
-            line2 = axes.plot(self.timelapse,left_traj, fmt, alpha=0.5)
+            line1 = axes.plot(self.timelapse, right_traj, fmt, alpha=0.5)
+            line2 = axes.plot(self.timelapse, left_traj, fmt, alpha=0.5)
             if n == 0:
                 line1[0].set_alpha(1.)
                 line2[0].set_alpha(1.)
-            # if n == 0:
-            #     axes.plot(self.timelapse[::int(15/dt)], right_traj[::int(15/dt)],
-            #               mec, mfc = 'None')
-            #     axes.plot(self.timelapse[::int(15/dt)], left_traj[::int(15/dt)],
-            #               'go', mfc = 'None')
-                
-        #axes.axis([0, self.num_steps * dt, -2.2, 2.2 ])
         axes.set_xlabel('Time (seconds)', fontsize = 'small')
         axes.set_ylabel(u'Distance from center (um)', fontsize = 'small')
         plt.show()
@@ -458,9 +458,9 @@ class Metaphase(object):
         np.savetxt(dataout, out_array, delimiter=' ')
         
     def write_results(self, xmlfname = "results.xml", datafname = "datas.npy"):
-        """ Saves the results of the simulation in two files with the parameters,
-        the measures and observations in one file and the trajectories in
-        an other file
+        """ Saves the results of the simulation in two files
+        with the parameters, measures and observations in one file
+        and the trajectories in the other.
 
         Keyword arguments:
         ------------------
@@ -479,12 +479,14 @@ class Metaphase(object):
         each trajectory is an attribute of the corresponding element
         in the xml file.
 
+        TODO : This function should be chopped off some how, it's messy
+
         """
         if not hasattr(self, 'observations'):
             self.evaluate()
 
         chromosomes = self.KD.chromosomes.values()
-        wavelist=[]
+        wavelist = []
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
         today = time.asctime()
@@ -519,7 +521,7 @@ class Metaphase(object):
 
             rch = SubElement(experiment, "trajectory", name="rightkineto",
                              index = str(n), column=str(col_num), units='mu m')
-            text = "chromosome %i right kinetochore trajectory" %n
+            text = "chromosome %i right kinetochore trajectory" % n
             SubElement(rch, "description").text = text
             wavelist.append(np.array(ch.righttraj))
             col_num += 1
@@ -536,9 +538,9 @@ class Metaphase(object):
             
             lch = SubElement(experiment, "trajectory", index=str(n), 
                              column=str(col_num), units='mu m')
-            text = "chromosome %s left kinetochore trajectory" %n
+            text = "chromosome %s left kinetochore trajectory" % n
             SubElement(lch, "description").text = text
-            wavelist.append(array(ch.lefttraj))
+            wavelist.append(np.array(ch.lefttraj))
             col_num += 1
             SubElement(experiment, "numberpluged", name="leftkineto",
                        index=str(n), column=str(col_num))
@@ -593,7 +595,7 @@ class Metaphase(object):
         else:
             dataout.write("# desciptor: "+xmlfname+"\n")
             np.savetxt(dataout, data, delimiter=' ')
-        print "Simulation saved to file %s " %datafname
+        print "Simulation saved to file %s " % datafname
 
     def _make_movie(self, t, imsize):
         """somehow deprecated"""
@@ -624,7 +626,7 @@ class Metaphase(object):
             imarray[ychR, xchR, 1] += 42
             imarray[ychL, xchL, 1] += 42
 
-        if 80< t <100:
+        if 80 < t < 100:
             self.testim =  imarray
             print xchR, ychR, t
         im = image_fromarray(imarray, 'RGB')
@@ -632,13 +634,14 @@ class Metaphase(object):
         del im
 
     def show_one(self, n = 0, fig = None):
-        """ Shows one chromosome trajectory and plug state """
+        """ Shows chromosome n trajectory and plug state """
         dt = self.KD.params['dt']
+        ch = self.KD.chromosomes[n]
+
         if fig == None:
             fig = plt.figure()
-
-        ch = self.KD.chromosomes[n]
         fig.clear()
+        
         fig.add_subplot(312)
         ax = fig.gca()
         ax.plot(self.timelapse, ch.righttraj, 'b', lw=1.5)
@@ -654,17 +657,17 @@ class Metaphase(object):
         
         fig.add_subplot(311)
         ax = fig.gca()   
-        ax.plot(self.timelapse, mero_hist[:,0], 'r',
+        ax.plot(self.timelapse, mero_hist[:, 0], 'r',
                 label='number of merotellic MTs')
-        ax.plot(self.timelapse, pluged_hist[:,0], 'g',
+        ax.plot(self.timelapse, pluged_hist[:, 0], 'g',
                 label='number of pluged MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
 
         fig.add_subplot(313)
         ax = fig.gca()
-        ax.plot(self.timelapse, mero_hist[:,1], 'r',
+        ax.plot(self.timelapse, mero_hist[:, 1], 'r',
                 label='number of merotelic MTs')
-        ax.plot(self.timelapse, pluged_hist[:,1], 'g',
+        ax.plot(self.timelapse, pluged_hist[:, 1], 'g',
                 label='number of pluged MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
         plt.show()
@@ -697,31 +700,31 @@ class Metaphase(object):
                          'purple', lw=0.5, alpha=0.5)
 
         ax_traj.axis((0, self.num_steps*dt, -2, 2))
-        ax_traj.yticks(range(-2,4,2))
-        ax_traj.xticks(range(0, 850 , 240), ['0', '4', '8', '12'])
-        ax_traj.ylabel(u'Position (um)', fontsize='small')
-        ax_traj.xlabel('Time (min)', fontsize='small')
+        ax_traj.set_yticks(range(-2, 4, 2))
+        ax_traj.set_xticks(range(0, 850, 240), ['0', '4', '8', '12'])
+        ax_traj.set_ylabel(u'Position (um)', fontsize='small')
+        ax_traj.set_xlabel('Time (min)', fontsize='small')
         
         mero_hist = np.array(ch.mero_history)
         pluged_hist = np.array(ch.pluged_history)
         ax_plug = fig.add_subplot(311)
-        ax_plug.plot(self.timelapse, mero_hist[:,0], 'r-',
+        ax_plug.plot(self.timelapse, mero_hist[:, 0], 'r-',
                      label= 'Number of merotellic kMTs')
-        ax_plug.plot(self.timelapse, pluged_hist[:,0], 'g-',
+        ax_plug.plot(self.timelapse, pluged_hist[:, 0], 'g-',
                      label= 'Number of synthelic kMTs')
         ax_plug.axis((0, self.num_steps*dt, -0.5, 4.5))
-        ax_plug.xticks(range(0, 850 , 240), (''))
-        ax_plug.ylabel('kMTs state', fontsize = 'small')
-        ax_plug.yticks(np.arange(0,5,2))
+        ax_plug.set_xticks(range(0, 850 , 240), (''))
+        ax_plug.set_ylabel('kMTs state', fontsize = 'small')
+        ax_plug.set_yticks(np.arange(0, 5, 2))
 
         ax_plug2 = fig.add_subplot(313)
-        ax_plug2.plot(self.timelapse, mero_hist[:,1], 'r-',
+        ax_plug2.plot(self.timelapse, mero_hist[:, 1], 'r-',
                       label= 'number of merotellic MTs')
-        ax_plug2.plot(self.timelapse, pluged_hist[:,1], 'g-',
+        ax_plug2.plot(self.timelapse, pluged_hist[:, 1], 'g-',
                       label= 'number of synthelic MTs')
         ax_plug2.axis((0, self.num_steps*dt, -0.5, 4.5))
-        ax_plug2.xticks(range(0, 850 , 240), (''))
-        ax_plug2.ylabel('kMTs state', fontsize = 'small')
+        ax_plug2.set_xticks(range(0, 850 , 240), (''))
+        ax_plug2.set_ylabel('kMTs state', fontsize = 'small')
         plt.show()
         return fig
         
@@ -767,25 +770,24 @@ class Metaphase(object):
 
         n_traj = 2 + 2 * N if cen is None else 4
         trajs_shape = (n_traj, 2, self.num_steps)
-        trajectories = np.zeros(t_shape)
+        trajectories = np.zeros(trajs_shape)
 
-        trajectories[0, 0,:] = self.KD.spbR.traj
-        trajectories[1, 0,:] = self.KD.spbL.traj
+        trajectories[0, 0, :] = self.KD.spbR.traj
+        trajectories[1, 0, :] = self.KD.spbL.traj
 
         if cen is not None:
             ch = self.get_ch(cen)
-            trajectories[2, 0,:] = ch.righttraj
-            trajectories[3, 0,:] = ch.lefttraj
-            trajectories[2:,...] += normal(0, scale=cen_sigma,
-                                           size=(2, 2, traj_length))
+            trajectories[2, 0, :] = ch.righttraj
+            trajectories[3, 0, :] = ch.lefttraj
+            trajectories[2:, ...] += normal(0, scale=cen_sigma,
+                                           size=(2, 2, self.num_steps))
         else:
             for n, ch in enumerate(self.KD.chromosomes):
-                trajectories[2 + 2 * n, 0,:] = ch.righttraj
-                trajectories[2 + 2 * n, 1,:] += (1 - n) * perp_distance
-                trajectories[2 + 2 * n + 1, 0,:] = ch.lefttraj
-                trajectories[2 + 2 * n + 1, 1,:] += (1 - n) * perp_distance
-
-        # This block needs to be vectorized GG march 2012
+                trajectories[2 + 2 * n, 0, :] = ch.righttraj
+                trajectories[2 + 2 * n, 1, :] += (1 - n) * perp_distance
+                trajectories[2 + 2 * n + 1, 0, :] = ch.lefttraj
+                trajectories[2 + 2 * n + 1, 1, :] += (1 - n) * perp_distance
+        # TODO: block needs to be vectorized GG march 2012
         xcs = []
         ycs = []
         rots = []
@@ -798,7 +800,7 @@ class Metaphase(object):
             ycs.append(yd)
             rots.append([[np.cos(thetad), np.sin(thetad)],
                          [np.cos(thetad), - np.sin(thetad)]])
-        # This block needs to be vectorized GG march 2012        
+        # TODO: block needs to be vectorized GG march 2012        
         for traj in trajectories:
             traj += np.vstack((np.array(ycs), np.array(xcs)))
             n = 0
@@ -807,13 +809,10 @@ class Metaphase(object):
                 traj[n] = new_pos
                 n += 1
         # TODO: implement a general vectorized Brownian motion
-
         return trajectories
 
-    def get_3Dtraj_list(self, ang_noise=5e-2,
-                        pos_noise=3e-2, cen=None
-                        radial_distance=0.3):
-        
+    def get_3Dtraj_list(self, ang_noise=5e-2, pos_noise=3e-2,
+                        radial_distance=0.3, cen=None, cen_sigma=0.6):
         """returns a list of 3D trajectories, adding a random mouvement [1]_
         to the whole spindle. 
 
@@ -846,6 +845,7 @@ class Metaphase(object):
         """
 
         dt = self.KD.params['dt']
+        N = self.KD.params['N']
         trajectories = []
         ang_noise *= dt # rad.s^-1
         pos_noise *=  dt # um.s^-1
@@ -853,70 +853,73 @@ class Metaphase(object):
         
         n_traj = 2 + 2 * N if cen is None else 4
         trajs_shape = (n_traj, 3, self.num_steps)
-        trajectories = np.zeros(t_shape)
+        trajectories = np.zeros(trajs_shape)
         
 
-        trajectories[0, 0,:] = self.KD.spbR.traj
-        trajectories[1, 0,:] = self.KD.spbL.traj
+        trajectories[0, 0, :] = self.KD.spbR.traj
+        trajectories[1, 0, :] = self.KD.spbL.traj
 
         if cen is not None:
             ch = self.get_ch(cen)
-            trajectories[2, 0,:] = ch.righttraj
-            trajectories[3, 0,:] = ch.lefttraj
-            trajectories[2:,...] += normal(0, scale=cen_sigma,
-                                           size=(2, 2, traj_length))
+            trajectories[2, 0, :] = ch.righttraj
+            trajectories[3, 0, :] = ch.lefttraj
+            trajectories[2:, ...] += normal(0, scale=cen_sigma,
+                                           size=(2, 2, self.num_steps))
         else:
             for n, ch in enumerate(self.KD.chromsomes):
-                trajectories[2 + 2 * n, 0,:] = ch.righttraj
+                trajectories[2 + 2 * n, 0, :] = ch.righttraj
                 phi = (n - 1) * 2 * np.pi / N
                 radial_y = radial_distance * np.cos(phi)
-                trajectories[2 + 2 * n, 1,:] += radial_y
-                trajectories[2 + 2 * n + 1, 1,:] += radial_y
+                trajectories[2 + 2 * n, 1, :] += radial_y
+                trajectories[2 + 2 * n + 1, 1, :] += radial_y
                 radial_z = radial_distance * np.sin(phi)                
-                trajectories[2 + 2 * n + 1, 2,:] += radial_z
+                trajectories[2 + 2 * n + 1, 2, :] += radial_z
         
-        xcs, ycs, zcs = np.zeros((3, xspbR.size))
+        xcs, ycs, zcs = np.zeros((3, self.num_steps))
 
         #Fix the x axis, rotate around the two others
-        xy_rots = np.zeros((3,3,xspbR.size))
-        zx_rots = np.zeros((3,3,xspbR.size))
+        xy_rots = np.zeros((3, 3, self.num_steps))
+        zx_rots = np.zeros((3, 3, self.num_steps))
 
-        xd, yd, zd, thetad, phid = (0.,)*5
+        thetad, phid = 0., 0.
         for n in range():
             thetad += normal(0, scale = ang_noise)
             phid += normal(0, scale = ang_noise)
             xcs[n] += normal(0, scale = pos_noise)
             ycs[n] += normal(0, scale = pos_noise)
             zcs[n] += normal(0, scale = pos_noise)
-            xy_rots[:,:,n] = [[cos(thetad), - np.sin(thetad), 0], 
-                              [np.sin(thetad), np.cos(thetad), 0],
-                              [0, 0, 1]]
-
-            zx_rots[:,:,n] = [[cos(phid), 0, - np.sin(phid)], 
-                              [0, 1, 0],
-                              [np.sin(phid), 0, np.cos(phid)]]
-            
-        
+            xy_rots[:, :, n] = [[np.cos(thetad), - np.sin(thetad), 0], 
+                                [np.sin(thetad), np.cos(thetad), 0],
+                                [0, 0, 1]]
+            zx_rots[:, :, n] = [[np.cos(phid), 0, - np.sin(phid)], 
+                                [0, 1, 0],
+                                [np.sin(phid), 0, np.cos(phid)]]
         for traj in trajectories:
             traj += np.vstack((xcs, ycs, zcs))
-
             for n, pos in enumerate(traj.T):
-                tmp_pos = np.dot(pos, xy_rots[:,:,n])
-                new_pos = np.dot(tmp_pos, zx_rots[:,:,n])
-                traj[:,n] = new_pos
-
+                tmp_pos = np.dot(pos, xy_rots[:, :, n])
+                new_pos = np.dot(tmp_pos, zx_rots[:, :, n])
+                traj[:, n] = new_pos
         return trajectories
 
-def reduce_params(paramtree, measuretree):
 
-    ''' This functions changes the paramters so that the average behaviour
-    complies with the measures.
+def reduce_params(paramtree, measuretree):
+    """ This functions changes the paramters so that t
+    he dynamical characteristics complies with the measures [1]_.
+    
 
     input:
-    paramtree : ParamTree instance
-    measures : a dictionary of measures
+    paramtree : xml_handler.ParamTree instance
+    measuretree : xml_handler.MeasureTree
+
     paramtree is modified in place
-    '''
+
+
+    .. [1] G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.
+           J. Cell Biol 2012 http://dx.doi.org/10.1083/jcb.201107124
+
+    """
+
     params = paramtree.absolute_dic
     measures = measuretree.absolute_dic
     try:
@@ -930,8 +933,8 @@ def reduce_params(paramtree, measuretree):
         tau_c = measures['tau_c'] 
         obs_d0 = measures['obs_d0']
     except KeyError:
-        print "The measures dictionary should contain at least the following "
-        print "keys "
+        print ("The measures dictionary should contain"
+               "at least the following keys: ")
         print MEASURES.keys()
         return 0
 
@@ -980,13 +983,14 @@ def reduce_params(paramtree, measuretree):
     for key, val in params.items():
         paramtree.change_dic(key, val, write = False, verbose = False)
 
-
 def get_fromfile(xmlfname = "results.xml"):
+    """Creates a simul_spindle.Metaphase from a XML file.
 
-    '''re-creates the Kinetochores Dynamics datas structure
-    i.e a dictionnary of "waves" for each element
-    returns a Metaphase instance
-    '''
+    Returns:
+    --------
+        metaphase: a Metaphase instance
+
+    """
     restree = ResultTree(xmlfname)
     param_root = restree.root.find('parameters')
     paramtree = ParamTree(root = param_root)
@@ -1001,28 +1005,27 @@ def get_fromfile(xmlfname = "results.xml"):
     mero_matrix = restree.get_all_mero()
     state_hist_matrix = restree.get_all_plug_state()
     KD = KinetoDynamics(params)
-    KD.spbR.traj = traj_matrix[:,0]
-    KD.spbL.traj = traj_matrix[:,1]
-    N = int(params['N'])
+    KD.spbR.traj = traj_matrix[:, 0]
+    KD.spbL.traj = traj_matrix[:, 1]
     Mk = int(params['Mk'])
     col_num = 2
     state_num = 0
-    for n in range(N):
-        KD.chromosomes[n].righttraj = traj_matrix[:, col_num]
+    for n, ch in enumerate(KD.chromosomes):
+        ch[n].righttraj = traj_matrix[:, col_num]
         col_num += 1
-        KD.chromosomes[n].lefttraj = traj_matrix[:, col_num]
+        ch[n].lefttraj = traj_matrix[:, col_num]
         col_num += 1
-        KD.chromosomes[n].pluged_history = (pluged_matrix[:, n*2: n*2 + 2])
-        KD.chromosomes[n].mero_history = (mero_matrix[:, n*2 : n*2 + 2])
+        ch[n].pluged_history = (pluged_matrix[:, n*2: n*2 + 2])
+        ch[n].mero_history = (mero_matrix[:, n*2 : n*2 + 2])
         for m in range(Mk):
-            KD.chromosomes[n].rplugs[m].traj = traj_matrix[:, col_num]
+            ch[n].rplugs[m].traj = traj_matrix[:, col_num]
             col_num += 1
-            KD.chromosomes[n].rplugs[m].state_hist = state_hist_matrix[:, state_num]
+            ch[n].rplugs[m].state_hist = state_hist_matrix[:, state_num]
             state_num += 1
         for m in range(Mk):
-            KD.chromosomes[n].lplugs[m].traj = traj_matrix[:, col_num]
+            ch[n].lplugs[m].traj = traj_matrix[:, col_num]
             col_num += 1
-            KD.chromosomes[n].lplugs[m].state_hist = state_hist_matrix[:, state_num]
+            ch[n].lplugs[m].state_hist = state_hist_matrix[:, state_num]
             state_num += 1
     metaphase.KD = KD
 

@@ -1,22 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-
-### From Civelekoglu-Scholey et al. Biophys.J 90(11) 2006
-### doi: 10.1529/biophysj.105.078691
-
 """
-This module defines all the objects considered in the simulation
+This module defines all the objects considered in the simulation,
+It uses cython used for the computer intensive bits
 
-- Chromosome, Spb, Spindle, PlugSite are the spindle components
-- KinetoDynamics wraps all the simulation internals: forces, vectors,
-and the system of equations.
+* Chromosome, Spb, Spindle, PlugSite are the spindle components
+* KinetoDynamics wraps all the simulation internals: forces, vectors,
+  and the system of equations.
 """
-
 
 import random
-from numpy import array, zeros, dot, sum, sin, exp
+import numpy as np
 from scipy import sparse
+
 cimport numpy as np
 cimport cython
 
@@ -24,73 +20,83 @@ __all__ = ["KinetoDynamics", "Spb", "Chromosome", "PlugSite", "Spindle"]
 
 
 class KinetoDynamics(object) :
-    """ This class wraps all the simulation internals. """
+    """ This class wraps all the simulation internals.
+
+    Public methods:
+    ---------------
+
+    Public attributes:
+    ------------------
 
     
+    """
+    
     def __init__(self, parameters, plug = None):
-        '''parameters : a dictionnary of parameters
-        '''
+        """KinetoDynamics instenciation method
+
+        Paramters:
+        ----------
+            parameters: dict
+                A dictionnary of parameters as obtained from a
+                xml_handler.ParamTree instance
+            plug: string or None
+                Defines globally the initial attachment states.
+                This argument can have the following values: 
+                *'null': all kinetochores are detached
+                *'amphitelic': all chromosmes are amphitelic
+                *'random': all attachement site can be bound to
+                    either pole or deteched with equal prob.
+                *'monotelic': right kinetochores are attached
+                    to the same pole, left ones are detached
+                *'syntelic' : all kinetochores are attached to the same pole
+        """
         cdef int N, Mk
-        
         self.params = parameters
         L0 = self.params['L0']
         N = int(self.params['N'])
         Mk = int(self.params['Mk'])
         d0 = self.params['d0']
-        k_a = self.params['k_a'] # 'free' attachement event frequency
-        k_d0 = self.params['k_d0'] # 'free' detachement event frequency
+        k_a = self.params['k_a']
+        k_d0 = self.params['k_d0']
 
         self.spbR = Spb(1, L0) #right spb
         self.spbL = Spb(-1, L0) #left one
         self.spindle = Spindle(self.spbR, self.spbL)
-        self.forces = []
-        chlist = []
-
-        #Chromosomes and kintochorian microtubules instentiation
         for n in range(N):
-            ch = Chromosome(n, self.spindle, L0, Mk, d0, plug = plug)
-            chlist.append([n,ch])
-
-        # Now we create dictionnaries: {... , n : nth chromosome, ...}
-        self.chromosomes = dict(chlist)
-        self._idx = self.calc_idx()
+            ch = Chromosome(n, self.spindle, L0, Mk, d0, plug=plug)
+            self.chromosomes[n] = ch
+        self._idx = self._calc_idx()
         self.B_mat = self.write_B()
         k_a = self.params['k_a']
-        self.Pat =  1 - exp( - k_a )
+        self.Pat =  1 - np.exp(-k_a)
         
-    def calc_idx(self):
-        '''
-        Returns the  index dictionnary
-        '''
+    def _calc_idx(self):
+        """Returns the  index dictionnary
+        """
         cdef int Mk, N
-
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
         idxs = {}
         for n in range(N):
-            
             idxs[(0,n)] =  2*n*(Mk+1) + 1
             idxs[(1,n)] = 2*n*(Mk+1) + 2 + Mk
-
             for m in range(Mk):
                 idxs[(0,n,m)] = 2*n*(Mk + 1) + 2 + m
                 idxs[(1,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
-                
         return idxs
-                
 
     def write_B(self):
-
+        """Returns the matrix containing the linear terms
+        of the equation set A\dot{X} + BX + C = 0
+        """
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
         kappa_c = self.params['kappa_c']
         kappa_k = self.params['kappa_k']
-
         dim = 1 + N * ( 1 + Mk ) * 2
-        B = zeros((dim, dim), dtype = float)
-        #B = sparse.lil_matrix((dim, dim), dtype = float)
-        B[0,0] = 0#self.bm_S()
+        B = np.zeros((dim, dim), dtype = float)
+        B[0,0] = 0
         for n in range(N) :
             B[self._idx[(0, n)],
               self._idx[(0, n)]] = -kappa_c - Mk*kappa_k
@@ -100,7 +106,6 @@ class KinetoDynamics(object) :
               self._idx[(0, n)]] = kappa_c
             B[self._idx[(0, n)],
               self._idx[(1, n)]] = kappa_c
-
             for m in range(Mk):
                 B[self._idx[(0, n, m)],
                   self._idx[(0, n, m)]] = - kappa_k
@@ -114,19 +119,15 @@ class KinetoDynamics(object) :
                   self._idx[(1, n, m)]] = kappa_k
                 B[self._idx[(1, n, m)],
                   self._idx[(1, n)]] = kappa_k
-        return B#.tocsr()
-
-
+        return B
     
     def get_state_vector(self):
-        '''
+        """
         return a vector of the positions of each components
-        '''
+        """
         N = int(self.params['N'])
         Mk = int(self.params['Mk'])
-
-        X = zeros(1 + 2*N * ( Mk + 1 ))
-
+        X = np.zeros(1 + 2*N * ( Mk + 1 ))
         X[0] = self.spbR.pos
         for n in range(N):
             ch = self.chromosomes[n]
@@ -135,7 +136,6 @@ class KinetoDynamics(object) :
             for m in range(Mk):
                 X[self._idx[(0, n, m)]] = ch.rplugs[m].pos
                 X[self._idx[(1, n, m)]] = ch.lplugs[m].pos
-
         return X
         
     #Wrighting the equations (see description.pdf for details)
@@ -143,45 +143,68 @@ class KinetoDynamics(object) :
     ### Spindle pole terms
 
     #@cython.profile(False)
-    def alpha(self, double pspos, double spos, int p): # int n, int m, int side):
-        '''returns 1 if well plugged
-        length dependance implementation:
-        alpha depends linearly on the spb-kt distance
+    def calc_ldep(self, double plugsite_pos, double pole_pos):
+        """Calculates the length dependency of the force applied
+        at the plugsite.
 
-        if ld_slope = 0 => No length dependance
-        '''
+        Parameters:
+        -----------
+        plugsite_pos: double
+            The position of the plugsite
+        pole_pose: double 
+            The position of the attached spindle pole
+
+        If the KD.param ld_slope is null, there is no length
+        dependence, and 1. is returned
+
+
+        Returns:
+        --------
+        ldep: double
+            The prefactor to the force term
+        """
         cdef double ld0, ld_slope
         ld_slope = self.params['ld_slope']
+        if ld_slope == 0:
+            return 1.
         ld0 = self.params['ld0']
         cdef double dist
-        dist = abs(spos - pspos)
+        dist = abs(pole_pos - plugsite_pos)
         cdef double ldep
         ldep = ld_slope * dist + ld0
+        # TODO: investigate: introduces a first order discontinuity
+        #     suspected to trigger artifacts when the plugsite
+        # is close to the pole
         if dist < 0.0001:
             ldep = dist  # No force when at pole
-
+        return ldep
+    
+    def alpha(self, ldep, int p):
+        """Returns 1 if well plugged
+        length dependance implementation:
+        alpha depends linearly on the spb-kt distance
+        """
+        
+        
         return ldep * p * (1 + p) / 2
 
     #@cython.profile(False)
-    def beta(self, double pspos, double spos, int p): #int n, int m, int side):
-        '''returns 1 if merotelic
+    def beta(self, double pspos, double spos, int p):
+        """returns 1 if merotelic
         length dependance implementation:
         beta depends linearly on the spb-kt distance
         
         if ld_slope = 0 => No length dependance
-        '''
+        """
         cdef double ld0, ld_slope
-
         ld_slope = self.params['ld_slope']
         ld0 = self.params['ld0']
         cdef double dist
         dist = abs(spos - pspos)
-
         cdef double ldep
         ldep = ld_slope * dist + ld0
         if dist < 0.0001:
             ldep = dist  # No force when at pole
-
         return  ldep * p * (p - 1) / 2
 
     def calcA(self):
@@ -198,10 +221,10 @@ class KinetoDynamics(object) :
         cdef int dims
         dims = 1 + 2*N * ( Mk + 1 ) 
         #cdef np.ndarray[np.float64_t, ndim =2] A 
-        A = zeros((dims, dims))
+        A = np.zeros((dims, dims))
         #A = sparse.lil_matrix((dims, dims))
         
-        cdef float sposR = self.spbR.pos
+        cdef float sposL = self.spbR.pos
         cdef float sposL = self.spbL.pos
         cdef float pspos
         cdef int p, pR, pL
@@ -218,7 +241,7 @@ class KinetoDynamics(object) :
 
             #outer plate
             for m in range(Mk):
-
+                
                 psposR = ch.rplugs[m].pos
                 pR = ch.rplugs[m].plug
                 alphaR = self.alpha(psposR, sposR, pR)
@@ -288,7 +311,7 @@ class KinetoDynamics(object) :
 
     #@cython.profile(False)
     def cm_n(self, int side) :
-        ''' kineto '''
+        """ kineto """
         cdef float d0 = self.params['d0']
         cdef float kappa_c = self.params['kappa_c']
         return (1 - 2*side) * kappa_c * d0
@@ -307,7 +330,7 @@ class KinetoDynamics(object) :
         cdef int Mk = int(self.params['Mk'])
         cdef int N = int(self.params['N'])
         
-        C = zeros((1 + N * ( 1 + Mk ) * 2))
+        C = np.zeros((1 + N * ( 1 + Mk ) * 2))
 
         C[0] = self.cm_S()
         cdef float sposR = self.spbR.pos
@@ -350,8 +373,8 @@ class KinetoDynamics(object) :
         # #         B[self._idx[(0,n)], self._idx[(1,n)]] = 0
         # #         B[self._idx[(1,n)], self._idx[(0,n)]] = 0
 
-        #product = dot(B.todense(), X)
-        product = dot(B,X)
+        #product = np.dot(B.todense(), X)
+        product = np.dot(B,X)
         pos_dep = product + C
         return pos_dep
 
@@ -370,21 +393,21 @@ class KinetoDynamics(object) :
 
     #@cython.profile(False)
     # def  Pat(self):#,  n, m, side):
-    #     '''Returns attachement probability for kineto n
-    #     '''
+    #     """Returns attachement probability for kineto n
+    #     """
 
     #     cdef double k_a = self.params['k_a']
     #     # cdef double dt = self.params['dt']
     #     #k_at = fa
-    #     return 1 - exp( - k_a ) # * dt <- unnecessary due to non-dimentionalization
+    #     return 1 - np.exp( - k_a ) # * dt <- unnecessary due to non-dimentionalization
 
 
     #@cython.profile(False)
     def Pdet(self, int n, double plugpos):
-        '''Calculates detachement frequency for kineto n
+        """Calculates detachement frequency for kineto n
         side = 0 : right
         side = 1 : left
-        '''
+        """
         
         cdef int Mk = int(self.params['Mk'])
         cdef double k_d0 = self.params['k_d0']
@@ -397,18 +420,18 @@ class KinetoDynamics(object) :
         ### Aurora ???
         cdef double k_dc
         if d_alpha != 0 :
-            k_dc = k_d0  *  d_alpha / dist #exp( - dist / d_alpha)
+            k_dc = k_d0  *  d_alpha / dist #np.exp( - dist / d_alpha)
             if k_dc > 1e4 : #* dt > 1e4:
                 return 1.
         else:
             k_dc = k_d0
-        return 1 - exp( - k_dc ) 
+        return 1 - np.exp(-k_dc) 
 
 
     def Pmero(self, int n, int side):
-        '''
+        """
         
-        '''
+        """
 
         cdef int Mk
         cdef double p
@@ -416,8 +439,8 @@ class KinetoDynamics(object) :
         cdef double orientation
         Mk = int(self.params['Mk'])
         ch = self.chromosomes[n]
-        p = float(ch.pluged()[side]) #        p = sum(ch.pluged(), dtype=float) #
-        m = float(ch.mero()[side]) #        m = sum(ch.mero, dtype=float)# 
+        p = float(ch.pluged()[side]) #        p = np.sum(ch.pluged(), dtype=float) #
+        m = float(ch.mero()[side]) #        m = np.sum(ch.mero, dtype=float)# 
         orientation = self.params['orientation']
 
         if orientation == 0:
@@ -433,8 +456,8 @@ class KinetoDynamics(object) :
         
         
     def plug_unplug(self):
-        '''Let"s play dices ...
-        '''
+        """Let's play dices ...
+        """
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
 
@@ -487,16 +510,16 @@ class KinetoDynamics(object) :
             # ch.mero = (right_mero, left_mero)
 
             #swap
-            if sum(ch.pluged()) < sum(ch.mero()):
+            if np.sum(ch.pluged()) < np.sum(ch.mero()):
                 ch.swap()
 
 
     ### So now, let's update the positions
 
     def position_update(self, speeds):
-        '''given the speeds obtained by solving Atot.x = btot
+        """given the speeds obtained by solving Atot.x = btot
         and caclulated switch events 
-        '''
+        """
         cdef int Mk = int(self.params['Mk'])
         cdef int N = int(self.params['N'])
         cdef double dt = self.params['dt']
@@ -560,8 +583,8 @@ class KinetoDynamics(object) :
 
 
     def cohesin_bound(self,n) :
-        ''' returns the spring force due to cohesin binding
-        between siter chromatids '''
+        """ returns the spring force due to cohesin binding
+        between siter chromatids """
         kappa_c = self.params['kappa_c']
         d0 = self.params['d0']
         ch = self.chromosomes[n]
@@ -592,13 +615,13 @@ class KinetoDynamics(object) :
         return kt.pos
 
 class Chromosome(object):
-    '''Chromosome Object '''
+    """Chromosome Object """
 
     def __init__(self, i, spindle, L0, Mk,  d0 = 0.5, doi = 0.01, plug = None):
 
-        ''' Degrees of freedom: Position of iner plate + positions of each attachmnt site
+        """ Degrees of freedom: Position of iner plate + positions of each attachmnt site
         d0 [µm] kinetochore - kinetochore rest length
-        '''
+        """
 
         self.index = i
         self.spindle = spindle 
@@ -674,12 +697,12 @@ class Chromosome(object):
         return (self.rightpos + self.leftpos)/2
 
     def cen_traj(self):
-        return (array(self.righttraj) + array(self.lefttraj))/2
+        return (np.array(self.righttraj) + np.array(self.lefttraj))/2
         
 
     def isatrightpole(self, double tol = 0.0) :
-        '''tol : tolerance distance
-        '''
+        """tol : tolerance distance
+        """
         if self.rightpos >= self.spindle.spbR.pos - tol:
             return True
         else :
@@ -705,9 +728,9 @@ class Chromosome(object):
 
 
     def swap(self):
-        '''
+        """
         change the sides of the kinetochores
-        '''
+        """
         self.leftpos, self.rightpos = self.rightpos, self.leftpos
         self.lefttraj, self.righttraj = self.righttraj, self.lefttraj
         self.leftspeed, self.rightspeed =  self.rightspeed, self.leftspeed
@@ -778,10 +801,10 @@ class Spb(object) :
     """
     
     def __init__(self, side, L0):
-        ''' side = 1 : left
+        """ side = 1 : left
         side = -1 : right
         L0 : spindle length
-        '''
+        """
         self.side = side
         self.pos = side * L0 / 2
         self.traj = [self.pos]
@@ -799,6 +822,6 @@ class Spindle(object) :
 
     def length_traj(self):
 
-        return array(self.spbR.traj) - array(self.spbL.traj)
+        return np.array(self.spbR.traj) - np.array(self.spbL.traj)
 
     
