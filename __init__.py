@@ -13,8 +13,6 @@ __all__ = ["simul_spindle", "explore_params"]
 
 
 import core.simul_spindle as simul_spindle
-import gui
-
 #import gui
 
 

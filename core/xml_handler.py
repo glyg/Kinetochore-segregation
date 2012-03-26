@@ -36,18 +36,15 @@ def indent(elem, level=0):
             elem.tail = i
 
 class ParamTree(object):
-
-    '''
-    This class defines the container for the simulation parameters.
+    """This class defines the container for the simulation parameters.
     It wraps an ElementTree instance whose elements contains the
     name, value (as a string), description and unit of each parameter and a
     dictionnary that is used during the simulation.
 
 
-    The 'value' attribute of the tree is not modified by adimentionalization,
+    The `value` attribute of the tree is not modified by adimentionalization,
     whereas the value in the dictionnary is changed.
-    '''
-
+    """
 
     def __init__(self, filename = None, root = None, adimentionalized = True):
 
@@ -57,7 +54,6 @@ class ParamTree(object):
             self.tree = parse(source)
             self.root = self.tree.getroot()
             source.close()
-
         elif root is not None:
             self.root = root
         else:
@@ -73,7 +69,6 @@ class ParamTree(object):
             else:
                 v = int(v)
             list.append((n, v))
-
         self.absolute_dic = dict(list)
         self.relative_dic = dict(list)
         if adimentionalized :
@@ -121,9 +116,8 @@ class ParamTree(object):
                 val /= Fk
             self.relative_dic[key] = val
 
-
-    def change_dic(self, key, new_value, write = True, back_up = False,
-                   verbose = True):
+    def change_dic(self, key, new_value, write = True,
+                   back_up = False, verbose = True):
         '''
         Changes the Element tree and re-creates the associated dictionnary.
         If write is True, re_writes the parameters files
@@ -131,8 +125,6 @@ class ParamTree(object):
         
         new_value is absolute - it has units
         '''
-        
-        
         if self.absolute_dic is None:
             self.create_dic()
         a = self.root.findall('param')
@@ -174,8 +166,6 @@ class ParamTree(object):
                                                      self.filename)
         elif verbose:
             print "Warning: parameter %s changed but not written!" %key
-
-
         
 class ResultTree(ParamTree):    
 
@@ -183,7 +173,6 @@ class ResultTree(ParamTree):
 
         xmlfname = os.path.abspath(xmlfname)
         ParamTree.__init__(self, xmlfname, adimentionalized = False)
-        
         datafname = self.root.get("datafile")
         if not os.path.isabs(datafname):
             if '/' not in datafname:
@@ -192,12 +181,10 @@ class ResultTree(ParamTree):
             else:
                 self.datafname = os.path.join(os.path.dirname(xmlfname), 
                                               datafname.split('/')[-1])
-                
         else:
             self.datafname = datafname
         if self.datafname is None or not os.path.isfile(self.datafname):
             raise ValueError, "Corresponding data file not specified"
-
         if self.datafname.endswith('.npy'):
             self.data = np.load(self.datafname)
         else:
@@ -205,7 +192,6 @@ class ResultTree(ParamTree):
                                 comments = '#')        
     
     def get_spb_trajs(self):
-
         Rcol = None 
         Lcol = None
         for traj in self.tree.getiterator("trajectory"):
@@ -218,57 +204,27 @@ class ResultTree(ParamTree):
         spb_trajs = self.data.take((Rcol, Lcol), axis = 1)
         return spb_trajs
 
-    def get_kineto_trajs(self):
-
+    def get_centromere_trajs(self):
         N = int(self.relative_dic['N'])
         cols = []
         for traj in self.tree.getiterator("trajectory"):
-            if traj.get("name") == "rightkineto":
-                rcol = traj.get("column")
+            if 'centromere' in traj.get("name"):
+                col = traj.get("column")
                 cols.append(rcol)
-            if traj.get("name") == "leftkineto":
-                lcol = traj.get("column")
-                cols.append(lcol)
             if len(cols) == N * 2:
                 break
         cols = tuple(cols)
-        
         kineto_trajs = self.data.take(cols, axis = 1)
         return kineto_trajs
         
-    def get_array(self, name, index = None):
-
-        ''' returns the array of
-        the corresponding trajectory
-
-        name can be : {right | left}{spb | kineto | kMT | iMT}
-        for spbs index is None
-        for kinetos and iMTs, index is an int
-        for kMTs index is a pair of integers.
-        i.e.: get_array(rightiMT, 3), get_array(leftkMT, (0, 2))
-        '''
-        f = file(self.datafname)
-        header = f.readline()
-        for traj in self.tree.getiterator("trajectory"):
-            if traj.get("name") == name :
-                if index is None or traj.get("index") == str(index) :
-                    col = int(traj.get("column"))
-                    print col
-                    return np.loadtxt(f, delimiter = ' ', usecols= (col, )) 
-        
-        print "trajectory not Found !"
-        
     def get_all_trajs(self):
-
         f = file(self.datafname)
         header = f.readline()
         cols = []
         for traj in self.tree.getiterator("trajectory"):
             col = int(traj.get("column"))
             cols.append(col)
-
         cols = tuple(cols)
-        
         return self.data.take(cols, axis = 1) 
 
     def get_all_pluged(self):
@@ -277,13 +233,10 @@ class ResultTree(ParamTree):
         for traj in self.tree.getiterator("numberpluged"):
             col = int(traj.get("column"))
             cols.append(col)
-
         cols = tuple(cols)
         return self.data.take(cols, axis = 1) 
-
         
     def get_all_mero(self):
-
         cols = []
         for traj in self.tree.getiterator("numbermero"):
             col = int(traj.get("column"))
@@ -292,11 +245,7 @@ class ResultTree(ParamTree):
         cols = tuple(cols)
         return self.data.take(cols, axis = 1) 
 
-
-
     def get_all_plug_state(self):
-
-
         cols = []
         for state_hist in self.tree.getiterator("state"):
             col = int(state_hist.get("column"))

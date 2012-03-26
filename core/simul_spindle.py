@@ -14,7 +14,6 @@ import time
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import linalg
 from numpy.random import normal
 from xml.etree.ElementTree import Element, SubElement, tostring
 from Image import fromarray as image_fromarray
@@ -93,7 +92,7 @@ class Metaphase(object):
 
     def __init__(self,  paramtree=None, measuretree=None,
                  paramfile=PARAMFILE, measurefile=MEASUREFILE,
-                 plug='random', reduce_p=True):
+                 initial_plug='random', reduce_p=True):
 
         """Metaphase instanciation method
         
@@ -127,7 +126,7 @@ class Metaphase(object):
             the default one.
             If the measuretree argument is not None, measurefile is ignored
 
-        plug : string or None
+        initial_plug : string or None
             Defines globally the initial attachment states.
             This argument can have the following values: 
             - 'null': all kinetochores are detached
@@ -158,11 +157,13 @@ class Metaphase(object):
             reduce_params(self.paramtree, self.measuretree)
 
         params = self.paramtree.relative_dic
+        # Reset explicitely the unit parameters to their
+        # dimentionalized value
         params['Vk'] = self.paramtree.absolute_dic['Vk']
         params['Fk'] = self.paramtree.absolute_dic['Fk']
         params['dt'] = self.paramtree.absolute_dic['dt']
             
-        self.KD = KinetoDynamics(params, plug=plug)
+        self.KD = KinetoDynamics(params, initial_plug=initial_plug)
         dt = self.paramtree.absolute_dic['dt']
         duration = self.paramtree.absolute_dic['span']
         self.num_steps = int(duration/dt)
@@ -215,14 +216,14 @@ class Metaphase(object):
         dt = self.KD.params['dt']
         kappa_c = self.KD.params['kappa_c']
 
-        for t in self.timelapse[1:]:
+        for time_point in self.timelapse[1:]:
             # Ablation test
-            if ablat is not None and ablat == t:
-                self._ablation(pos = self.KD.spbL.pos)
+            if ablat == time_point:
+                self._ablation(time_point, pos = self.KD.spbL.pos)
             # Anaphase transition ?
-            if self._anaphase_test(t):
-                self._toa_test(t)
+            self._anaphase_test(time_point)
             self._one_step()
+            
             if movie and t/dt % 15 == 0: #One picture every 15 time point
                 self._make_movie(t, (50, 100,  3))
         self.KD.params['kappa_c'] = kappa_c
@@ -230,28 +231,12 @@ class Metaphase(object):
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
 
-    def _one_step(self):
+    def _one_step(self, time_point):
         """elementary step"""
         if not self.KD.anaphase:
-            self.KD.plug_unplug()
-        A = self.KD.calcA()
-        b = - self.KD.calcb()
-        speeds = linalg.solve(A, b)
+            self.KD.plug_unplug(time_point)
+        speeds = self.KD.solve()
         self.KD.position_update(speeds)
-
-    def _toa_test(self, t):
-        """measures kinetochores time of arrival at the pole """
-        for n, ch in self.KD.chromosomes.items():    
-            if ch.anaphase_switch[0] > 0 and ch.right_toa == 0:
-                ch.right_toa = t
-                s = ("Right kt of chromosome %d reached the pole\n"
-                     "at time %.2f" %(n,t))
-                self.report.append(s)
-            if ch.anaphase_switch[1] > 0 and ch.left_toa == 0:
-                ch.left_toa = t
-                s = ("Left kt of chromosome %d reached the pole\n"
-                     "at time %.2f" %(n,t))
-                self.report.append(s)
 
     def _anaphase_test(self, t):
         """returns True if anaphase has been executed.
@@ -273,59 +258,31 @@ class Metaphase(object):
                          % nb_mero)
                     self.report.append(s)
                 self.KD.anaphase = True
-                self.KD.test_anaphase_switch()
                 return True
         return False
 
-    def _ablation(self, pos = None):
-        """Simulate a laser ablation: detaches all the kinetochores
+    def _ablation(self, time_point, pos = None):
+        """Simulates a laser ablation: detaches all the kinetochores
         and sets the midzone stall force Fmz to 0
 
         Parameter:
         ----------
             pos: float or None, optional
-                position of the laser beam
-        
+                position of the laser beam within the spindle
         """
         if pos == None: pos = self.KD.spbR.pos
         if not self.KD.spbL.pos <= pos <= self.KD.spbR.pos:
             print 'Missed shot, same player play again!'
             return 
-
         self.KD.params['Fmz'] = 0.
         self.KD.params['k_a'] = 0.
         self.KD.params['k_d0'] = 0.
-        for ch in self.KD.chromosomes.values():
-            (right_pluged, left_pluged) = ch.pluged()
-            (right_mero, left_mero) = ch.mero()
-            if pos > ch.rightpos:
-                for rplug in ch.rplugs.values():
-                    rplug.plug = min(0, rplug.plug)
-                for lplug in ch.lplugs.values():
-                    lplug.plug = max(0, lplug.plug)
-                #ch.pluged = (right_pluged, left_pluged)
-                #ch.mero = (0, 0)
 
-            elif ch.rightpos >= pos > ch.leftpos:
-                for rplug in ch.rplugs.values():
-                    rplug.plug = max(0, rplug.plug)
-                for lplug in ch.lplugs.values():
-                    lplug.plug = max(0, lplug.plug)
-                #ch.pluged = (0, left_pluged)
-                #ch.mero = (right_mero, 0)
-
-            elif pos < ch.leftpos:
-                for lplug in ch.lplugs.values():
-                    lplug.plug = min(0, lplug.plug)
-                for rplug in ch.rplugs.values():
-                    rplug.plug = max(0, rplug.plug)
-
-            (right_pluged, left_pluged) = ch.pluged()
-            (right_mero, left_mero) = ch.mero()
-            print (right_pluged, left_pluged)
-            print (right_mero, left_mero)
-                #ch.pluged = (right_pluged, 0)
-                #ch.mero = (0,left_mero)
+        for plugsite in self.KD.spindle.all_plugsites():
+            if pos < plugsite.pos and plugsite.plug_state == - 1:
+                plugsite.set_plug_state(0, time_point)
+            elif pos > plugsite.pos and plugsite.plug_state == 1:
+                plugsite.set_plug_state(0, time_point)
 
     def _plug_checkpoint(self):
         """If the spindle assembly checkpoint is active, returns True
@@ -336,22 +293,17 @@ class Metaphase(object):
         sac = self.KD.params['sac']
         if sac == 0:
             return True
-        
-        for ch in self.KD.chromosomes.values() :
-            if not np.all(ch.pluged()) :
+        for ch in self.KD.chromosomes :
+            if not ch.cen_A.isattached() or not ch.cen_B.isattached():
                 ch.active_sac = 1
-                #print "active checkpoint"
                 return False
-            else:
-                ch.active_sac = 0
-                
         return True
 
     def _mero_checkpoint(self):
         '''returns the total number of merotellic kT
         '''
         nb_mero = 0
-        for ch in self.KD.chromosomes.values() :
+        for ch in self.KD.chromosomes :
             if np.any(ch.mero) :
                 nb_mero += sum(ch.mero())
                 #print "active checkpoint"
@@ -360,11 +312,12 @@ class Metaphase(object):
     def _mplate_checkpoint(self):
         """returns True if each kinetochore is in the proper half
         of the spindle
+
         """
-        for ch in self.KD.chromosomes.values():
-            ktR = ch.rightpos
-            ktL = ch.leftpos
-            if ktR <= 0 or ktL >= 0:
+        for ch in self.KD.chromosomes:
+            ktR = ch.cen_A.pos
+            ktL = ch.cen_B.pos
+            if min(ktR, ktL) <= 0 and max(ktR, ktL) >= 0:
                 return True 
         return True
 
@@ -373,7 +326,7 @@ class Metaphase(object):
         results are stored in the self.observations dictionnary
 
         """
-        if len(self.KD.spbR.traj) < 2:
+        if len(self.KD.step_count) < 2:
             print "No simulation was runned ... exiting"
             return 0
         for name, function in evaluations.items():
@@ -388,20 +341,16 @@ class Metaphase(object):
         if axes == None:
             fig = plt.figure()
             axes = fig.gca()
-        spbRtraj = np.array(self.KD.spbR.traj)
-        spbLtraj = np.array(self.KD.spbL.traj)
-        try:
-            axes.plot(self.timelapse, spbRtraj, color='r', ls='-', lw=1)
-            axes.plot(self.timelapse, spbLtraj, color='r', ls='-', lw=1)
-        except ValueError:
-            print 'please run the simulation before'
-            return 0
+        spbRtraj = self.KD.spbR.traj
+        spbLtraj = self.KD.spbL.traj
+        axes.plot(self.timelapse, spbRtraj, color='r', ls='-', lw=1)
+        axes.plot(self.timelapse, spbLtraj, color='r', ls='-', lw=1)
 
         fmt_list = ['g-', 'b-', 'm-']
         for n in range(N):
             ch = self.KD.chromosomes[n]
-            right_traj = np.array(ch.righttraj)
-            left_traj = np.array(ch.lefttraj)
+            right_traj = ch.cen_A.traj
+            left_traj = ch.cen_B.traj
             fmt = fmt_list[np.mod(n, 3)]
             line1 = axes.plot(self.timelapse, right_traj, fmt, alpha=0.5)
             line2 = axes.plot(self.timelapse, left_traj, fmt, alpha=0.5)
@@ -430,26 +379,25 @@ class Metaphase(object):
         
         """
         self.write_results(xmlfname = xmlfname)
-
-        spbRx = np.array(self.KD.spbR.traj)
+        spbRx = self.KD.spbR.traj
         ys = np.zeros(spbRx.shape)
         ts = np.arange(spbRx.shape[0])
         idxs = np.ones(spbRx.shape)
         out_array = np.vstack((spbRx, ys, ts, idxs))
         
-        spbLx = np.array(self.KD.spbL.traj)
+        spbLx = self.KD.spbL.traj
         idxs += 1
         vstack = np.vstack((spbLx, ys, ts, idxs))
         out_array = np.append(out_array, vstack, axis=0)
 
-        for ch in self.KD.chromosomes.values():
+        for ch in self.KD.chromosomes:
             idxs += 1
-            chRx = np.array(ch.righttraj)
+            chRx = ch.cen_A.traj
             vstack = np.vstack((chRx, ys, ts, idxs))
             out_array = np.append(out_array, vstack, axis=0)
 
             idxs += 1            
-            chLx = np.array(ch.lefttraj)
+            chLx = ch.cen_B.traj
             vstack = np.vstack((chLx, ys, ts, idxs))
             out_array = np.append(out_array, vstack, axis = 0)
             
@@ -485,7 +433,7 @@ class Metaphase(object):
         if not hasattr(self, 'observations'):
             self.evaluate()
 
-        chromosomes = self.KD.chromosomes.values()
+        chromosomes = self.KD.chromosomes
         wavelist = []
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
@@ -512,69 +460,66 @@ class Metaphase(object):
         #chromosomes
         for n, ch in enumerate(chromosomes):
             # Adding pluged_history and mero_history
-            chp = np.array(ch.pluged_history)
-            rp = chp[:, 0]
-            lp = chp[:, 1]
-            chm = np.array(ch.mero_history)
-            rm = chm[:, 0]
-            lm = chm[:, 1]
-
-            rch = SubElement(experiment, "trajectory", name="rightkineto",
+            rch = SubElement(experiment, "trajectory", name="centromereA",
                              index = str(n), column=str(col_num), units='mu m')
-            text = "chromosome %i right kinetochore trajectory" % n
+            text = "chromosome %i centromere A trajectory" % n
             SubElement(rch, "description").text = text
-            wavelist.append(np.array(ch.righttraj))
+            wavelist.append(ch.cen_A.traj)
             col_num += 1
             
-            SubElement(experiment, "numberpluged", name="rightkineto",
+            SubElement(experiment, "numberpluged", name="centromereA",
                        index=str(n), column=str(col_num))
-            wavelist.append(rp)
+            wavelist.append(ch.pluged_history[:, 0])
             col_num += 1
             SubElement(experiment, "numbermero",
-                       name="rightkineto", index = str(n),
+                       name="centromereA", index = str(n),
                        column=str(col_num))
-            wavelist.append(rm)
+            wavelist.append(ch.mero_history[:, 0])
             col_num += 1
             
             lch = SubElement(experiment, "trajectory", index=str(n), 
                              column=str(col_num), units='mu m')
             text = "chromosome %s left kinetochore trajectory" % n
             SubElement(lch, "description").text = text
-            wavelist.append(np.array(ch.lefttraj))
+            wavelist.append(np.array(ch.cen_B.traj))
             col_num += 1
-            SubElement(experiment, "numberpluged", name="leftkineto",
+            SubElement(experiment, "numberpluged", name="centromereB",
                        index=str(n), column=str(col_num))
-            wavelist.append(lp)
+            wavelist.append(ch.pluged_history[:, 1])
             col_num += 1
-            SubElement(experiment, "numbermero", name="leftkineto",
+
+            SubElement(experiment, "numbermero", name="centromereB",
                        index=str(n), column=str(col_num))
-            wavelist.append(lm)
+            wavelist.append(ch.mero_history[:, 1])
             col_num += 1
 
             #Plug Sites
-            for m, rplug in enumerate(ch.rplugs.values()):
-                rpt_traj = np.array(rplug.traj)
-                SubElement(experiment, "trajectory",
-                           name="rightplugsite", index = str((n, m)),
+            for m, plugsite in enumerate(ch.cen_A.plugsites):
+                SubElement(experiment, "trajectory", name="plugsite",
+                           index = str((n, m)), tag = 'A',
                            column=str(col_num), units='mu m')
-                wavelist.append(rpt_traj); col_num += 1
-                rpt_plug = np.array(rplug.state_hist)
-                SubElement(experiment, "state",
-                           name="rightplugsite", index = str((n, m)),
+                wavelist.append(plugsite.traj)
+                col_num += 1
+
+                SubElement(experiment, "state", name="plugsite",
+                           index = str((n, m)), tag = 'A',
                            column=str(col_num), units='')
-                wavelist.append(rpt_plug); col_num += 1
+                wavelist.append(plugsite.state_hist)
+                col_num += 1
             
-            for m, lplug in enumerate(ch.lplugs.values()):
-                lpt_traj = np.array(lplug.traj)
-                SubElement(experiment, "trajectory",
-                           name="leftplugsite", index = str((n, m)),
+            for m, plugsite in enumerate(ch.cen_B.plugsites):
+
+                SubElement(experiment, "trajectory", name="plugsite",
+                           index = str((n, m)), tag='B',
                            column=str(col_num), units='mu m')
-                wavelist.append(lpt_traj); col_num += 1
-                lpt_plug = np.array(lplug.state_hist)
-                SubElement(experiment, "state",
-                           name="leftplugsite", index = str((n, m)),
+                wavelist.append(lpt_traj)
+                col_num += 1
+
+                SubElement(experiment, "state", name="plugsite",
+                           index = str((n, m)), tag='B',
                            column=str(col_num), units='')
-                wavelist.append(lpt_plug); col_num += 1
+                wavelist.append(lpt_plug)
+                col_num += 1
 
         #Observations
         obs_elem = SubElement(experiment, "observations")
@@ -617,11 +562,11 @@ class Metaphase(object):
         imarray[yspbR, xspbR, 0] += 128
         imarray[yspbL, xspbL, 0] += 128
 
-        chromosomes = self.KD.chromosomes.values()
+        chromosomes = self.KD.chromosomes
         for n, ch in enumerate(chromosomes):
-            xchR = scale(ch.rightpos, imsize[1])
+            xchR = scale(ch.cen_A.pos, imsize[1])
             ychR = scale(0.1 * n - 0.1, imsize[0])
-            xchL = scale(ch.leftpos, imsize[1])
+            xchL = scale(ch.cen_B.pos, imsize[1])
             ychL = scale(0.1 * n - 0.1, imsize[0])
             imarray[ychR, xchR, 1] += 42
             imarray[ychL, xchL, 1] += 42
@@ -644,14 +589,12 @@ class Metaphase(object):
         
         fig.add_subplot(312)
         ax = fig.gca()
-        ax.plot(self.timelapse, ch.righttraj, 'b', lw=1.5)
-        ax.plot(self.timelapse, ch.lefttraj, 'k', lw=1.5)
-        rps = ch.rplugs
-        for ps in rps.values():
-            ax.plot(self.timelapse, ps.traj, 'g')
-        lps = ch.lplugs
-        for ps in lps.values():
-            ax.plot(self.timelapse, ps.traj, 'purple')
+        ax.plot(self.timelapse, ch.cen_A.traj, 'b', lw=1.5)
+        ax.plot(self.timelapse, ch.cen_B.traj, 'k', lw=1.5)
+        for plugsite in ch.cen_A.plugsites:
+            ax.plot(self.timelapse, plugsite.traj, 'g')
+        for plugsite in ch.cen_B.plugsites:
+            ax.plot(self.timelapse, plugsite.traj, 'purple')
         mero_hist = np.asarray(ch.mero_history)
         pluged_hist = np.asarray(ch.pluged_history)
         
@@ -671,62 +614,6 @@ class Metaphase(object):
                 label='number of pluged MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
         plt.show()
-
-    def show_one_article(self, n = 0, fig = None):
-        """ Shows one chromosome trajectory and plug state,
-        alternate layout"""        
-
-        dt = self.KD.params['dt']
-        if fig == None:
-            fig = plt.figure()
-
-        ch = self.KD.chromosomes[n]
-        fig.clear()
-        ax_traj = fig.add_subplot(312)
-        spbRtraj = np.array(self.KD.spbR.traj)
-        spbLtraj = np.array(self.KD.spbL.traj)
-
-        ax_traj.plot(self.timelapse, spbRtraj, 'r-')
-        ax_traj.plot(self.timelapse, spbLtraj, 'r-')
-        ax_traj.plot(self.timelapse, ch.righttraj, 'g-', lw=1., alpha=1.)
-        ax_traj.plot(self.timelapse, ch.lefttraj, 'g-', lw=1., alpha=1.)
-        rps = ch.rplugs
-        for ps in rps.values():
-            ax_traj.plot(self.timelapse, ps.traj,
-                         'purple', lw=0.5, alpha=0.5)
-        lps = ch.lplugs
-        for ps in lps.values():
-            ax_traj.plot(self.timelapse, ps.traj,
-                         'purple', lw=0.5, alpha=0.5)
-
-        ax_traj.axis((0, self.num_steps*dt, -2, 2))
-        ax_traj.set_yticks(range(-2, 4, 2))
-        ax_traj.set_xticks(range(0, 850, 240), ['0', '4', '8', '12'])
-        ax_traj.set_ylabel(u'Position (um)', fontsize='small')
-        ax_traj.set_xlabel('Time (min)', fontsize='small')
-        
-        mero_hist = np.array(ch.mero_history)
-        pluged_hist = np.array(ch.pluged_history)
-        ax_plug = fig.add_subplot(311)
-        ax_plug.plot(self.timelapse, mero_hist[:, 0], 'r-',
-                     label= 'Number of merotellic kMTs')
-        ax_plug.plot(self.timelapse, pluged_hist[:, 0], 'g-',
-                     label= 'Number of synthelic kMTs')
-        ax_plug.axis((0, self.num_steps*dt, -0.5, 4.5))
-        ax_plug.set_xticks(range(0, 850 , 240), (''))
-        ax_plug.set_ylabel('kMTs state', fontsize = 'small')
-        ax_plug.set_yticks(np.arange(0, 5, 2))
-
-        ax_plug2 = fig.add_subplot(313)
-        ax_plug2.plot(self.timelapse, mero_hist[:, 1], 'r-',
-                      label= 'number of merotellic MTs')
-        ax_plug2.plot(self.timelapse, pluged_hist[:, 1], 'g-',
-                      label= 'number of synthelic MTs')
-        ax_plug2.axis((0, self.num_steps*dt, -0.5, 4.5))
-        ax_plug2.set_xticks(range(0, 850 , 240), (''))
-        ax_plug2.set_ylabel('kMTs state', fontsize = 'small')
-        plt.show()
-        return fig
         
     def get_ch(self, n = 0):
         return self.KD.chromosomes[n]
@@ -757,7 +644,6 @@ class Metaphase(object):
 
         Returns:
         --------
-
         trajectories: ndarray
             Trajectories is an array of shape (n, 2, num_steps),
             where n is the number of trajectories
@@ -777,15 +663,15 @@ class Metaphase(object):
 
         if cen is not None:
             ch = self.get_ch(cen)
-            trajectories[2, 0, :] = ch.righttraj
-            trajectories[3, 0, :] = ch.lefttraj
+            trajectories[2, 0, :] = ch.cen_A.traj
+            trajectories[3, 0, :] = ch.cen_B.traj
             trajectories[2:, ...] += normal(0, scale=cen_sigma,
                                            size=(2, 2, self.num_steps))
         else:
             for n, ch in enumerate(self.KD.chromosomes):
-                trajectories[2 + 2 * n, 0, :] = ch.righttraj
+                trajectories[2 + 2 * n, 0, :] = ch.cen_A.traj
                 trajectories[2 + 2 * n, 1, :] += (1 - n) * perp_distance
-                trajectories[2 + 2 * n + 1, 0, :] = ch.lefttraj
+                trajectories[2 + 2 * n + 1, 0, :] = ch.cen_B.traj
                 trajectories[2 + 2 * n + 1, 1, :] += (1 - n) * perp_distance
         # TODO: block needs to be vectorized GG march 2012
         xcs = []
@@ -825,7 +711,9 @@ class Metaphase(object):
         pos_noise : float
             std. dev of the spindle center displacement in um/s 
         radial_distance: float
-            
+            radial distance of the centromeres to the spindle axis.
+            Here, chromosomes are distributed evenly around the spindle
+            axis. 
         cen: int or None
             chromosome index for which a centromere trajectory is
             simulated. Be aware that this adds a random coiled coil
@@ -849,25 +737,22 @@ class Metaphase(object):
         trajectories = []
         ang_noise *= dt # rad.s^-1
         pos_noise *=  dt # um.s^-1
-
         
         n_traj = 2 + 2 * N if cen is None else 4
         trajs_shape = (n_traj, 3, self.num_steps)
         trajectories = np.zeros(trajs_shape)
-        
-
         trajectories[0, 0, :] = self.KD.spbR.traj
         trajectories[1, 0, :] = self.KD.spbL.traj
 
         if cen is not None:
             ch = self.get_ch(cen)
-            trajectories[2, 0, :] = ch.righttraj
-            trajectories[3, 0, :] = ch.lefttraj
+            trajectories[2, 0, :] = ch.cen_A.traj
+            trajectories[3, 0, :] = ch.cen_B.traj
             trajectories[2:, ...] += normal(0, scale=cen_sigma,
                                            size=(2, 2, self.num_steps))
         else:
             for n, ch in enumerate(self.KD.chromsomes):
-                trajectories[2 + 2 * n, 0, :] = ch.righttraj
+                trajectories[2 + 2 * n, 0, :] = ch.cen_A.traj
                 phi = (n - 1) * 2 * np.pi / N
                 radial_y = radial_distance * np.cos(phi)
                 trajectories[2 + 2 * n, 1, :] += radial_y
@@ -876,7 +761,6 @@ class Metaphase(object):
                 trajectories[2 + 2 * n + 1, 2, :] += radial_z
         
         xcs, ycs, zcs = np.zeros((3, self.num_steps))
-
         #Fix the x axis, rotate around the two others
         xy_rots = np.zeros((3, 3, self.num_steps))
         zx_rots = np.zeros((3, 3, self.num_steps))
@@ -904,11 +788,11 @@ class Metaphase(object):
 
 
 def reduce_params(paramtree, measuretree):
-    """ This functions changes the paramters so that t
-    he dynamical characteristics complies with the measures [1]_.
-    
+    """ This functions changes the paramters so that 
+    the dynamical characteristics complies with the measures [1]_.
 
     input:
+    -----
     paramtree : xml_handler.ParamTree instance
     measuretree : xml_handler.MeasureTree
 
@@ -919,7 +803,6 @@ def reduce_params(paramtree, measuretree):
            J. Cell Biol 2012 http://dx.doi.org/10.1083/jcb.201107124
 
     """
-
     params = paramtree.absolute_dic
     measures = measuretree.absolute_dic
     try:
@@ -996,7 +879,8 @@ def get_fromfile(xmlfname = "results.xml"):
     paramtree = ParamTree(root = param_root)
     params = paramtree.relative_dic
     measure_root = restree.root.find('measures')
-    measuretree = ParamTree(root = measure_root, adimentionalized = False)
+    measuretree = ParamTree(root = measure_root,
+                            adimentionalized = False)
     metaphase = Metaphase(paramtree = paramtree,
                           measuretree = measuretree)
     
@@ -1010,22 +894,22 @@ def get_fromfile(xmlfname = "results.xml"):
     Mk = int(params['Mk'])
     col_num = 2
     state_num = 0
-    for n, ch in enumerate(KD.chromosomes):
-        ch[n].righttraj = traj_matrix[:, col_num]
+    for n, ch in enumerate(KD.chromosomes) :
+        ch.cen_A.traj = traj_matrix[:, col_num]
         col_num += 1
-        ch[n].lefttraj = traj_matrix[:, col_num]
+        ch.cen_B.traj = traj_matrix[:, col_num]
         col_num += 1
-        ch[n].pluged_history = (pluged_matrix[:, n*2: n*2 + 2])
-        ch[n].mero_history = (mero_matrix[:, n*2 : n*2 + 2])
-        for m in range(Mk):
-            ch[n].rplugs[m].traj = traj_matrix[:, col_num]
+        ch.pluged_history = (pluged_matrix[:, n*2 : n*2 + 2])
+        ch.mero_history = (mero_matrix[:, n*2 : n*2 + 2])
+        for plugsite in ch.cen_A.plugistes:
+            plugsite.traj = traj_matrix[:, col_num]
             col_num += 1
-            ch[n].rplugs[m].state_hist = state_hist_matrix[:, state_num]
+            plugsites.state_hist = state_hist_matrix[:, state_num]
             state_num += 1
-        for m in range(Mk):
-            ch[n].lplugs[m].traj = traj_matrix[:, col_num]
+        for plugsite in ch.cen_B.plugistes:
+            plugsite.traj = traj_matrix[:, col_num]
             col_num += 1
-            ch[n].lplugs[m].state_hist = state_hist_matrix[:, state_num]
+            plugsites.state_hist = state_hist_matrix[:, state_num]
             state_num += 1
     metaphase.KD = KD
 
