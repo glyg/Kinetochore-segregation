@@ -44,7 +44,7 @@
       <unit>&#181;m</unit>
       <description>Kinetochore - kinetochore rest length</description>
     </param>
-  <param max="100" min="0" name="d_alpha" step="0.1" value="0.1">
+  <param max="100" min="0" name="d_alpha" step="0.1" value="0.001">
       <unit>&#181;m</unit>
       <description>Aurora Pdet modifier</description>
     </param>
@@ -79,7 +79,7 @@
   <param max="0.1" min="0.005" name="Vmz" step="0" value="0.03">
       <unit>&#181;m/s</unit>
       <description>Midzone force max. speed</description>
-    </param>
+  </param>
   <param max="100." min="0.1" name="Fk" step="0" value="10.0">
     <unit>pN</unit>
     <description>Kineto polward mvmt stall force</description>

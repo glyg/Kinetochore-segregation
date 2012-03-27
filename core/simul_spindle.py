@@ -26,8 +26,8 @@ from .xml_handler import ParamTree, indent, ResultTree
 from ..analysis.eval_simul import evaluations # as eval_simul
 
 
-__all__ = ["Metaphase", "reduce_params", "paramfile",
-           "measurefile", "get_fromfile"]
+__all__ = ["Metaphase", "reduce_params", "PARAMFILE",
+           "MEASUREFILE", "get_fromfile"]
 
 CURRENT_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
@@ -143,12 +143,10 @@ class Metaphase(object):
             the data in the measures dictionary
 
         """
-
         if paramtree is None:
             self.paramtree = ParamTree(paramfile)
         else:
             self.paramtree = paramtree
-
         if measuretree is None:
             self.measuretree = ParamTree(measurefile, adimentionalized=False)
         else:
@@ -168,7 +166,7 @@ class Metaphase(object):
         duration = self.paramtree.absolute_dic['span']
         self.num_steps = int(duration/dt)
         self.KD.anaphase = False
-        self.timelapse = np.arange(0, duration + dt, dt)
+        self.timelapse = np.arange(0, duration, dt)
         self.report = []
         self.delay = -1
         self.observations = {}
@@ -216,16 +214,15 @@ class Metaphase(object):
         dt = self.KD.params['dt']
         kappa_c = self.KD.params['kappa_c']
 
-        for time_point in self.timelapse[1:]:
+        for time_point in range(1, self.num_steps):
             # Ablation test
             if ablat == time_point:
                 self._ablation(time_point, pos = self.KD.spbL.pos)
             # Anaphase transition ?
             self._anaphase_test(time_point)
-            self._one_step()
-            
-            if movie and t/dt % 15 == 0: #One picture every 15 time point
-                self._make_movie(t, (50, 100,  3))
+            self._one_step(time_point)
+            if movie and time_point/dt % 15 == 0:
+                self._make_movie(time_point, (50, 100,  3))
         self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
         delay_str = "delay = %2d seconds" % self.delay
@@ -236,7 +233,7 @@ class Metaphase(object):
         if not self.KD.anaphase:
             self.KD.plug_unplug(time_point)
         speeds = self.KD.solve()
-        self.KD.position_update(speeds)
+        self.KD.position_update(speeds, time_point)
 
     def _anaphase_test(self, t):
         """returns True if anaphase has been executed.
@@ -294,7 +291,7 @@ class Metaphase(object):
         if sac == 0:
             return True
         for ch in self.KD.chromosomes :
-            if not ch.cen_A.isattached() or not ch.cen_B.isattached():
+            if not ch.cen_A.is_attached() or not ch.cen_B.is_attached():
                 ch.active_sac = 1
                 return False
         return True
