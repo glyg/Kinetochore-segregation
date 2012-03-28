@@ -56,7 +56,7 @@
       <unit> </unit>
       <description>Non zero: spindle assembly checkpt </description>
     </param>
-  <param max="1." min="0." name="k_a" step="0.001" value="0.06">
+  <param max="1." min="0." name="k_a" step="0.001" value="0.0006">
       <unit>Hz</unit>
       <description>MT free attachement frequency</description>
     </param>  

@@ -18,6 +18,11 @@ cimport cython
 __all__ = ["KinetoDynamics", "Spb", "Chromosome",
            "Centromere", "PlugSite", "Spindle"]
 
+RIGHT = 1
+LEFT = -1
+a = 0
+b = 1
+
 
 class KinetoDynamics(object) :
     """ This class wraps all the simulation internals.
@@ -62,13 +67,17 @@ class KinetoDynamics(object) :
         dt = self.params['dt']
         self.num_steps = int(duration/dt)
         self.spindle = Spindle(self)
-        self.spbR = Spb(self.spindle, 1, L0) #right spb
-        self.spbL = Spb(self.spindle, -1, L0) #left one
+        self.spbR = Spb(self.spindle, RIGHT, L0) #right spb (RIGHT = 1)
+        self.spbL = Spb(self.spindle, LEFT, L0) #left one (LEFT = -1)
         self.initial_plug = initial_plug
         self.chromosomes = [Chromosome(self.spindle)
                             for n in range(N)]
         self._idx = self._calc_idx()
-        self.B_mat = self.write_B()
+        dim = 1 + N * ( 1 + Mk ) * 2
+        self.B0_mat = self.time_invariantB()
+        self.A0_mat = self.time_invariantA()
+        self.At_mat = np.zeros((dim, dim), dtype = float)
+        self.Bt_mat = np.zeros((dim, dim), dtype = float)
         self.step_count = 0
         
     def _calc_idx(self):
@@ -79,11 +88,11 @@ class KinetoDynamics(object) :
         N = int(self.params['N'])
         idxs = {}
         for n in range(N):
-            idxs[(0,n)] =  2*n*(Mk+1) + 1
-            idxs[(1,n)] = 2*n*(Mk+1) + 2 + Mk
+            idxs[(a,n)] =  2*n*(Mk+1) + 1
+            idxs[(b,n)] = 2*n*(Mk+1) + 2 + Mk
             for m in range(Mk):
-                idxs[(0,n,m)] = 2*n*(Mk + 1) + 2 + m
-                idxs[(1,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
+                idxs[(a,n,m)] = 2*n*(Mk + 1) + 2 + m
+                idxs[(b,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
         return idxs
 
     def solve(self):
@@ -92,42 +101,6 @@ class KinetoDynamics(object) :
         speeds = linalg.solve(A, b)
         return speeds
 
-    def write_B(self):
-        """Returns the matrix containing the linear terms
-        of the equation set A\dot{X} + BX + C = 0
-        """
-        cdef N, Mk
-        Mk = int(self.params['Mk'])
-        N = int(self.params['N'])
-        kappa_c = self.params['kappa_c']
-        kappa_k = self.params['kappa_k']
-        dim = 1 + N * ( 1 + Mk ) * 2
-        B = np.zeros((dim, dim), dtype = float)
-        B[0,0] = 0
-        for n in range(N) :
-            B[self._idx[(0, n)],
-              self._idx[(0, n)]] = - kappa_c - Mk*kappa_k
-            B[self._idx[(1, n)],
-              self._idx[(1, n)]] = - kappa_c - Mk*kappa_k
-            B[self._idx[(1, n)],
-              self._idx[(0, n)]] = kappa_c
-            B[self._idx[(0, n)],
-              self._idx[(1, n)]] = kappa_c
-            for m in range(Mk):
-                B[self._idx[(0, n, m)],
-                  self._idx[(0, n, m)]] = - kappa_k
-                B[self._idx[(1, n, m)],
-                  self._idx[(1, n, m)]] = - kappa_k
-                B[self._idx[(0, n)],
-                  self._idx[(0, n, m)]] = kappa_k
-                B[self._idx[(0, n, m)],
-                  self._idx[(0, n)]] = kappa_k
-                B[self._idx[(1, n)],
-                  self._idx[(1, n, m)]] = kappa_k
-                B[self._idx[(1, n, m)],
-                  self._idx[(1, n)]] = kappa_k
-        return B
-    
     def get_state_vector(self):
         """
         return a vector of the positions of each components
@@ -146,7 +119,8 @@ class KinetoDynamics(object) :
         return X
         
     #Wrighting the equations (see doc/segregation_model.pdf for details)
-    def calcA(self):
+
+    cpdef time_invariantA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef double muc = self.params['muc']
@@ -154,53 +128,160 @@ class KinetoDynamics(object) :
         cdef float mus = self.params['mus']
         cdef float Vmz = self.params['Vmz']
         cdef float Fmz = self.params['Fmz']
-
-        #create a well- sized array
         cdef int dims
         dims = 1 + 2 * N * ( Mk + 1 ) 
-        A = np.zeros((dims, dims))
-        cdef float p_nmA, p_nmB
-        cdef float ldep_A, ldep_B
-        A[0,0] = - 2 * mus - 4 * Fmz / Vmz
-        # inner plate
+        A0 = np.zeros((dims, dims))
+        A0[0,0] = - 2 * mus - 4 * Fmz / Vmz
         for n in range(N):
             ch = self.chromosomes[n]
-            A[self._idx[(0,n)],
+            A0[self._idx[(0,n)],
               self._idx[(0,n)]] = - Mk * muk - muc
-            A[self._idx[(1,n)],
+            A0[self._idx[(1,n)],
               self._idx[(1,n)]] = - Mk * muk - muc
+            for m in range(Mk):
+                #A side
+                A0[self._idx[(0,n,m)],
+                   self._idx[(0,n,m)]] = - muk
+                A0[self._idx[(0,n,m)],
+                   self._idx[(0,n)]] = muk
+                A0[self._idx[(0,n)],
+                   self._idx[(0,n,m)]] = muk
+                #B side
+                A0[self._idx[(1,n,m)],
+                   self._idx[(1,n,m)]] = - muk
+                A0[self._idx[(1,n,m)],
+                   self._idx[(1,n)]] = muk
+                A0[self._idx[(1,n)],
+                   self._idx[(1,n,m)]] = muk
+        return A0
+
+        
+    cpdef time_depedantA(self):
+
+        cdef int N = int(self.params['N'])
+        cdef int Mk = int(self.params['Mk'])
+
+        cdef float pi_nmA, pi_nmB
+        cdef float ldep_A, ldep_B
+        # inner plate
+        
+        for n in range(N):
+            ch = self.chromosomes[n]
             for m in range(Mk):
                 plugsite_A = ch.cen_A.plugsites[m]
                 ldep_A = plugsite_A.calc_ldep()
-                p_nmA = plugsite_A.plug_state * ldep_A
-
+                pi_nmA = plugsite_A.plug_state * ldep_A
                 plugsite_B = ch.cen_B.plugsites[m]
                 ldep_B = plugsite_B.calc_ldep()
-                p_nmB = plugsite_B.plug_state * ldep_B
+                pi_nmB = plugsite_B.plug_state * ldep_B
 
                 #spbs diag terms:
-                A[0,0] += - p_nmA - p_nmB
+                self.At_mat[0,0] -= pi_nmA + pi_nmB
                 #A side
-                A[self._idx[(0,n,m)],
-                  self._idx[(0,n,m)]] = - muk + p_nmA#- alphaR - betaR#sign?
-                A[0, self._idx[(0,n,m)]] = p_nmA#alphaR - betaR
-                A[self._idx[(0,n,m)], 0] = A[0, self._idx[(0,n,m)]]
-                A[self._idx[(0,n,m)],
-                  self._idx[(0,n)]] = muk
-                A[self._idx[(0,n)],
-                  self._idx[(0,n,m)]] = muk
+                self.At_mat[self._idx[(0,n,m)],
+                  self._idx[(0,n,m)]] = abs(pi_nmA)
+                self.At_mat[0, self._idx[(0,n,m)]] = pi_nmA
+                self.At_mat[self._idx[(0,n,m)], 0] = pi_nmA
                 #B side
-                A[self._idx[(1,n,m)],
-                  self._idx[(1,n,m)]] = - muk + p_nmB# - alphaL - betaL
-                A[0, self._idx[(1,n,m)]] = p_nmB#- alphaL + betaL
-                A[self._idx[(1,n,m)], 0] = A[0, self._idx[(1,n,m)]]
-                A[self._idx[(1,n,m)],
-                  self._idx[(1,n)]] = muk
-                A[self._idx[(1,n)],
-                  self._idx[(1,n,m)]] = muk
-        return A#.tocsr()
+                self.At_mat[self._idx[(1,n,m)],
+                  self._idx[(1,n,m)]] = abs(pi_nmB)
+                self.At_mat[0, self._idx[(1,n,m)]] = pi_nmB
+                self.At_mat[self._idx[(1,n,m)], 0] = pi_nmB
+
+    def calcA(self):
+        self.time_dependantA()
+        A = self.A0_mat + self.At_mat
+        return A
+
+    def time_invariantB(self):
+        """Returns the constant part of the matrix containing the
+        linear terms of the equation set A\dot{X} + BX + C = 0
+        """
+        cdef N, Mk
+        Mk = int(self.params['Mk'])
+        N = int(self.params['N'])
+        kappa_k = self.params['kappa_k']
+        dim = 1 + N * ( 1 + Mk ) * 2
+        B0 = np.zeros((dim, dim), dtype = float)
+        B0[0,0] = 0
+        for n in range(N) :
+            ch = self.chromosomes[n]
+            B0[self._idx[(0, n)],
+              self._idx[(0, n)]] = - Mk
+            B0[self._idx[(1, n)],
+              self._idx[(1, n)]] = - Mk
+            for m in range(Mk):
+                B0[self._idx[(0, n, m)],
+                  self._idx[(0, n, m)]] = - 1
+                B0[self._idx[(1, n, m)],
+                  self._idx[(1, n, m)]] = - 1
+                B0[self._idx[(0, n)],
+                  self._idx[(0, n, m)]] = 1
+                B0[self._idx[(0, n, m)],
+                  self._idx[(0, n)]] = 1
+                B0[self._idx[(1, n)],
+                  self._idx[(1, n, m)]] = 1
+                B0[self._idx[(1, n, m)],
+                  self._idx[(1, n)]] = 1
+        return kappa_k * B0
+
+    def time_dependantB(self):
+        cdef N, Mk
+        Mk = int(self.params['Mk'])
+        N = int(self.params['N'])
+        for n in range(N) :
+            ch = self.chromosomes[n]
+            if abs(ch.cen_B.pos - ch.cen_A.pos) > d0:
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = - 1
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = - 1
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = 1 
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = 1
+                
+
+
+    def calc_B(self):
+        """Returns the matrix containing the linear terms
+        of the equation set A\dot{X} + BX + C = 0
+        """
+        kappa_c = self.params['kappa_c']
+        kappa_k = self.params['kappa_k']
+        d0 = self.params['d0']
+        dim = 1 + N * ( 1 + Mk ) * 2
+        B = np.zeros((dim, dim), dtype = float)
+        B[0,0] = 0
+        for n in range(N) :
+            ch = self.chromosomes[n]
+            B[self._idx[(0, n)],
+              self._idx[(0, n)]] = - Mk*kappa_k 
+            B[self._idx[(1, n)],
+              self._idx[(1, n)]] = - Mk*kappa_k
+            for m in range(Mk):
+                B[self._idx[(0, n, m)],
+                  self._idx[(0, n, m)]] -= kappa_k
+                B[self._idx[(1, n, m)],
+                  self._idx[(1, n, m)]] -= kappa_k
+                B[self._idx[(0, n)],
+                  self._idx[(0, n, m)]] = kappa_k
+                B[self._idx[(0, n, m)],
+                  self._idx[(0, n)]] = kappa_k
+                B[self._idx[(1, n)],
+                  self._idx[(1, n, m)]] = kappa_k
+                B[self._idx[(1, n, m)],
+                  self._idx[(1, n)]] = kappa_k
+
+                
+
+
+        return B
 
     def calc_C(self):
+        """Returns the matrix containing the linear terms
+        of the equation set A\dot{X} + BX + C = 0
+        """
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef float Fmz = self.params['Fmz']
@@ -211,20 +292,22 @@ class KinetoDynamics(object) :
         C[0] = 2 * Fmz
         for n in range(N):
             ch = self.chromosomes[n]
-            C[self._idx[(0,n)]] = kappa_c * d0
-            C[self._idx[(1,n)]] = - kappa_c * d0
+            if ch.cen_B.pos - ch.cen_A.pos > d0:
+                C[self._idx[(0,n)]] = - kappa_c * d0
+                C[self._idx[(1,n)]] = + kappa_c * d0
+            if ch.cen_B.pos - ch.cen_A.pos < - d0:
+                C[self._idx[(0,n)]] = kappa_c * d0
+                C[self._idx[(1,n)]] = - kappa_c * d0
             for m in range(Mk):
                 plugsite_A = ch.cen_A.plugsites[m]
                 ldep_A = plugsite_A.calc_ldep()
-                p_nmA = plugsite_A.plug_state * ldep_A
-
+                pi_nmA = plugsite_A.plug_state * ldep_A
                 plugsite_B = ch.cen_B.plugsites[m] 
                 ldep_B = plugsite_B.calc_ldep()
-                p_nmB = plugsite_B.plug_state * ldep_B
-
-                C[0] += - p_nmA - p_nmB
-                C[self._idx[(0,n,m)]] = p_nmA
-                C[self._idx[(1,n,m)]] = p_nmB
+                pi_nmB = plugsite_B.plug_state * ldep_B
+                C[0] += - pi_nmA - pi_nmB
+                C[self._idx[(0,n,m)]] = abs(pi_nmA)
+                C[self._idx[(1,n,m)]] = abs(pi_nmB)
         return C
 
     def calcb(self):
@@ -364,87 +447,36 @@ cdef class Organite(object):
             return self.pos
         return self.traj[time_point]
 
+class Spindle(object) :
 
+    def __init__(self, KD):
+        self.KD = KD
         
-class Centromere(Organite):
-    """ 
-    The centromere is where the plugsites are bound to the
-    chromosome and where the cohesin spring restoring force, as
-    well as the friction coefficient, are applied.
-    This is a subclass of :class:`Organite`
-    
-    Parameters:
-    ----------
-    chromosome: a :class:`~Chromosome` instance
-       the parent chromosome
-    tag: {'A', 'B'}
-       Side of the centromere. Note that the centromere
-       side and the SPB side are not necesseraly related
+    def all_plugsites(self):
+        plugsites = []
+        for ch in self.KD.chromosomes:
+            for plugsite in ch.cen_A.plugsites:
+                plugsites.append(plugsite) 
+            for plugsite in ch.cen_B.plugsites:
+                plugsites.append(plugsite) 
+        return plugsites
+
+class Spb(Organite) :
+    """ A spindle pole object.
+
+    Attributes:
+    side: 1 or -1 (right or left. In the article, -1 correspond to the
+    daggered variable)
     """
-    def __init__(self, chromosome, tag='A', plug=None):
-
-        self.tag = tag
-        self.chromosome = chromosome
-        d0 = self.chromosome.KD.params['d0']
-        if tag == 'A':
-            init_pos = chromosome.pos + d0 / 2.
-        elif tag == 'B':
-            init_pos = chromosome.pos - d0 / 2.
-        else:
-            raise ValueError("the `tag` attribute must be 'A' or 'B'.")
-        Organite.__init__(self, chromosome, init_pos)
-        Mk = self.KD.params['Mk']
-        self.toa = 0 #time of arrival at pole
-        self.plugsites = [PlugSite(self, initial_plug = self.KD.initial_plug)
-                          for m in range(Mk)]
-        self.traj = np.zeros(self.KD.num_steps)
-
-    def is_attached(self):
+    def __init__(self, spindle, side, L0):
+        """ side = 1 : left
+        side = -1 : right
+        L0 : spindle length
         """
-        Returns True if at least one plugsite is attached
-        to at least one SPB
-        """
-        for plugsite in self.plugsites:
-            if plugsite.plug_state != 0:
-                return True
-        return False
+        self.side = side
+        init_pos = side * L0 / 2.
+        Organite.__init__(self, spindle, init_pos)
 
-    def P_attachleft(self):
-        orientation = self.KD.params['orientation']
-        if orientation == 0: return 0.5
-        cdef double lp, rp
-        lp = self.left_pluged()
-        rp = self.right_pluged()
-        if lp + rp == 0:
-            return 0.5
-        cdef double P_left
-        P_left = 0.5 + orientation * (lp - rp) / (2 * (lp + rp)) 
-        return P_left
-
-    def left_pluged(self):
-        cdef int lp
-        lp = -sum([plugsite.plug_state for plugsite
-                   in self.plugsites if plugsite.plug_state ==  -1])
-        return float(lp)
-
-    def right_pluged(self):
-        cdef int lp
-        rp = sum([plugsite.plug_state for plugsite
-                  in self.plugsites if plugsite.plug_state == 1])
-        return float(rp)
-
-    def at_rightpole(self, double tol=0.01):
-        rightpole_pos = self.KD.spbR.pos
-        if abs(self.pos - rightpole_pos) < tol:
-            return True
-        return False
-    
-    def at_leftpole(self, double tol=0.01):
-        leftpole_pos = self.KD.spbR.pos
-        if abs(self.pos - leftpole_pos) < tol:
-            return True
-        return False
-    
 
 class Chromosome(Organite):
     """The chromosome, containing two centromeres ('A' and 'B')
@@ -464,8 +496,7 @@ class Chromosome(Organite):
         Organite.__init__(self, spindle, center_pos)
         self.cen_A = Centromere(self, 'A')
         self.cen_B = Centromere(self, 'B')
-        
-        
+
         self.pluged_history = np.zeros((self.KD.num_steps, 2))
         self.pluged_history[0] = self.pluged()
         self.mero_history = np.zeros((self.KD.num_steps, 2))
@@ -500,6 +531,9 @@ class Chromosome(Organite):
     def pair_dist(self):
         return abs(self.cen_A.pos - self.cen_B.pos)
 
+    def signed_dist(self):
+        return self.cen_A.pos - self.cen_B.pos
+
     def plug_dist(self, double plugpos):
         return abs(self.center() - plugpos)
 
@@ -532,6 +566,89 @@ class Chromosome(Organite):
         else :
             return False
 
+        
+class Centromere(Organite):
+    """ 
+    The centromere is where the plugsites are bound to the
+    chromosome and where the cohesin spring restoring force, as
+    well as the friction coefficient, are applied.
+    This is a subclass of :class:`Organite`
+    
+    Parameters:
+    ----------
+    chromosome: a :class:`~Chromosome` instance
+       the parent chromosome
+    tag: {'A', 'B'}
+       Side of the centromere. Note that the centromere
+       side and the SPB side are not necesseraly related
+    """
+    def __init__(self, chromosome, tag='A', plug=None):
+
+        self.tag = tag
+        self.chromosome = chromosome
+        d0 = self.chromosome.KD.params['d0']
+        if tag == 'A':
+            init_pos = chromosome.pos - d0 / 2.
+        elif tag == 'B':
+            init_pos = chromosome.pos + d0 / 2.
+        else:
+            raise ValueError("the `tag` attribute must be 'A' or 'B'.")
+        Organite.__init__(self, chromosome, init_pos)
+        Mk = self.KD.params['Mk']
+        self.toa = 0 #time of arrival at pole
+        self.plugsites = [PlugSite(self, initial_plug = self.KD.initial_plug)
+                          for m in range(Mk)]
+        self.traj = np.zeros(self.KD.num_steps)
+
+    def is_attached(self):
+        """
+        Returns True if at least one plugsite is attached
+        to at least one SPB
+        """
+        for plugsite in self.plugsites:
+            if plugsite.plug_state != 0:
+                return True
+        return False
+
+    def P_attachleft(self):
+        orientation = self.KD.params['orientation']
+        if orientation == 0: return 0.5
+        cdef double lp, rp
+        lp = self.left_pluged()
+        rp = self.right_pluged()
+        if lp + rp == 0:
+            return 0.5
+        cdef double P_left
+        P_left = 0.5 + orientation * (lp - rp) / (2 * (lp + rp)) 
+        return P_left
+
+    def left_pluged(self):
+        cdef int lp
+        lp = - sum([plugsite.plug_state for plugsite
+                    in self.plugsites if plugsite.plug_state == - 1])
+        return float(lp)
+
+    def right_pluged(self):
+        cdef int lp
+        rp = sum([plugsite.plug_state for plugsite
+                  in self.plugsites if plugsite.plug_state == 1])
+        return float(rp)
+
+    def at_rightpole(self, double tol=0.01):
+        rightpole_pos = self.KD.spbR.pos
+        if abs(self.pos - rightpole_pos) < tol:
+            return True
+        return False
+    
+    def at_leftpole(self, double tol=0.01):
+        leftpole_pos = self.KD.spbR.pos
+        if abs(self.pos - leftpole_pos) < tol:
+            return True
+        return False
+    
+
+        
+
 class PlugSite(Organite):
 
     """An attachment site object.
@@ -556,16 +673,17 @@ class PlugSite(Organite):
         Organite.__init__(self, centromere, centromere.pos)
         self.centromere = centromere
         self.tag = self.centromere.tag
+
         if initial_plug == None: 
             self.plug_state = random.randint(-1, 1)
         elif initial_plug == 'null':
             self.plug_state = 0
         elif initial_plug == 'amphitelic':
-            self.plug_state = 1 if self.tag == 'A' else -1
+            self.plug_state = - 1 if self.tag == 'A' else 1
         elif initial_plug == 'random':
             self.plug_state = random.randint(-1, 1)
         elif initial_plug == 'monotelic':
-            self.plug_state = 1 if self.tag == 'A' else 0
+            self.plug_state = - 1 if self.tag == 'A' else 0
         elif initial_plug == 'syntelic':
             self.plug_state = 1
         elif initial_plug == 'merotelic':
@@ -602,7 +720,6 @@ class PlugSite(Organite):
         """
         cdef double ld0, ld_slope
         ld_slope = self.KD.params['ld_slope']
-        if ld_slope == 0: return 1.
         ld0 = self.KD.params['ld0']
         cdef double mt_length
         cdef double pole_pos
@@ -642,36 +759,3 @@ class PlugSite(Organite):
         k_dc = k_d0  *  d_alpha / dist
         if k_dc > 1e4: return 1.
         return 1 - np.exp(-k_dc) 
-
-
-class Spb(Organite) :
-
-    """ A spindle pole object.
-
-    Attributes:
-    side: 1 or -1 (right or left. In the article, -1 correspond to the
-    daggered variable)
-    """
-    
-    def __init__(self, spindle, side, L0):
-        """ side = 1 : left
-        side = -1 : right
-        L0 : spindle length
-        """
-        self.side = side
-        init_pos = side * L0 / 2.
-        Organite.__init__(self, spindle, init_pos)
-        
-class Spindle(object) :
-
-    def __init__(self, KD):
-        self.KD = KD
-        
-    def all_plugsites(self):
-        plugsites = []
-        for ch in self.KD.chromosomes:
-            for plugsite in ch.cen_A.plugsites:
-                plugsites.append(plugsite) 
-            for plugsite in ch.cen_B.plugsites:
-                plugsites.append(plugsite) 
-        return plugsites
