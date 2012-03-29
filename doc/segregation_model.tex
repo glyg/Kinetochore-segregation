@@ -200,24 +200,25 @@ $$
   + \mu_k(\dot{x}_n^A - \dot{x}_{nm}^A) $$
 \item Kinetochore microtubules force generators:
   \begin{equation}
-  \begin{aligned}
-    F_{kMT}^A =& \rho_{nm}^A\,F_k\left(1 - (\dot{x}^A_{nm} -
-      \dot{x}^R_s)/V_k\right)%
-      -\lambda_{nm}^A\,F_k\left(1 +
-        (\dot{x}^A_{nm} - \dot{x}^L_s)/V_k\right)\\
-    =& \rho_{nm}^A\,F_k\left(1 +  (\dot{x}^R_s - \dot{x}^A_{nm})/V_k\right)%
-    - \lambda_{nm}^A\,F_k\left(1 + (\dot{x}^A_{nm} + \dot{x}^R_s)/V_k\right)
-  \end{aligned}
+    \begin{aligned}
+      F_{kMT}^A &= F_{kMT}^{RA} + F_{kMT}^{LA}\\
+      F_{kMT}^{RA} &= \rho_{nm}^A\,F_k\left(1 - \frac{\dot{x}^A_{nm} -
+          \dot{x}^R_s}{V_k}\right)\\
+      F_{kMT}^{LA} &=  \lambda_{nm}^A\,F_k\left(-1 - \frac{\dot{x}^A_{nm} -
+          \dot{x}^L_s}{V_k}\right)\\
+    \end{aligned}
+  \end{equation}
+With $F_k = 1$ and $ V_k = 1$ (for now on, we are taking $F_k$ as
+unit force and $V_k$ as unit speed), this gives:
+\begin{equation}
+ F_{kMT}^A = \rho_{nm}^A\,\left(\dot{x}^R_s - \dot{x}^A_{nm} + 1\right)%
+ - \lambda_{nm}^A\,\left(\dot{x}^R_s + \dot{x}^A_{nm} + 1\right)
+\end{equation}
+Eventually, substituting $\lambda^A_{nm} - \rho^A_{nm}$ with $\pi_{nm}^A$ and $\lambda^A_{nm} + \rho^A_{nm}$ with $|\pi_{nm}^A|$:
+\begin{equation}
+    F_{kMT}^A =  \pi_{nm}^A(\dot{x}^R_s + 1) - |\pi_{nm}^A|\dot{x}^A_{nm}
 \end{equation}
 \end{itemize}
-
-
-For now on, we are taking $F_k$ as unit force and $V_k$ as unit speed and substituting
-$\lambda^A_{nm}$ and $\rho^A_{nm}$ with $\pi_{nm}^A$:
-\begin{equation}
-    F_{kMT}^A =  - |\pi_{nm}^A|\dot{x}^A_{nm} + \pi_{nm}^A(1 + \dot{x}^R_s)
-\end{equation}
-
 
 \subsection{Set of first order coupled equations}
 
@@ -225,14 +226,25 @@ In the viscous nucleoplasm, inertia is negligible. Newton first
 principle thus reduces to: $ \sum F = 0 $. This force balance equation
 can be written for each elements of the spindle. 
 To simplify further, the equations for the right and left SPBs can be
-combined. With the same substitutions as before:
+combined:
+ 
+\begin{equation}
+  \begin{aligned}
+    - \mu_s\dot{x}^R_s + F_{z}\left(1 - 2\dot{x}^R_s/V_z\right)%
+    + \sum_{n,m} - \rho_{nm}^A\,\left(\dot{x}^R_s - \dot{x}^A_{nm} +%
+      1\right) &= 0 \, \mbox{for the right SPB}\\
+    \mu_s\dot{x}^R_s - F_{z}\left(1 - 2\dot{x}^R_s/V_z\right)%
+    + \sum_{n,m} \lambda_{nm}^A\,\left(\dot{x}^R_s + \dot{x}^A_{nm} +%
+      1\right) &= 0 \, \mbox{for the left SPB}\\
+  \end{aligned}
+\end{equation}
+The difference of those two expressions gives, with the same substitutions as before:
 
 \begin{equation}
   \label{eq:spindle_term}
   - 2\mu_s\dot{x}^R_s + 2F_{z}\left(1 - 2\dot{x}^R_s/V_z\right)%
-  + \sum_{n,m}|\pi_{nm}^A|\dot{x}_{nm}^A%
-    + |\pi_{nm}^B|\dot{x}_{nm}^B%
-    - \left(\pi_{nm}^A + \pi_{nm}^B\right)(1 + \dot{x}^R_s) = 0
+  + \sum_{n,m}- (|\pi_{nm}^A|  + |\pi_{nm}^B|)(\dot{x}^R_s + 1)%
+  + \pi_{nm}^A \dot{x}_{nm}^A + \pi_{nm}^B = 0%
 \end{equation}
 
 All the equations are gathered together in the system of equations:
@@ -257,20 +269,27 @@ In matrix form, we have:\\
       x_{nm}^A\\
       x_n^B\\
       x_{nm}^B\\
+    \end{pmatrix} =%
+    \begin{pmatrix}
+      \text{Right SPB}\\
+      \text{Centromere }A, n\\
+      \text{Attachment site }A, n,m\\
+      \text{Centromere }B, n\\
+      \text{Attachment site }B, n,m\\
     \end{pmatrix}\\
     A = &% 
     \begin{pmatrix}
       %%%%% SPB %%%%
-      - 2 \mu_s - 4 F_z/V_z - \sum (\pi_{nm}^A + \pi_{nm}^B)& \hdots & \pi_{nm}^A &%
+      - 2 \mu_s - 4 F_z/V_z - \sum (|\pi_{nm}^A| + |\pi_{nm}^B|)& \hdots & \pi_{nm}^A &%
       \hdots &  \pi_{nm}^B\\
       %%%%% Centromere A %%%%
       \hdots &  -\mu_c - M_k \mu_k& \mu_k & \hdotsfor{2}\\
       %%%%% Att. Site A %%%%
-      \pi_{nm}^A & \mu_k & - \mu_k + |\pi_{nm}^A| & \hdotsfor{2}\\
+      \pi_{nm}^A & \mu_k & - \mu_k - |\pi_{nm}^A| & \hdotsfor{2}\\
       %%%%% Centromere B %%%%
       \hdotsfor{3} & -\mu_c - M_k \mu_k & \mu_k\\
       %%%%% Att. Site B %%%%
-      \pi_{nm}^B & \hdotsfor{2} & \mu_k & - \mu_k + |\pi_{nm}^B| \\
+      \pi_{nm}^B & \hdotsfor{2} & \mu_k & - \mu_k - |\pi_{nm}^B| \\
     \end{pmatrix}, \\
      % = &%
     B = &%
@@ -285,7 +304,7 @@ In matrix form, we have:\\
     \end{pmatrix}\\
     C = &%
     \begin{pmatrix}
-      2Fz - \sum_{n,m}(\pi_{nm}^A + \pi_{nm}^B) \\
+      2Fz - \sum_{n,m}(|\pi_{nm}^A| + |\pi_{nm}^B|) \\
       \delta_n^{AB} \kappa_c d_0\\
       \pi_{nm}^A\\
       -\delta_n^{AB} \kappa_c d_0\\
@@ -316,16 +335,16 @@ variable part $A_t$ with:\\
     A_t &=%
     \begin{pmatrix}
       %%%%% SPB %%%%
-      - \sum (\pi_{nm}^A + \pi_{nm}^B)& \hdots & \pi_{nm}^A &%
+      - \sum (|\pi_{nm}^A| + |\pi_{nm}^B|)& \hdots & \pi_{nm}^A &%
       \hdots &  \pi_{nm}^B\\
       %%%%% Centromere A %%%%
       \hdotsfor{5}\\
       %%%%% Att. Site A %%%%
-      \pi_{nm}^A & \hdots & |\pi_{nm}^A| & \hdotsfor{2}\\
+      \pi_{nm}^A & \hdots & - |\pi_{nm}^A| & \hdotsfor{2}\\
       %%%%% Centromere B %%%%
       \hdotsfor{5}\\
       %%%%% Att. Site B %%%%
-      \pi_{nm}^B & \hdotsfor{3} & |\pi_{nm}^B| \\
+      \pi_{nm}^B & \hdotsfor{3} & - |\pi_{nm}^B| \\
     \end{pmatrix}\\
   \end{aligned}
 \end{equation}

@@ -8,7 +8,7 @@
     <unit>&#181;m/s</unit>
     <description>Anaphase elongation rate</description>
   </param>
-  <param max="0.2" min="0." name="poleward_speed" step="0.001" value="0.03">
+  <param max="0.2" min="0." name="poleward_speed" step="0.001" value="0.02">
     <unit>&#181;m/s</unit>
     <description>Kt poleward speed</description>
   </param>

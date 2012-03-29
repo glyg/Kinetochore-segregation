@@ -221,8 +221,6 @@ class Metaphase(object):
             # Anaphase transition ?
             self._anaphase_test(time_point)
             self._one_step(time_point)
-            if movie and time_point/dt % 15 == 0:
-                self._make_movie(time_point, (50, 100,  3))
         self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
         delay_str = "delay = %2d seconds" % self.delay
@@ -230,11 +228,8 @@ class Metaphase(object):
 
     def _one_step(self, time_point):
         """elementary step"""
-        if not self.KD.anaphase:
-            self.KD.plug_unplug(time_point)
-        speeds = self.KD.solve()
-        self.KD.position_update(speeds, time_point)
-
+        self.KD.one_step(time_point)
+        
     def _anaphase_test(self, t):
         """returns True if anaphase has been executed.
         At anaphase onset, set the cohesin spring constent to 0 and
@@ -248,7 +243,7 @@ class Metaphase(object):
                 self.delay = t - t_A 
                 #Then we just get rid of cohesin
                 self.KD.params['kappa_c'] = 0.
-                self.KD.B_mat = self.KD.write_B()
+                self.KD.B0_mat = self.KD.time_invariantB()
                 nb_mero = self._mero_checkpoint()
                 if nb_mero:
                     s = ("There were %d merotelic MT at anaphase onset"
@@ -283,7 +278,7 @@ class Metaphase(object):
 
     def _plug_checkpoint(self):
         """If the spindle assembly checkpoint is active, returns True
-        if all chromosomes are pluged by at least one kMT, False
+        if all chromosomes are plugged by at least one kMT, False
         otherwise.
 
         """
@@ -456,7 +451,7 @@ class Metaphase(object):
         col_num = 2
         #chromosomes
         for n, ch in enumerate(chromosomes):
-            # Adding pluged_history and mero_history
+            # Adding plugged_history and mero_history
             rch = SubElement(experiment, "trajectory", name="centromereA",
                              index = str(n), column=str(col_num), units='mu m')
             text = "chromosome %i centromere A trajectory" % n
@@ -464,9 +459,9 @@ class Metaphase(object):
             wavelist.append(ch.cen_A.traj)
             col_num += 1
             
-            SubElement(experiment, "numberpluged", name="centromereA",
+            SubElement(experiment, "numberplugged", name="centromereA",
                        index=str(n), column=str(col_num))
-            wavelist.append(ch.pluged_history[:, 0])
+            wavelist.append(ch.plugged_history[:, 0])
             col_num += 1
             SubElement(experiment, "numbermero",
                        name="centromereA", index = str(n),
@@ -480,9 +475,9 @@ class Metaphase(object):
             SubElement(lch, "description").text = text
             wavelist.append(np.array(ch.cen_B.traj))
             col_num += 1
-            SubElement(experiment, "numberpluged", name="centromereB",
+            SubElement(experiment, "numberplugged", name="centromereB",
                        index=str(n), column=str(col_num))
-            wavelist.append(ch.pluged_history[:, 1])
+            wavelist.append(ch.plugged_history[:, 1])
             col_num += 1
 
             SubElement(experiment, "numbermero", name="centromereB",
@@ -593,22 +588,22 @@ class Metaphase(object):
         for plugsite in ch.cen_B.plugsites:
             ax.plot(self.timelapse, plugsite.traj, 'purple')
         mero_hist = np.asarray(ch.mero_history)
-        pluged_hist = np.asarray(ch.pluged_history)
+        plugged_hist = np.asarray(ch.plugged_history)
         
         fig.add_subplot(311)
         ax = fig.gca()   
         ax.plot(self.timelapse, mero_hist[:, 0], 'r',
                 label='number of merotellic MTs')
-        ax.plot(self.timelapse, pluged_hist[:, 0], 'g',
-                label='number of pluged MTs')
+        ax.plot(self.timelapse, plugged_hist[:, 0], 'g',
+                label='number of plugged MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
 
         fig.add_subplot(313)
         ax = fig.gca()
         ax.plot(self.timelapse, mero_hist[:, 1], 'r',
                 label='number of merotelic MTs')
-        ax.plot(self.timelapse, pluged_hist[:, 1], 'g',
-                label='number of pluged MTs')
+        ax.plot(self.timelapse, plugged_hist[:, 1], 'g',
+                label='number of plugged MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
         plt.show()
         
@@ -882,7 +877,7 @@ def get_fromfile(xmlfname = "results.xml"):
                           measuretree = measuretree)
     
     traj_matrix = restree.get_all_trajs()
-    pluged_matrix = restree.get_all_pluged()
+    plugged_matrix = restree.get_all_plugged()
     mero_matrix = restree.get_all_mero()
     state_hist_matrix = restree.get_all_plug_state()
     KD = KinetoDynamics(params)
@@ -896,7 +891,7 @@ def get_fromfile(xmlfname = "results.xml"):
         col_num += 1
         ch.cen_B.traj = traj_matrix[:, col_num]
         col_num += 1
-        ch.pluged_history = (pluged_matrix[:, n*2 : n*2 + 2])
+        ch.plugged_history = (plugged_matrix[:, n*2 : n*2 + 2])
         ch.mero_history = (mero_matrix[:, n*2 : n*2 + 2])
         for plugsite in ch.cen_A.plugistes:
             plugsite.traj = traj_matrix[:, col_num]

@@ -60,9 +60,6 @@ class KinetoDynamics(object) :
         L0 = self.params['L0']
         N = int(self.params['N'])
         Mk = int(self.params['Mk'])
-        d0 = self.params['d0']
-        k_a = self.params['k_a']
-        k_d0 = self.params['k_d0']
         duration = self.params['span']
         dt = self.params['dt']
         self.num_steps = int(duration/dt)
@@ -73,12 +70,13 @@ class KinetoDynamics(object) :
         self.chromosomes = [Chromosome(self.spindle)
                             for n in range(N)]
         self._idx = self._calc_idx()
-        dim = 1 + N * ( 1 + Mk ) * 2
+        cdef int dim = 1 + N * ( 1 + Mk ) * 2
         self.B0_mat = self.time_invariantB()
         self.A0_mat = self.time_invariantA()
         self.At_mat = np.zeros((dim, dim), dtype = float)
         self.Bt_mat = np.zeros((dim, dim), dtype = float)
         self.step_count = 0
+        self.anaphase = False
         
     def _calc_idx(self):
         """Returns the  index dictionnary
@@ -95,11 +93,20 @@ class KinetoDynamics(object) :
                 idxs[(b,n,m)] =  2*n*(Mk + 1) + 3 + Mk + m
         return idxs
 
+    def one_step(self, time_point):
+        """elementary step"""
+        if not self.anaphase:
+            self.plug_unplug(time_point)
+        self.solve()
+        self.position_update(time_point)
+
     def solve(self):
+        X = self.get_state_vector()
         A = self.calcA()
-        b = - self.calcb()
-        speeds = linalg.solve(A, b)
-        return speeds
+        B = self.calc_B()
+        C = self.calc_C()
+        pos_dep = np.dot(B,X) + C
+        self.speeds = linalg.solve(A, -pos_dep)
 
     def get_state_vector(self):
         """
@@ -120,7 +127,12 @@ class KinetoDynamics(object) :
         
     #Wrighting the equations (see doc/segregation_model.pdf for details)
 
-    cpdef time_invariantA(self):
+    def calcA(self):
+        self.time_dependentA()
+        A = self.A0_mat + self.At_mat
+        return A
+
+    def time_invariantA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef double muc = self.params['muc']
@@ -156,42 +168,46 @@ class KinetoDynamics(object) :
         return A0
 
         
-    cpdef time_depedantA(self):
+    def time_dependentA(self):
 
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
 
         cdef float pi_nmA, pi_nmB
-        cdef float ldep_A, ldep_B
+        #cdef float ldep_A, ldep_B
         # inner plate
         
         for n in range(N):
             ch = self.chromosomes[n]
             for m in range(Mk):
                 plugsite_A = ch.cen_A.plugsites[m]
-                ldep_A = plugsite_A.calc_ldep()
-                pi_nmA = plugsite_A.plug_state * ldep_A
+                #ldep_A = plugsite_A.calc_ldep()
+                pi_nmA = plugsite_A.plug_state# * ldep_A
+
                 plugsite_B = ch.cen_B.plugsites[m]
-                ldep_B = plugsite_B.calc_ldep()
-                pi_nmB = plugsite_B.plug_state * ldep_B
+                #ldep_B = plugsite_B.calc_ldep()
+                pi_nmB = plugsite_B.plug_state# * ldep_B
 
                 #spbs diag terms:
-                self.At_mat[0,0] -= pi_nmA + pi_nmB
+                self.At_mat[0,0] -= abs(pi_nmA) + abs(pi_nmB)
                 #A side
                 self.At_mat[self._idx[(0,n,m)],
-                  self._idx[(0,n,m)]] = abs(pi_nmA)
+                  self._idx[(0,n,m)]] = - abs(pi_nmA)
                 self.At_mat[0, self._idx[(0,n,m)]] = pi_nmA
-                self.At_mat[self._idx[(0,n,m)], 0] = pi_nmA
+                self.At_mat[self._idx[(0,n,m)], 0] = abs(pi_nmA)
                 #B side
                 self.At_mat[self._idx[(1,n,m)],
-                  self._idx[(1,n,m)]] = abs(pi_nmB)
+                  self._idx[(1,n,m)]] = - abs(pi_nmB)
                 self.At_mat[0, self._idx[(1,n,m)]] = pi_nmB
-                self.At_mat[self._idx[(1,n,m)], 0] = pi_nmB
+                self.At_mat[self._idx[(1,n,m)], 0] = abs(pi_nmB)
 
-    def calcA(self):
-        self.time_dependantA()
-        A = self.A0_mat + self.At_mat
-        return A
+    def calc_B(self):
+        """Returns the matrix containing the linear terms
+        of the equation set A\dot{X} + BX + C = 0
+        """
+        self.time_dependentB()
+        B = self.B0_mat + self.Bt_mat
+        return B
 
     def time_invariantB(self):
         """Returns the constant part of the matrix containing the
@@ -225,61 +241,35 @@ class KinetoDynamics(object) :
                   self._idx[(1, n)]] = 1
         return kappa_k * B0
 
-    def time_dependantB(self):
+    def time_dependentB(self):
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
-        for n in range(N) :
-            ch = self.chromosomes[n]
-            if abs(ch.cen_B.pos - ch.cen_A.pos) > d0:
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = - 1
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = - 1
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = 1 
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = 1
-                
-
-
-    def calc_B(self):
-        """Returns the matrix containing the linear terms
-        of the equation set A\dot{X} + BX + C = 0
-        """
         kappa_c = self.params['kappa_c']
-        kappa_k = self.params['kappa_k']
         d0 = self.params['d0']
-        dim = 1 + N * ( 1 + Mk ) * 2
-        B = np.zeros((dim, dim), dtype = float)
-        B[0,0] = 0
         for n in range(N) :
             ch = self.chromosomes[n]
-            B[self._idx[(0, n)],
-              self._idx[(0, n)]] = - Mk*kappa_k 
-            B[self._idx[(1, n)],
-              self._idx[(1, n)]] = - Mk*kappa_k
-            for m in range(Mk):
-                B[self._idx[(0, n, m)],
-                  self._idx[(0, n, m)]] -= kappa_k
-                B[self._idx[(1, n, m)],
-                  self._idx[(1, n, m)]] -= kappa_k
-                B[self._idx[(0, n)],
-                  self._idx[(0, n, m)]] = kappa_k
-                B[self._idx[(0, n, m)],
-                  self._idx[(0, n)]] = kappa_k
-                B[self._idx[(1, n)],
-                  self._idx[(1, n, m)]] = kappa_k
-                B[self._idx[(1, n, m)],
-                  self._idx[(1, n)]] = kappa_k
-
-                
-
-
-        return B
+            if True:#abs(ch.cen_B.pos - ch.cen_A.pos) > d0:
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = - kappa_c
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = - kappa_c
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = kappa_c
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = kappa_c
+            else:
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = 0
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = 0
+                self.Bt_mat[self._idx[(1, n)],
+                            self._idx[(0, n)]] = 0 
+                self.Bt_mat[self._idx[(0, n)],
+                            self._idx[(1, n)]] = 0
 
     def calc_C(self):
-        """Returns the matrix containing the linear terms
+        """Returns the vector containing the constant terms
         of the equation set A\dot{X} + BX + C = 0
         """
         cdef int N = int(self.params['N'])
@@ -292,10 +282,10 @@ class KinetoDynamics(object) :
         C[0] = 2 * Fmz
         for n in range(N):
             ch = self.chromosomes[n]
-            if ch.cen_B.pos - ch.cen_A.pos > d0:
+            if ch.cen_B.pos - ch.cen_A.pos > 0 :
                 C[self._idx[(0,n)]] = - kappa_c * d0
                 C[self._idx[(1,n)]] = + kappa_c * d0
-            if ch.cen_B.pos - ch.cen_A.pos < - d0:
+            elif ch.cen_B.pos - ch.cen_A.pos < 0 :
                 C[self._idx[(0,n)]] = kappa_c * d0
                 C[self._idx[(1,n)]] = - kappa_c * d0
             for m in range(Mk):
@@ -305,45 +295,22 @@ class KinetoDynamics(object) :
                 plugsite_B = ch.cen_B.plugsites[m] 
                 ldep_B = plugsite_B.calc_ldep()
                 pi_nmB = plugsite_B.plug_state * ldep_B
-                C[0] += - pi_nmA - pi_nmB
-                C[self._idx[(0,n,m)]] = abs(pi_nmA)
-                C[self._idx[(1,n,m)]] = abs(pi_nmB)
+                C[0] -= abs(pi_nmA) + abs(pi_nmB)
+                C[self._idx[(0,n,m)]] = pi_nmA
+                C[self._idx[(1,n,m)]] = pi_nmB
         return C
 
-    def calcb(self):
-        B = self.B_mat
-        C = self.calc_C()
-        X = self.get_state_vector()
-
-        ### --- THIS TRIGGERS BAD BEHAVIOUR - INVESTIGATE LATER 
-        # ## Correction for the modeling  of chromatin: If
-        # ## The distance between two kts is less than the equilibrium distance
-        # ## The force should be 0 (it shall not oppose the congression
-        # ## As seen experimentaly
-        # N = self.params['N']
-        # d0 = self.params['d0']
-        # # for n in range(N):
-        # #     ch = self.chromosomes[n]
-        # #     if abs(ch.rightpos - ch.leftpos) < d0 :
-        # #         B[self._idx[(0,n)], self._idx[(1,n)]] = 0
-        # #         B[self._idx[(1,n)], self._idx[(0,n)]] = 0
-
-        #product = np.dot(B.todense(), X)
-        product = np.dot(B,X)
-        pos_dep = product + C
-        return pos_dep
-
-    def test_anaphase_switch(self):
-        N = int(self.params["N"])
-        for n in range(N):
-            ch = self.chromosomes[n]
-            if ch.anaphase_switch[0] == 0:
-                if ch.isatrightpole() and (ch.mero()[0] == 0):
-                    #print 'switch!'
-                    ch.anaphase_switch[0] = 1
-            if  ch.anaphase_switch[1] == 0:                    
-                if ch.isatleftpole() and (ch.mero()[1] == 0):
-                    ch.anaphase_switch[1] = 1
+    # def test_anaphase_switch(self):
+    #     N = int(self.params["N"])
+    #     for n in range(N):
+    #         ch = self.chromosomes[n]
+    #         if ch.anaphase_switch[0] == 0:
+    #             if ch.isatrightpole() and (ch.mero()[0] == 0):
+    #                 #print 'switch!'
+    #                 ch.anaphase_switch[0] = 1
+    #         if  ch.anaphase_switch[1] == 0:                    
+    #             if ch.isatleftpole() and (ch.mero()[1] == 0):
+    #                 ch.anaphase_switch[1] = 1
 
     def plug_unplug(self, int time_point):
         """Let's play dices ...
@@ -357,7 +324,9 @@ class KinetoDynamics(object) :
                 ch.cen_A.plugsites[m].plug_unplug(time_point)
                 ch.cen_B.plugsites[m].plug_unplug(time_point)
 
-    def position_update(self, np.ndarray speeds, int time_point):
+
+
+    def position_update(self, int time_point):
         """given the speeds obtained by solving Atot.x = btot
         and caclulated switch events 
         """
@@ -366,6 +335,7 @@ class KinetoDynamics(object) :
         cdef double dt = self.params['dt']
         cdef double Vk = self.params['Vk']
 
+        speeds = self.speeds
         speeds *= Vk * dt #Back to real space
         self.spbR.set_pos(self.spbR.pos + speeds[0], time_point)
         self.spbL.set_pos(self.spbL.pos - speeds[0], time_point)
@@ -382,9 +352,8 @@ class KinetoDynamics(object) :
                 plugsite = ch.cen_B.plugsites[m]
                 new_pos = plugsite.pos + speeds[self._idx[(1,n,m)]]
                 plugsite.set_pos(new_pos, time_point)
-            ch.pluged_history[time_point] = ch.pluged()
+            ch.plugged_history[time_point] = ch.plugged()
             ch.mero_history[time_point] = ch.mero()
-        self.step_count += 1
 
     def get_sim_duration(self):
         return (len(self.spbR.traj) - 1)*self.params['dt']
@@ -414,28 +383,28 @@ cdef class Organite(object):
     cdef int num_steps
     cdef double init_pos
     
-    def __init__(self, parent, double init_pos=0.):
+    def __init__(self, parent, double init_pos):
         """
         
         """
         self.parent = parent
         self.KD = parent.KD
         self.num_steps = parent.KD.num_steps
-        self.pos = init_pos
         self.traj = np.zeros(self.num_steps)
+        self.pos = init_pos
         self.traj[0] = init_pos
         
-    cpdef set_pos(self, double pos, int time_point=0):
+    cpdef set_pos(self, double pos, int time_point=-1):
         """sets the position. If `time_point` is provided, sets
         the corresponding value in self.traj[time_point]
         """
         self.pos = pos
-        if self.pos < self.KD.spbL.pos: 
-            self.pos = self.KD.spbL.pos
-        elif pos > self.KD.spbR.pos:
+        if pos > self.KD.spbR.pos:
             self.pos = self.KD.spbR.pos
-        if time_point > 0:
-            self.traj[time_point] = pos
+        elif self.pos < self.KD.spbL.pos: 
+            self.pos = self.KD.spbL.pos
+        if time_point >= 0:
+            self.traj[time_point] = self.pos
 
     cpdef double get_pos(self, int time_point=0):
         """Returns the position.
@@ -477,7 +446,6 @@ class Spb(Organite) :
         init_pos = side * L0 / 2.
         Organite.__init__(self, spindle, init_pos)
 
-
 class Chromosome(Organite):
     """The chromosome, containing two centromeres ('A' and 'B')
 
@@ -497,36 +465,36 @@ class Chromosome(Organite):
         self.cen_A = Centromere(self, 'A')
         self.cen_B = Centromere(self, 'B')
 
-        self.pluged_history = np.zeros((self.KD.num_steps, 2))
-        self.pluged_history[0] = self.pluged()
+        self.plugged_history = np.zeros((self.KD.num_steps, 2))
+        self.plugged_history[0] = self.plugged()
         self.mero_history = np.zeros((self.KD.num_steps, 2))
         self.mero_history[0] = self.mero()
 
     def is_right_A(self):
-        """returns True if centromere A is pluged
+        """returns True if centromere A is plugged
         mainly to the right pole.
         """
-        right_A = self.cen_A.right_pluged() + self.cen_B.left_pluged()
-        left_A = self.cen_B.right_pluged() + self.cen_A.left_pluged()
+        right_A = self.cen_A.right_plugged() + self.cen_B.left_plugged()
+        left_A =  self.cen_A.left_plugged() + self.cen_B.right_plugged()
         if right_A >= left_A:
             return True
         return False
         
-    def pluged(self):
-        """returns the number of correctly pluged MTs 
+    def plugged(self):
+        """returns the number of correctly plugged MTs 
         """
         if self.is_right_A():
-            return self.cen_A.right_pluged(), self.cen_B.left_pluged() 
+            return self.cen_A.right_plugged(), self.cen_B.left_plugged() 
         else:
-            return self.cen_A.left_pluged(), self.cen_B.right_pluged() 
+            return self.cen_A.left_plugged(), self.cen_B.right_plugged() 
 
     def mero(self):
-        """returns the number of erroneously pluged MTs 
+        """returns the number of erroneously plugged MTs 
         """
         if self.is_right_A():
-            return self.cen_A.left_pluged(), self.cen_B.right_pluged()
+            return self.cen_A.left_plugged(), self.cen_B.right_plugged()
         else:
-            return self.cen_A.right_pluged(), self.cen_B.left_pluged()
+            return self.cen_A.right_plugged(), self.cen_B.left_plugged()
         
     def pair_dist(self):
         return abs(self.cen_A.pos - self.cen_B.pos)
@@ -540,7 +508,7 @@ class Chromosome(Organite):
     def center(self):
         return (self.cen_A.pos + self.cen_B.pos)/2
 
-    def cen_traj(self):
+    def center_traj(self):
         return (self.cen_A.traj + self.cen_B.traj)/2
 
     def at_rightpole(self, double tol) :
@@ -596,10 +564,10 @@ class Centromere(Organite):
         Organite.__init__(self, chromosome, init_pos)
         Mk = self.KD.params['Mk']
         self.toa = 0 #time of arrival at pole
-        self.plugsites = [PlugSite(self, initial_plug = self.KD.initial_plug)
-                          for m in range(Mk)]
-        self.traj = np.zeros(self.KD.num_steps)
-
+        self.state_vector = np.zeros(Mk)
+        self.plugsites = [PlugSite(self) for m in range(Mk)]
+        self.calc_state_vector()
+        
     def is_attached(self):
         """
         Returns True if at least one plugsite is attached
@@ -610,29 +578,38 @@ class Centromere(Organite):
                 return True
         return False
 
+    def calc_state_vector(self):
+        cdef np.ndarray state
+        state = np.array([plugsite.plug_state for plugsite
+                          in self.plugsites])
+        self.state_vector = state
+        
     def P_attachleft(self):
+
         orientation = self.KD.params['orientation']
         if orientation == 0: return 0.5
-        cdef double lp, rp
-        lp = self.left_pluged()
-        rp = self.right_pluged()
+        cdef float lp, rp
+        self.calc_state_vector()
+        lp = self.left_plugged()
+        rp = self.right_plugged()
         if lp + rp == 0:
             return 0.5
-        cdef double P_left
+        cdef float P_left
         P_left = 0.5 + orientation * (lp - rp) / (2 * (lp + rp)) 
         return P_left
 
-    def left_pluged(self):
-        cdef int lp
-        lp = - sum([plugsite.plug_state for plugsite
-                    in self.plugsites if plugsite.plug_state == - 1])
-        return float(lp)
-
-    def right_pluged(self):
-        cdef int lp
-        rp = sum([plugsite.plug_state for plugsite
-                  in self.plugsites if plugsite.plug_state == 1])
-        return float(rp)
+    def left_plugged(self):
+        cdef float lp 
+        cdef np.ndarray left_plugged
+        left_plugged = self.state_vector * (self.state_vector - 1) / 2.
+        lp = left_plugged.sum()
+        return lp
+        
+    def right_plugged(self):
+        cdef float rp
+        right_plugged = self.state_vector * (1 + self.state_vector) / 2.
+        rp = right_plugged.sum()
+        return rp
 
     def at_rightpole(self, double tol=0.01):
         rightpole_pos = self.KD.spbR.pos
@@ -645,8 +622,6 @@ class Centromere(Organite):
         if abs(self.pos - leftpole_pos) < tol:
             return True
         return False
-    
-
         
 
 class PlugSite(Organite):
@@ -655,25 +630,14 @@ class PlugSite(Organite):
 
     Parameters:
     -----------
-    cen: a Centromere instance
-    plug : string
-        The `initial_plug` argument can be either of the following:
-        None (the default), in which case the PlugSite is randomly attached
-        * 'null': self.plug = 0
-        * 'amphitelic' -- self.plug_state = -1 for A side plugsites and
-            self.plug_state = 1 for B side ones 
-        * 'random' -- self.plug = -1, 0, or 1 with equal probability
-        * 'monotelic' -- self.plug = -1 for A side plugsites
-              and self.plug = 0 for  B side ones
-        * 'syntelic' --  self.plug = 1 in any case
-    
+    centromere: a Centromere instance
     """
-
-    def __init__(self, centromere, initial_plug):
-        Organite.__init__(self, centromere, centromere.pos)
+    def __init__(self, centromere):
+        cdef double init_pos = centromere.pos
+        Organite.__init__(self, centromere, init_pos)
+        initial_plug = self.KD.initial_plug
         self.centromere = centromere
         self.tag = self.centromere.tag
-
         if initial_plug == None: 
             self.plug_state = random.randint(-1, 1)
         elif initial_plug == 'null':
@@ -690,12 +654,12 @@ class PlugSite(Organite):
             self.plug_state = random.choice([-1,1])
         else:
             self.plug_state = initial_plug
-        
+        self.set_pos(init_pos)
         self.state_hist = np.zeros(self.KD.num_steps)
         self.state_hist[:] = self.plug_state
         self.P_att = 1 - np.exp(- self.KD.params['k_a'])
 
-    def set_plug_state(self, state, time_point):
+    def set_plug_state(self, state, int time_point = -1):
         self.plug_state = state
         self.state_hist[time_point:] = state
 
@@ -740,12 +704,12 @@ class PlugSite(Organite):
         if self.plug_state == 0 and dice < self.P_att:
             side_dice = random.random()
             P_left = self.centromere.P_attachleft()
-            if dice < P_left:
+            if side_dice < P_left:
                 self.set_plug_state(-1, time_point)
             else:
                 self.set_plug_state(1, time_point)
         #Detachment
-        elif self.plug_state != 0 and dice < self.P_det():
+        elif dice < self.P_det():
             self.set_plug_state(0, time_point)
                     
     def P_det(self):
