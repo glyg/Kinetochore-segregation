@@ -220,15 +220,16 @@ class Metaphase(object):
                 self._ablation(time_point, pos = self.KD.spbL.pos)
             # Anaphase transition ?
             self._anaphase_test(time_point)
-            self._one_step(time_point)
+            self.KD.one_step(time_point)
+            #self._one_step(time_point)
         self.KD.params['kappa_c'] = kappa_c
         self.KD.delay = self.delay - 1
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
 
-    def _one_step(self, time_point):
-        """elementary step"""
-        self.KD.one_step(time_point)
+    # def _one_step(self, time_point):
+    #     """elementary step"""
+    #     self.KD.one_step(time_point)
         
     def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.

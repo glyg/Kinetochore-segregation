@@ -7,7 +7,7 @@ import pstats, cProfile
 import pyximport
 pyximport.install()
 
-import simul_spindle
+from kt_simul import simul_spindle
 
 m = simul_spindle.Metaphase()
 cProfile.runctx("m.simul()", globals(), locals(), "Profile.prof")

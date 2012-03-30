@@ -124,6 +124,8 @@ centromere A attached to the left and right SPBs, respectively:
 Note that $N_n^{AL} + N_n^{AR} \leq M_k\, \forall\, \pi_{nm} $
 The same definitions apply for the centromere B and left SPB.
 
+\section{Mechanical system}
+
 \subsection{Forces}
 
 The following force balances are considered:
@@ -217,7 +219,7 @@ Eventually, substituting $\lambda^A_{nm} - \rho^A_{nm}$ with $\pi_{nm}^A$ and $\
 \end{equation}
 \end{itemize}
 
-\subsection{Set of first order coupled equations}
+\subsection{Set of coupled first order differential equations}
 
 In the viscous nucleoplasm, inertia is negligible. Newton first
 principle thus reduces to: $ \sum F = 0 $. This force balance equation
@@ -292,11 +294,11 @@ In matrix form, we have:\\
     B = &%
     \begin{pmatrix}
       \,0\, & \hdotsfor{4}\\
-      \hdots & - |\delta_n|\kappa_c - M_k \kappa_k & \kappa_k &%
-      |\delta_n|\kappa_c & \hdots \\
+      \hdots & - \kappa_c - M_k \kappa_k & \kappa_k &%
+      \kappa_c & \hdots \\
       \hdots & \kappa_k & -\kappa_k &  \hdotsfor{2}\\
-      \hdots & |\delta_n|\kappa_c & \hdots &%
-      -|\delta_n|\kappa_c - M_k \kappa_k & \kappa_k \\
+      \hdots & \kappa_c & \hdots &%
+      -\kappa_c - M_k \kappa_k & \kappa_k \\
       \hdotsfor{3}  & \kappa_k & - \kappa_k\\
     \end{pmatrix}\\
     C = &%
@@ -351,17 +353,9 @@ variable part $A_t$ with:\\
 \end{equation}
 
 For the sake of clarity, $B$ can be decomposed in a kinetochore and a
-cohesin part:
+cohesin part, $B = B_c + B_k$:
 \begin{equation}
-  B_k =% 
-  \begin{pmatrix}
-    \,0\, & \hdotsfor{4}\\
-    \hdots &  - M_k \kappa_k & \kappa_k & \hdotsfor{2} \\
-    \hdots & \kappa_k & -\kappa_k &  \hdotsfor{2}\\
-    \hdots &  \hdotsfor{2} & - M_k \kappa_k & \kappa_k \\
-    \hdotsfor{3}  & \kappa_k & - \kappa_k\\
-  \end{pmatrix}
-  =\kappa_k%
+  B = \kappa_k% 
   \begin{pmatrix}
     \,0\, & \hdotsfor{4}\\
     \hdots &  - M_k  & 1 & \hdotsfor{2} \\
@@ -369,19 +363,41 @@ cohesin part:
     \hdots &  \hdotsfor{2} & - M_k  & 1 \\
     \hdotsfor{3}  & 1 & - 1\\
   \end{pmatrix}
-\end{equation}
-And
-\begin{equation}
-  B_c =\kappa_c%
+  + \kappa_c%
   \begin{pmatrix}
     \,0\, & \hdotsfor{4}\\
-    \hdots & - |\delta_n| & \hdots & |\delta_n| & \hdots \\
+    \hdots & - 1 & \hdots & 1  & \hdots \\
     \hdotsfor{5}\\
-    \hdots & |\delta_n| & \hdots & -|\delta_n|& \hdots \\
+    \hdots & 1 & \hdots & -1 & \hdots \\
     \hdotsfor{5}\\
   \end{pmatrix}
 \end{equation}
 
+
+\section{Attachment instability}
+
+\subsection{Attachment rate}
+
+For a detached site ($\pi_{nm} = 0$), the probability to attach to a
+new microtubule in the time interval $dt$ is given by: $P_a = 1 -
+\exp(k_a\,dt)$. If an attachment event occurs, it can be to the left
+SPB with a probability $P_L$ such that:
+\begin{equation}
+  \label{eq:p_left}
+  P_L =  1/2 + \beta \frac{N_n^{AL} - N_n^{BL}}{2(N_n^{AL} + N_n^{BL})}
+\end{equation}
+
+\subsection{Detachment rate}
+
+The detachment rate $k_d$ depends on the position of the attachment
+site with respect to the centromere\footnote{The following expression
+  diverges when $ x_{nm}^A = x_n^A $, but this is only means the
+  probability tends to 1. In the simulation code, a cut off value for
+  $k_d$ is given.} :
+\begin{equation}
+  \label{eq:k_det}
+  k_d = k_d^0 \frac{d_\alpha}{|x_{nm}^A - x_n^A|}
+\end{equation}
 
 % With this order, the index of the $n^{th}$ centromere A, noted
 % $i_{n}^A$ is given by $i_{n}^A = 2n(M_k+1) + 2$. Similarly, we have:
