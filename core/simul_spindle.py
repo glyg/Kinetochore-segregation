@@ -230,20 +230,22 @@ class Metaphase(object):
         """elementary step"""
         self.KD.one_step(time_point)
         
-    def _anaphase_test(self, t):
+    def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.
         At anaphase onset, set the cohesin spring constent to 0 and
         self.KD.anaphase to True.
         """
         t_A = int(self.KD.params['t_A'])
-        if self.KD.anaphase:
+        dt = self.KD.params['dt']
+        t = time_point * dt
+        if self.KD.anaphase :
             return True
-        if t_A <= t and self._plug_checkpoint():
+        if t >= t_A and self._plug_checkpoint():
             if self.delay == -1 :
                 self.delay = t - t_A 
                 #Then we just get rid of cohesin
                 self.KD.params['kappa_c'] = 0.
-                self.KD.B0_mat = self.KD.time_invariantB()
+                self.KD.calc_B()
                 nb_mero = self._mero_checkpoint()
                 if nb_mero:
                     s = ("There were %d merotelic MT at anaphase onset"

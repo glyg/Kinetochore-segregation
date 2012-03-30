@@ -71,12 +71,13 @@ class KinetoDynamics(object) :
                             for n in range(N)]
         self._idx = self._calc_idx()
         cdef int dim = 1 + N * ( 1 + Mk ) * 2
-        self.B0_mat = self.time_invariantB()
+        self.calc_B()
         self.A0_mat = self.time_invariantA()
         self.At_mat = np.zeros((dim, dim), dtype = float)
-        self.Bt_mat = np.zeros((dim, dim), dtype = float)
         self.step_count = 0
         self.anaphase = False
+        self.spindle.all_plugsites = self.spindle.get_all_plugsites()
+
         
     def _calc_idx(self):
         """Returns the  index dictionnary
@@ -102,8 +103,8 @@ class KinetoDynamics(object) :
 
     def solve(self):
         X = self.get_state_vector()
-        A = self.calcA()
-        B = self.calc_B()
+        A = self.calc_A()
+        B = self.B_mat
         C = self.calc_C()
         pos_dep = np.dot(B,X) + C
         self.speeds = linalg.solve(A, -pos_dep)
@@ -127,7 +128,7 @@ class KinetoDynamics(object) :
         
     #Wrighting the equations (see doc/segregation_model.pdf for details)
 
-    def calcA(self):
+    def calc_A(self):
         self.time_dependentA()
         A = self.A0_mat + self.At_mat
         return A
@@ -172,102 +173,93 @@ class KinetoDynamics(object) :
 
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
-
-        cdef float pi_nmA, pi_nmB
+        self.At_mat[0,0] = 0
+        cdef int pi_nmA, pi_nmB
+        cdef int pluggedA, pluggedB
         #cdef float ldep_A, ldep_B
-        # inner plate
-        
         for n in range(N):
             ch = self.chromosomes[n]
             for m in range(Mk):
                 plugsite_A = ch.cen_A.plugsites[m]
                 #ldep_A = plugsite_A.calc_ldep()
                 pi_nmA = plugsite_A.plug_state# * ldep_A
-
+                pluggedA = plugsite_A.plugged
                 plugsite_B = ch.cen_B.plugsites[m]
                 #ldep_B = plugsite_B.calc_ldep()
                 pi_nmB = plugsite_B.plug_state# * ldep_B
-
+                pluggedB = plugsite_B.plugged
                 #spbs diag terms:
-                self.At_mat[0,0] -= abs(pi_nmA) + abs(pi_nmB)
+                self.At_mat[0,0] -= pluggedA + pluggedB
                 #A side
                 self.At_mat[self._idx[(0,n,m)],
-                  self._idx[(0,n,m)]] = - abs(pi_nmA)
+                            self._idx[(0,n,m)]] = - pluggedA
                 self.At_mat[0, self._idx[(0,n,m)]] = pi_nmA
-                self.At_mat[self._idx[(0,n,m)], 0] = abs(pi_nmA)
+                self.At_mat[self._idx[(0,n,m)], 0] = pi_nmA
                 #B side
                 self.At_mat[self._idx[(1,n,m)],
-                  self._idx[(1,n,m)]] = - abs(pi_nmB)
+                  self._idx[(1,n,m)]] = -  pluggedB
                 self.At_mat[0, self._idx[(1,n,m)]] = pi_nmB
-                self.At_mat[self._idx[(1,n,m)], 0] = abs(pi_nmB)
+                self.At_mat[self._idx[(1,n,m)], 0] = pi_nmB
 
     def calc_B(self):
         """Returns the matrix containing the linear terms
         of the equation set A\dot{X} + BX + C = 0
         """
-        self.time_dependentB()
-        B = self.B0_mat + self.Bt_mat
-        return B
+        #self.time_dependentB()
+        kappa_k = self.params['kappa_k']
+        kappa_c = self.params['kappa_c']
+        if kappa_c > 0 :
+            self.B_mat = kappa_k * self.kinetochore_B() + kappa_c * self.cohesin_B()
+        else:
+            self.B_mat = kappa_k * self.kinetochore_B()
 
-    def time_invariantB(self):
+    def kinetochore_B(self):
         """Returns the constant part of the matrix containing the
         linear terms of the equation set A\dot{X} + BX + C = 0
         """
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
-        kappa_k = self.params['kappa_k']
         dim = 1 + N * ( 1 + Mk ) * 2
-        B0 = np.zeros((dim, dim), dtype = float)
-        B0[0,0] = 0
+        Bk = np.zeros((dim, dim), dtype = float)
         for n in range(N) :
             ch = self.chromosomes[n]
-            B0[self._idx[(0, n)],
+            Bk[self._idx[(0, n)],
               self._idx[(0, n)]] = - Mk
-            B0[self._idx[(1, n)],
+            Bk[self._idx[(1, n)],
               self._idx[(1, n)]] = - Mk
             for m in range(Mk):
-                B0[self._idx[(0, n, m)],
+                Bk[self._idx[(0, n, m)],
                   self._idx[(0, n, m)]] = - 1
-                B0[self._idx[(1, n, m)],
+                Bk[self._idx[(1, n, m)],
                   self._idx[(1, n, m)]] = - 1
-                B0[self._idx[(0, n)],
+                Bk[self._idx[(0, n)],
                   self._idx[(0, n, m)]] = 1
-                B0[self._idx[(0, n, m)],
+                Bk[self._idx[(0, n, m)],
                   self._idx[(0, n)]] = 1
-                B0[self._idx[(1, n)],
+                Bk[self._idx[(1, n)],
                   self._idx[(1, n, m)]] = 1
-                B0[self._idx[(1, n, m)],
+                Bk[self._idx[(1, n, m)],
                   self._idx[(1, n)]] = 1
-        return kappa_k * B0
+        return Bk
 
-    def time_dependentB(self):
+    def cohesin_B(self):
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
-        kappa_c = self.params['kappa_c']
-        d0 = self.params['d0']
+        dim = 1 + N * ( 1 + Mk ) * 2
+        Bc = np.zeros((dim, dim), dtype = float)
         for n in range(N) :
-            ch = self.chromosomes[n]
-            if True:#abs(ch.cen_B.pos - ch.cen_A.pos) > d0:
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = - kappa_c
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = - kappa_c
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = kappa_c
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = kappa_c
-            else:
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = 0
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = 0
-                self.Bt_mat[self._idx[(1, n)],
-                            self._idx[(0, n)]] = 0 
-                self.Bt_mat[self._idx[(0, n)],
-                            self._idx[(1, n)]] = 0
-
+            Bc[self._idx[(0, n)],
+                   self._idx[(0, n)]] = - 1
+            Bc[self._idx[(1, n)],
+                   self._idx[(1, n)]] = - 1
+            Bc[self._idx[(1, n)],
+                   self._idx[(0, n)]] = 1
+            Bc[self._idx[(0, n)],
+                   self._idx[(1, n)]] = 1
+        return Bc 
+            
     def calc_C(self):
         """Returns the vector containing the constant terms
         of the equation set A\dot{X} + BX + C = 0
@@ -277,54 +269,36 @@ class KinetoDynamics(object) :
         cdef float Fmz = self.params['Fmz']
         cdef float d0 = self.params['d0']
         cdef float kappa_c = self.params['kappa_c']
-        cdef float ldep_A, ldep_B
+        #cdef float ldep_A, ldep_B
         C = np.zeros(1 + N * (1 + Mk) * 2)
         C[0] = 2 * Fmz
         for n in range(N):
             ch = self.chromosomes[n]
-            if ch.cen_B.pos - ch.cen_A.pos > 0 :
-                C[self._idx[(0,n)]] = - kappa_c * d0
-                C[self._idx[(1,n)]] = + kappa_c * d0
-            elif ch.cen_B.pos - ch.cen_A.pos < 0 :
-                C[self._idx[(0,n)]] = kappa_c * d0
-                C[self._idx[(1,n)]] = - kappa_c * d0
+            delta = ch.delta()
+            
+            C[self._idx[(0,n)]] = - delta * kappa_c * d0
+            C[self._idx[(1,n)]] = delta * kappa_c * d0
             for m in range(Mk):
                 plugsite_A = ch.cen_A.plugsites[m]
-                ldep_A = plugsite_A.calc_ldep()
-                pi_nmA = plugsite_A.plug_state * ldep_A
+                #ldep_A = plugsite_A.calc_ldep()
+                pi_nmA = plugsite_A.plug_state # * ldep_A
+                pluggedA = plugsite_A.plugged
                 plugsite_B = ch.cen_B.plugsites[m] 
-                ldep_B = plugsite_B.calc_ldep()
-                pi_nmB = plugsite_B.plug_state * ldep_B
-                C[0] -= abs(pi_nmA) + abs(pi_nmB)
+                #ldep_B = plugsite_B.calc_ldep()
+                pi_nmB = plugsite_B.plug_state # * ldep_B
+                pluggedB = plugsite_B.plugged
+                C[0] -= pluggedA + pluggedB
                 C[self._idx[(0,n,m)]] = pi_nmA
                 C[self._idx[(1,n,m)]] = pi_nmB
         return C
-
-    # def test_anaphase_switch(self):
-    #     N = int(self.params["N"])
-    #     for n in range(N):
-    #         ch = self.chromosomes[n]
-    #         if ch.anaphase_switch[0] == 0:
-    #             if ch.isatrightpole() and (ch.mero()[0] == 0):
-    #                 #print 'switch!'
-    #                 ch.anaphase_switch[0] = 1
-    #         if  ch.anaphase_switch[1] == 0:                    
-    #             if ch.isatleftpole() and (ch.mero()[1] == 0):
-    #                 ch.anaphase_switch[1] = 1
 
     def plug_unplug(self, int time_point):
         """Let's play dices ...
         """
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
-
-        for n in range(N):
-            ch = self.chromosomes[n]
-            for m in range(Mk):
-                ch.cen_A.plugsites[m].plug_unplug(time_point)
-                ch.cen_B.plugsites[m].plug_unplug(time_point)
-
-
+        for plugsite in self.spindle.all_plugsites:
+            plugsite.plug_unplug(time_point)
 
     def position_update(self, int time_point):
         """given the speeds obtained by solving Atot.x = btot
@@ -421,7 +395,7 @@ class Spindle(object) :
     def __init__(self, KD):
         self.KD = KD
         
-    def all_plugsites(self):
+    def get_all_plugsites(self):
         plugsites = []
         for ch in self.KD.chromosomes:
             for plugsite in ch.cen_A.plugsites:
@@ -479,6 +453,14 @@ class Chromosome(Organite):
         if right_A >= left_A:
             return True
         return False
+
+    def delta(self):
+        """In case the centromeres swap (exchange side), the direction
+        of the cohesin restoring force needs to be changed
+        """
+        return 1 if self.cen_A.pos < self.cen_B.pos else -1
+    
+
         
     def plugged(self):
         """returns the number of correctly plugged MTs 
@@ -661,6 +643,7 @@ class PlugSite(Organite):
 
     def set_plug_state(self, state, int time_point = -1):
         self.plug_state = state
+        self.plugged = 0 if state == 0 else 1
         self.state_hist[time_point:] = state
 
     def calc_ldep(self):
@@ -714,11 +697,11 @@ class PlugSite(Organite):
                     
     def P_det(self):
         cdef d_alpha = self.KD.params['d_alpha']
-        cdef double k_d0 = self.KD.params['k_d0']
+        cdef double k_d0 = self.KD.params['k_a']
         if d_alpha == 0: return k_d0
         
         cdef double k_dc
-        cdef dist = abs(self.pos - self.centromere.pos)
+        cdef dist = np.abs(self.pos - self.centromere.pos)
         if dist == 0: return 1.
         k_dc = k_d0  *  d_alpha / dist
         if k_dc > 1e4: return 1.

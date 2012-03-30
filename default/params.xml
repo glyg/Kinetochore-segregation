@@ -14,7 +14,7 @@
     <description>Anaphase A transition</description>
   </param>
   <!-- attachment instability -->
-  <param max="100" min="0" name="d_alpha" step="0.1" value="0.01">
+  <param max="100" min="0" name="d_alpha" step="0.01" value="0.01">
     <unit>&#181;m</unit>
     <description>Aurora Pdet modifier</description>
   </param>

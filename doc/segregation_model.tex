@@ -84,14 +84,14 @@ We define $\rho_{nm}^A$ and $\lambda_{nm}^A$, two random variables that govern
 the attachment state of the site $x_{nm}^A$, such that:
 \begin{align}
   \label{eq:rholambda}
-  \rho_{nm}^A &= 
-  \begin{cases}
-    1 &\text{if the site is attached to the right SPB}\\
-    0 &\text{otherwise}\\
-  \end{cases}\\
   \lambda_{nm}^A &=
   \begin{cases}
     1 &\text{if the site is attached to the left SPB}\\
+    0 &\text{otherwise}\\
+  \end{cases}\\
+  \rho_{nm}^A &= 
+  \begin{cases}
+    1 &\text{if the site is attached to the right SPB}\\
     0 &\text{otherwise}\\
   \end{cases}
 \end{align}
@@ -128,21 +128,6 @@ The same definitions apply for the centromere B and left SPB.
 
 The following force balances are considered:
 
-\subsubsection{Forces at the right SPB :}
-\begin{itemize}
-\item Friction forces (viscous drag):  $F_f^R = -\mu_s \dot{x_s}^R$
-\item Midzone force generators: 
-  $$F_{mid} = F_z\left(1 - (\dot{x}^R_s - \dot{x}_s^L)/V_z\right) =
-  F_z\left(1 - 2\dot{x}^R_s / V_z\right) $$
-\item Total kinetochore microtubules force generators:
- $$ \begin{aligned}
-    F_{kMT}^T = \sum_{n = 1}^{N}\sum_{m = 1}^{M_k} & - \rho_{nm}^A\,F_k\left( 1 -
-      (\dot{x}^A_{nm} - \dot{x}^R_s)/V_k\right)\\
-    & - \rho_{nm}^B\,F_k\left( 1 -
-      (\dot{x}^B_{nm} - \dot{x}^R_s)/V_k\right)\\
- \end{aligned} $$
-\end{itemize}
-
 \subsubsection{Forces at the left SPB :}
 
 Because of the reference frame definition, $\dot{x_s}^R =
@@ -160,7 +145,21 @@ $$  \begin{aligned}
   \end{aligned}
 $$
 \end{itemize}
+\subsubsection{Forces at the right SPB :}
 
+\begin{itemize}
+\item Friction forces (viscous drag):  $F_f^R = -\mu_s \dot{x_s}^R$
+\item Midzone force generators: 
+  $$F_{mid} = F_z\left(1 - (\dot{x}^R_s - \dot{x}_s^L)/V_z\right) =
+  F_z\left(1 - 2\dot{x}^R_s / V_z\right) $$
+\item Total kinetochore microtubules force generators:
+ $$ \begin{aligned}
+    F_{kMT}^T = \sum_{n = 1}^{N}\sum_{m = 1}^{M_k} & - \rho_{nm}^A\,F_k\left( 1 -
+      (\dot{x}^A_{nm} - \dot{x}^R_s)/V_k\right)\\
+    & - \rho_{nm}^B\,F_k\left( 1 -
+      (\dot{x}^B_{nm} - \dot{x}^R_s)/V_k\right)\\
+ \end{aligned} $$
+\end{itemize}
 
 \subsubsection{Forces at centromere $An$}
 
@@ -172,15 +171,13 @@ $$
     previous version, the 'swap' mechanism was solving this directly
     (as $x_A$ and $x_B$ are exchanged). This is not possible any more,
     as the 'swap' mechanism is now irrelevant, as there is no prefered
-    side for a given centromere. With this model, the discontinuity is
-    only to the first order. I am convinced there can be a better
-    regularisation.}:
+    side for a given centromere.}:
   \begin{equation}
     F_{BA} =
     \begin{cases}
-      \kappa_c (x_n^B - x_n^A - d_0) &\mathrm{if}\quad d_0 < x_n^A - x_n^B\\
-      0  &\mathrm{if}\quad - d_0 < x_n^A - x_n^B < d_0\\
-      \kappa_c (x_n^B - x_n^A + d_0) &\mathrm{if}\quad  x_n^A - x_n^B\\
+      \kappa_c (x_n^B - x_n^A - d_0) &\mathrm{if}\quad x_n^A \leq x_n^B\\
+      %0  &\mathrm{if}\quad - d_0 < x_n^A - x_n^B < d_0\\
+      \kappa_c (x_n^B - x_n^A + d_0) &\mathrm{if}\quad  x_n^A > x_n^B\\
     \end{cases}
   \end{equation}
   With $F_{AB} = - F_{BA}$. 
@@ -244,7 +241,7 @@ The difference of those two expressions gives, with the same substitutions as be
   \label{eq:spindle_term}
   - 2\mu_s\dot{x}^R_s + 2F_{z}\left(1 - 2\dot{x}^R_s/V_z\right)%
   + \sum_{n,m}- (|\pi_{nm}^A|  + |\pi_{nm}^B|)(\dot{x}^R_s + 1)%
-  + \pi_{nm}^A \dot{x}_{nm}^A + \pi_{nm}^B = 0%
+  + \pi_{nm}^A \dot{x}_{nm}^A + \pi_{nm}^B \dot{x}_{nm}^B= 0%
 \end{equation}
 
 All the equations are gathered together in the system of equations:
@@ -271,11 +268,11 @@ In matrix form, we have:\\
       x_{nm}^B\\
     \end{pmatrix} =%
     \begin{pmatrix}
-      \text{Right SPB}\\
-      \text{Centromere }A, n\\
-      \text{Attachment site }A, n,m\\
-      \text{Centromere }B, n\\
-      \text{Attachment site }B, n,m\\
+      \text{right SPB}\\
+      \text{centromere }A, n\\
+      \text{attachment site }A, n,m\\
+      \text{centromere }B, n\\
+      \text{attachment site }B, n,m\\
     \end{pmatrix}\\
     A = &% 
     \begin{pmatrix}
@@ -295,27 +292,31 @@ In matrix form, we have:\\
     B = &%
     \begin{pmatrix}
       \,0\, & \hdotsfor{4}\\
-      \hdots & - |\delta_n^{AB}|\kappa_c - M_k \kappa_k & \kappa_k &%
-      |\delta_n^{AB}|\kappa_c & \hdots \\
+      \hdots & - |\delta_n|\kappa_c - M_k \kappa_k & \kappa_k &%
+      |\delta_n|\kappa_c & \hdots \\
       \hdots & \kappa_k & -\kappa_k &  \hdotsfor{2}\\
-      \hdots & |\delta_n^{AB}|\kappa_c & \hdots &%
-      -|\delta_n^{AB}|\kappa_c - M_k \kappa_k & \kappa_k \\
+      \hdots & |\delta_n|\kappa_c & \hdots &%
+      -|\delta_n|\kappa_c - M_k \kappa_k & \kappa_k \\
       \hdotsfor{3}  & \kappa_k & - \kappa_k\\
     \end{pmatrix}\\
     C = &%
     \begin{pmatrix}
       2Fz - \sum_{n,m}(|\pi_{nm}^A| + |\pi_{nm}^B|) \\
-      \delta_n^{AB} \kappa_c d_0\\
+      - \delta_n \kappa_c d_0\\
       \pi_{nm}^A\\
-      -\delta_n^{AB} \kappa_c d_0\\
+      \delta_n \kappa_c d_0\\
       \pi_{nm}^B\\
     \end{pmatrix}
-    \mathrm{with}\, \delta_n^{AB} =%      
+    \mathrm{with}\, \delta_n =%      
     \begin{cases}
-      1  &\mathrm{if}\quad d_0 < x_n^A - x_n^B\\
-      0  &\mathrm{if}\quad - d_0 < x_n^A - x_n^B < d_0\\
-      -1 &\mathrm{if}\quad  x_n^A - x_n^B\\
+      1  &\mathrm{if}\quad  x_n^A < x_n^B\\
+      -1 &\mathrm{if}\quad  x_n^A > x_n^B\\
     \end{cases}
+    % \begin{cases}
+    %   1  &\mathrm{if}\quad d_0 < x_n^A - x_n^B\\
+    %   0  &\mathrm{if}\quad - d_0 < x_n^A - x_n^B < d_0\\
+    %   -1 &\mathrm{if}\quad  x_n^A - x_n^B\\
+    % \end{cases}
 \end{aligned}
 \end{equation}
 
@@ -349,9 +350,10 @@ variable part $A_t$ with:\\
   \end{aligned}
 \end{equation}
 
-Equivalently for $B$:
+For the sake of clarity, $B$ can be decomposed in a kinetochore and a
+cohesin part:
 \begin{equation}
-  B_0 =% 
+  B_k =% 
   \begin{pmatrix}
     \,0\, & \hdotsfor{4}\\
     \hdots &  - M_k \kappa_k & \kappa_k & \hdotsfor{2} \\
@@ -370,12 +372,12 @@ Equivalently for $B$:
 \end{equation}
 And
 \begin{equation}
-  B_t =\kappa_c%
+  B_c =\kappa_c%
   \begin{pmatrix}
     \,0\, & \hdotsfor{4}\\
-    \hdots & - |\delta_n^{AB}| & \hdots & |\delta_n^{AB}| & \hdots \\
+    \hdots & - |\delta_n| & \hdots & |\delta_n| & \hdots \\
     \hdotsfor{5}\\
-    \hdots & |\delta_n^{AB}| & \hdots & -|\delta_n^{AB}|& \hdots \\
+    \hdots & |\delta_n| & \hdots & -|\delta_n|& \hdots \\
     \hdotsfor{5}\\
   \end{pmatrix}
 \end{equation}
