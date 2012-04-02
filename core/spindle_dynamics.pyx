@@ -15,8 +15,12 @@ import numpy as np
 from scipy import sparse, linalg
 cimport numpy as np
 cimport cython
+from cpython cimport bool
 
+
+from components cimport Spindle, Spb, Chromosome, Centromere, PlugSite
 from components import Spindle, Spb, Chromosome, Centromere, PlugSite
+
 
 __all__ = ["KinetoDynamics"]
 
@@ -28,7 +32,7 @@ b = 1
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
-class KinetoDynamics(object) :
+cdef class KinetoDynamics(object) :
     """ This class wraps all the simulation internals.
     
     Public methods:
@@ -37,7 +41,19 @@ class KinetoDynamics(object) :
     Public attributes:
     ------------------
     """
-    def __init__(self, parameters, initial_plug = None):
+    cdef public Spindle spindle
+    cdef public Spb spbR, spbL
+    cdef public str initial_plug
+    cdef public int step_count
+    cdef public object params
+    cdef public int num_steps
+    cdef public list chromosomes
+    cdef public np.ndarray B_mat, At_mat, A0_mat
+    cdef public bool anaphase
+    cdef public list all_plugsites
+    cdef public np.ndarray speeds
+
+    def __init__(self, parameters, initial_plug = 'null'):
         """KinetoDynamics instenciation method
 
         Paramters:
@@ -45,7 +61,7 @@ class KinetoDynamics(object) :
         parameters: dict
             A dictionnary of parameters as obtained from a
             xml_handler.ParamTree instance
-        initial_plug: string or None
+        initial_plug: string
             Defines globally the initial attachment states.
             This argument can have the following values: 
             *'null': all kinetochores are detached
@@ -56,8 +72,6 @@ class KinetoDynamics(object) :
                 to the same pole, left ones are detached
             *'syntelic' : all kinetochores are attached to the same pole
         """
-        cdef int N, Mk
-        cdef float L0, duration, dt
         self.params = parameters
         L0 = self.params['L0']
         N = int(self.params['N'])
@@ -69,17 +83,22 @@ class KinetoDynamics(object) :
         self.spbR = Spb(self.spindle, RIGHT, L0) #right spb (RIGHT = 1)
         self.spbL = Spb(self.spindle, LEFT, L0) #left one (LEFT = -1)
         self.initial_plug = initial_plug
-        self.chromosomes = [Chromosome(self.spindle) for n in range(N)]
+        cdef Chromosome ch
+        self.chromosomes = []
+        for n in range(N):
+            ch = Chromosome(self.spindle)
+            self.chromosomes.append(ch)
         cdef int dim = 1 + N * ( 1 + Mk ) * 2
+        self.B_mat = np.zeros((dim, dim), dtype = float)
         self.calc_B()
         self.A0_mat = self.time_invariantA()
         self.At_mat = np.zeros((dim, dim), dtype = float)
         self.step_count = 0
         self.anaphase = False
         self.all_plugsites = self.spindle.get_all_plugsites()
-
+        self.speeds = np.zeros(dim)
         
-    def _idx(self, int side, int n, int m=-1):
+    cdef _idx(self, int side, int n, int m=-1):
         """Returns the  index dictionnary
         """
         cdef int Mk, N, idx
@@ -93,12 +112,15 @@ class KinetoDynamics(object) :
 
     def one_step(self, int time_point):
         """elementary step"""
+        self._one_step(time_point)
+        
+    cdef _one_step(self, int time_point):
         if not self.anaphase:
             self.plug_unplug(time_point)
         self.solve()
         self.position_update(time_point)
 
-    def solve(self):
+    cdef solve(self):
         cdef np.ndarray[DTYPE_t, ndim=1] X, C, pos_dep
         cdef np.ndarray[DTYPE_t, ndim=2] A, B
         X = self.get_state_vector()
@@ -108,7 +130,7 @@ class KinetoDynamics(object) :
         pos_dep = np.dot(B,X) + C
         self.speeds = linalg.solve(A, -pos_dep)
 
-    def get_state_vector(self):
+    cdef np.ndarray get_state_vector(self):
         """
         return a vector of the positions of each components
         """
@@ -119,6 +141,7 @@ class KinetoDynamics(object) :
         X = np.zeros(1 + 2*N * ( Mk + 1 ))
         X[0] = self.spbR.pos
         cdef int an, bn, anm, bnm
+        cdef Chromosome ch
         for n in range(N):
             an = self._idx(0, n)
             bn = self._idx(1, n)
@@ -134,13 +157,13 @@ class KinetoDynamics(object) :
         
     #Wrighting the equations (see doc/segregation_model.pdf for details)
 
-    def calc_A(self):
+    cdef calc_A(self):
         cdef np.ndarray[DTYPE_t, ndim=2] A
         self.time_dependentA()
         A = self.A0_mat + self.At_mat
         return A
 
-    def time_invariantA(self):
+    cdef time_invariantA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef float muc = self.params['muc']
@@ -153,6 +176,7 @@ class KinetoDynamics(object) :
         A0 = np.zeros((dims, dims))
         A0[0, 0] = - 2 * mus - 4 * Fmz / Vmz
         cdef int n, m
+        cdef Chromosome ch
         for n in range(N):
             ch = self.chromosomes[n]
             an = self._idx(0, n)
@@ -172,13 +196,14 @@ class KinetoDynamics(object) :
         return A0
 
         
-    def time_dependentA(self):
+    cdef time_dependentA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef int pi_nmA, pi_nmB
         cdef int pluggedA, pluggedB
         cdef int n, m, anm, bnm
         self.At_mat[0,0] = 0
+        cdef Chromosome ch
         for n in range(N):
             ch = self.chromosomes[n]
             for m in range(Mk):
@@ -200,7 +225,7 @@ class KinetoDynamics(object) :
                 self.At_mat[0, bnm] = pi_nmB
                 self.At_mat[bnm, 0] = pi_nmB
 
-    def calc_B(self):
+    cpdef calc_B(self):
         """Returns the matrix containing the linear terms
         of the equation set A\dot{X} + BX + C = 0
         """
@@ -212,7 +237,7 @@ class KinetoDynamics(object) :
         Bc = self.cohesin_B()
         self.B_mat = kappa_k * Bk + kappa_c * Bc
 
-    def kinetochore_B(self):
+    cdef kinetochore_B(self):
         """Returns the constant part of the matrix containing the
         linear terms of the equation set A\dot{X} + BX + C = 0
         """
@@ -239,7 +264,7 @@ class KinetoDynamics(object) :
                 Bk[bnm, bn] = 1
         return Bk
 
-    def cohesin_B(self):
+    cdef cohesin_B(self):
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
@@ -256,7 +281,7 @@ class KinetoDynamics(object) :
             Bc[an, bn] = 1.
         return Bc 
             
-    def calc_C(self):
+    cdef calc_C(self):
         """Returns the vector containing the constant terms
         of the equation set A\dot{X} + BX + C = 0
         """
@@ -271,6 +296,7 @@ class KinetoDynamics(object) :
         C[0] = 2 * Fmz
         cdef int n, m, delta, an, bn
         cdef int pi_nma, pi_nmb, pluggedA, pluggedB
+        cdef Chromosome ch
         for n in range(N):
             ch = self.chromosomes[n]
             delta = ch.delta()
@@ -292,13 +318,14 @@ class KinetoDynamics(object) :
                 C[bnm] = pi_nmB
         return C
 
-    def plug_unplug(self, int time_point):
+    cdef plug_unplug(self, int time_point):
         """Let's play dices ...
         """
+        cdef PlugSite plugsite
         for plugsite in self.all_plugsites:
             plugsite.plug_unplug(time_point)
 
-    def position_update(self, int time_point):
+    cdef position_update(self, int time_point):
         """given the speeds obtained by solving Atot.x = btot
         and caclulated switch events 
         """
@@ -306,13 +333,15 @@ class KinetoDynamics(object) :
         cdef int N = int(self.params['N'])
         cdef double dt = self.params['dt']
         cdef double Vk = self.params['Vk']
-
+        cdef np.ndarray[DTYPE_t] speeds 
         speeds = self.speeds
         speeds *= Vk * dt #Back to real space
         self.spbR.set_pos(self.spbR.pos + speeds[0], time_point)
         self.spbL.set_pos(self.spbL.pos - speeds[0], time_point)
         cdef int n, m, an, anm, bn, bnm
         cdef float new_pos
+        cdef Chromosome ch
+        cdef PlugSite plugsite
         for n in range(N):
             an = self._idx(0, n)
             bn = self._idx(1, n)
@@ -329,9 +358,9 @@ class KinetoDynamics(object) :
                 new_pos = plugsite.pos + speeds[bnm]
                 plugsite.set_pos(new_pos, time_point)
 
-            ch.plugged_history[time_point] = ch.plugged()
-            ch.mero_history[time_point] = ch.mero()
+            # ch.plugged_history[time_point] = ch.plugged()
+            # ch.mero_history[time_point] = ch.mero()
 
-    def get_sim_duration(self):
+    cdef int get_sim_duration(self):
         return (len(self.spbR.traj) - 1) * self.params['dt']
 

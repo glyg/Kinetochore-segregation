@@ -223,7 +223,7 @@ class Metaphase(object):
             self.KD.one_step(time_point)
             #self._one_step(time_point)
         self.KD.params['kappa_c'] = kappa_c
-        self.KD.delay = self.delay - 1
+        #self.KD.delay = self.delay - 1
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
 
