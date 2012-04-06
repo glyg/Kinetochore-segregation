@@ -227,9 +227,16 @@ class Metaphase(object):
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
 
-    # def _one_step(self, time_point):
-    #     """elementary step"""
-    #     self.KD.one_step(time_point)
+    def get_correct_histories(self):
+        """
+        Caclulates the number of correctly and erroneously plugged Mts
+        for each chromosome
+        """
+        for ch in self.KD.chromosomes:
+            ch.get_correct_history()
+            
+        
+
         
     def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.
@@ -299,8 +306,8 @@ class Metaphase(object):
         '''
         nb_mero = 0
         for ch in self.KD.chromosomes :
-            if np.any(ch.mero) :
-                nb_mero += sum(ch.mero())
+            if np.any(ch.erroneous()) :
+                nb_mero += sum(ch.erroneous())
                 #print "active checkpoint"
         return nb_mero
 
@@ -454,7 +461,6 @@ class Metaphase(object):
         col_num = 2
         #chromosomes
         for n, ch in enumerate(chromosomes):
-            # Adding plugged_history and mero_history
             rch = SubElement(experiment, "trajectory", name="centromereA",
                              index = str(n), column=str(col_num), units='mu m')
             text = "chromosome %i centromere A trajectory" % n
@@ -462,14 +468,14 @@ class Metaphase(object):
             wavelist.append(ch.cen_A.traj)
             col_num += 1
             
-            SubElement(experiment, "numberplugged", name="centromereA",
+            SubElement(experiment, "numbercorrect", name="centromereA",
                        index=str(n), column=str(col_num))
-            wavelist.append(ch.plugged_history[:, 0])
+            wavelist.append(ch.correct_history[:, 0])
             col_num += 1
-            SubElement(experiment, "numbermero",
+            SubElement(experiment, "numbererroneous",
                        name="centromereA", index = str(n),
                        column=str(col_num))
-            wavelist.append(ch.mero_history[:, 0])
+            wavelist.append(ch.erroneous_history[:, 0])
             col_num += 1
             
             lch = SubElement(experiment, "trajectory", index=str(n), 
@@ -478,14 +484,14 @@ class Metaphase(object):
             SubElement(lch, "description").text = text
             wavelist.append(np.array(ch.cen_B.traj))
             col_num += 1
-            SubElement(experiment, "numberplugged", name="centromereB",
+            SubElement(experiment, "numbercorrect", name="centromereB",
                        index=str(n), column=str(col_num))
-            wavelist.append(ch.plugged_history[:, 1])
+            wavelist.append(ch.correct_history[:, 1])
             col_num += 1
 
-            SubElement(experiment, "numbermero", name="centromereB",
+            SubElement(experiment, "numbererroneous", name="centromereB",
                        index=str(n), column=str(col_num))
-            wavelist.append(ch.mero_history[:, 1])
+            wavelist.append(ch.erroneous_history[:, 1])
             col_num += 1
 
             #Plug Sites
@@ -590,23 +596,22 @@ class Metaphase(object):
             ax.plot(self.timelapse, plugsite.traj, 'g')
         for plugsite in ch.cen_B.plugsites:
             ax.plot(self.timelapse, plugsite.traj, 'purple')
-        mero_hist = np.asarray(ch.mero_history)
-        plugged_hist = np.asarray(ch.plugged_history)
-        
+        erroneous_hist = ch.erroneous_history
+        correct_hist = ch.correct_history
         fig.add_subplot(311)
         ax = fig.gca()   
-        ax.plot(self.timelapse, mero_hist[:, 0], 'r',
-                label='number of merotellic MTs')
-        ax.plot(self.timelapse, plugged_hist[:, 0], 'g',
-                label='number of plugged MTs')
+        ax.plot(self.timelapse, erroneous_hist[:, 0], 'r',
+                label='number of erroneoustellic MTs')
+        ax.plot(self.timelapse, correct_hist[:, 0], 'g',
+                label='number of correct MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
 
         fig.add_subplot(313)
         ax = fig.gca()
-        ax.plot(self.timelapse, mero_hist[:, 1], 'r',
-                label='number of merotelic MTs')
-        ax.plot(self.timelapse, plugged_hist[:, 1], 'g',
-                label='number of plugged MTs')
+        ax.plot(self.timelapse, erroneous_hist[:, 1], 'r',
+                label='number of erroneous MTs')
+        ax.plot(self.timelapse, correct_hist[:, 1], 'g',
+                label='number of correct MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
         plt.show()
         

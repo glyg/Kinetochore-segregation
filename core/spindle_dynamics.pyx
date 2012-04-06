@@ -1,4 +1,4 @@
-# cython: profile=False
+# cython: profile=True
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
@@ -114,7 +114,7 @@ cdef class KinetoDynamics(object) :
         """elementary step"""
         self._one_step(time_point)
         
-    cdef _one_step(self, int time_point):
+    cdef void  _one_step(self, int time_point):
         if not self.anaphase:
             self.plug_unplug(time_point)
         self.solve()
@@ -176,9 +176,7 @@ cdef class KinetoDynamics(object) :
         A0 = np.zeros((dims, dims))
         A0[0, 0] = - 2 * mus - 4 * Fmz / Vmz
         cdef int n, m
-        cdef Chromosome ch
         for n in range(N):
-            ch = self.chromosomes[n]
             an = self._idx(0, n)
             bn = self._idx(1, n)
             A0[an, an] = - Mk * muk - muc
@@ -189,7 +187,6 @@ cdef class KinetoDynamics(object) :
                 A0[anm, anm] = - muk
                 A0[anm, an] = muk
                 A0[an, anm] = muk
-                #B side
                 A0[bnm, bnm] = - muk
                 A0[bnm, bn] = muk
                 A0[bn, bnm] = muk
@@ -204,6 +201,7 @@ cdef class KinetoDynamics(object) :
         cdef int n, m, anm, bnm
         self.At_mat[0,0] = 0
         cdef Chromosome ch
+        cdef PlugSite plugsite_A, plugsite_B
         for n in range(N):
             ch = self.chromosomes[n]
             for m in range(Mk):
@@ -357,10 +355,3 @@ cdef class KinetoDynamics(object) :
                 plugsite = ch.cen_B.plugsites[m]
                 new_pos = plugsite.pos + speeds[bnm]
                 plugsite.set_pos(new_pos, time_point)
-
-            # ch.plugged_history[time_point] = ch.plugged()
-            # ch.mero_history[time_point] = ch.mero()
-
-    cdef int get_sim_duration(self):
-        return (len(self.spbR.traj) - 1) * self.params['dt']
-

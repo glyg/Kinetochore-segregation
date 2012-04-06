@@ -1,4 +1,4 @@
-# cython: profile=False
+# cython: profile=True
 import random
 import numpy as np
 cimport numpy as np
@@ -46,20 +46,16 @@ cdef class Organite(object):
     get_pos(time_point): returns the position at `time_point`
     """
     def __init__(self, parent, init_pos):
-        """
-        
-        """
         self.parent = parent
         self.KD = parent.KD
         self.num_steps = parent.KD.num_steps
         self.traj = np.zeros(self.num_steps)
         self.pos = init_pos
         self.traj[0] = init_pos
-
         
     cdef void set_pos(self, float pos, int time_point=-1):
         """sets the position. If `time_point` is provided, sets
-        the corresponding value in self.traj[time_point]
+        the corresponding value in `self.traj[time_point]`
         """
         self.pos = pos
         if pos > self.KD.spbR.pos:
@@ -84,8 +80,12 @@ cdef class Spb(Organite):
     """ A spindle pole object.
 
     Attributes:
-    side: 1 or -1 (right or left. In the article, -1 correspond to the
-    daggered variable)
+    ===========
+    
+    side: 1 or -1
+    1 corresponds to the right SPB, i.e. to the Spb with x > 0.
+    The left SPB, with `side = -1` corresponds to the daggered
+    variable)
     """
     def __init__(self, spindle, side, L0):
         """ side = 1 : left
@@ -112,14 +112,15 @@ cdef class Chromosome(Organite):
         Organite.__init__(self, spindle, center_pos)
         self.cen_A = Centromere(self, 'A')
         self.cen_B = Centromere(self, 'B')
-        self.plugged_history = np.zeros((self.KD.num_steps, 2))
-        self.plugged_history[0] = self.plugged()
-        self.mero_history = np.zeros((self.KD.num_steps, 2))
-        self.mero_history[0] = self.mero()
+        self.correct_history = np.zeros((self.KD.num_steps, 2))
+        self.correct_history[0] = self.correct()
+        self.erroneous_history = np.zeros((self.KD.num_steps, 2))
+        self.erroneous_history[0] = self.erroneous()
 
     cdef bool is_right_A(self):
-        """returns True if centromere A is plugged
-        mainly to the right pole.
+        """returns True if the majority of the attachments corresponds
+        to centromere A bound to the right pole and centromere B bound
+        to the left.
         """
         cdef int right_A, right_B
         right_A = self.cen_A.right_plugged() + self.cen_B.left_plugged()
@@ -134,7 +135,7 @@ cdef class Chromosome(Organite):
         """
         return 1 if self.cen_A.pos < self.cen_B.pos else -1
         
-    def plugged(self):
+    def correct(self):
         """returns the number of *correctly* plugged MTs 
         """
         if self.is_right_A():
@@ -142,9 +143,12 @@ cdef class Chromosome(Organite):
         else:
             return self.cen_A.left_plugged(), self.cen_B.right_plugged() 
 
-    def mero(self):
+    # def get_right_history(self):
+
+    # def get_correct_history(self):
+
+    def erroneous(self):
         """returns the number of *erroneously* plugged MTs
-        TODO : change the name of this and the other function
         """
         if self.is_right_A():
             return self.cen_A.left_plugged(), self.cen_B.right_plugged()
@@ -200,6 +204,7 @@ cdef class Centromere(Organite):
     tag: {'A', 'B'}
        Side of the centromere. Note that the centromere
        side and the SPB side are not necesseraly related
+
     """
     def __init__(self, chromosome, tag='A'):
 
@@ -257,7 +262,6 @@ cdef class Centromere(Organite):
 
     cdef int left_plugged(self):
         cdef int lp
-        
         cdef np.ndarray[ITYPE_t] left_plugged
         left_plugged = self.plug_vector * (self.plug_vector - 1) / 2
         lp = left_plugged.sum()
@@ -288,7 +292,7 @@ cdef class PlugSite(Organite):
 
     Parameters:
     -----------
-    centromere: a Centromere instance
+    centromere: a :class:`~Centromere` instance
     """
     
     def __init__(self, centromere):
@@ -379,7 +383,9 @@ cdef class PlugSite(Organite):
         k_d0 = self.KD.params['k_a']
         if d_alpha == 0: return k_d0
         cdef float dist
-        dist = abs(self.pos - self.centromere.pos)
+        dist = abs(self.pos -
+                   (self.centromere.chromosome.cen_A.pos +
+                    self.centromere.chromosome.cen_B.pos)/2.)
         if dist == 0: return 1.
         k_dc = k_d0  *  d_alpha / dist
         if k_dc > 1e4: return 1.

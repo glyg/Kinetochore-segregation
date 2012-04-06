@@ -38,7 +38,7 @@ cdef class Spb(Organite):
 
 cdef class Chromosome(Organite):
     cdef public Centromere cen_A, cen_B
-    cdef public np.ndarray plugged_history, mero_history
+    cdef public np.ndarray correct_history, erroneous_history
     cdef bool is_right_A(Chromosome)
     cdef int delta(Chromosome)
     cdef float pair_dist(Chromosome)
@@ -56,8 +56,6 @@ cdef class Centromere(Organite):
     cdef public float toa
     cdef public np.ndarray plug_vector
     cdef public list plugsites
-    
-#    cdef bool is_attached(Centromere)
     cdef void calc_plug_vector(Centromere)
     cdef float P_attachleft(Centromere)
     cdef int left_plugged(Centromere)
