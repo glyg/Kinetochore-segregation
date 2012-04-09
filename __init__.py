@@ -9,10 +9,12 @@ modules provided:
     - gui: a subpackage with a GUI of the simulation
     - explore_params : parameter exploration routines
 """
-__all__ = ["simul_spindle", "explore_params"]
+__all__ = ["core", "data_analysis", "gui"]
 
 
-import core.simul_spindle as simul_spindle
+from core.simul_spindle import Metaphase, get_fromfile
+
+
 #import gui
 
 

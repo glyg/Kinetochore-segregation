@@ -234,9 +234,6 @@ class Metaphase(object):
         """
         for ch in self.KD.chromosomes:
             ch.get_correct_history()
-            
-        
-
         
     def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.

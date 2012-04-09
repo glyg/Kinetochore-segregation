@@ -14,9 +14,7 @@ used in the simulation
 
 import sys
 from PyQt4 import QtGui, QtCore
-
-
-from kt_simul.xml_handler import *
+from kt_simul.core.xml_handler import *
 from numpy import log10, floor
 
 __all__ = ['SetParameters', 'SetMeasures']

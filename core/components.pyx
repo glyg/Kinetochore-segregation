@@ -218,7 +218,7 @@ cdef class Centromere(Organite):
         else:
             raise ValueError("the `tag` attribute must be 'A' or 'B'.")
         Organite.__init__(self, chromosome, init_pos)
-        Mk = self.KD.params['Mk']
+        Mk = int(self.KD.params['Mk'])
         self.toa = 0 #time of arrival at pole
         self.plug_vector = np.zeros(Mk, dtype = np.float)
         self.plugsites = []

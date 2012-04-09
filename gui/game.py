@@ -45,9 +45,9 @@ class GraphCell(QtGui.QGraphicsItem):
         self.items.append(self.spbL)
        
         for n in range(N):
-            left_kineto = GraphKinetochore(n, -1, parent = self)
+            left_kineto = GraphCentromere(n, -1, parent = self)
             self.items.append(left_kineto)
-            right_kineto = GraphKinetochore(n, 0, parent = self)
+            right_kineto = GraphCentromere(n, 0, parent = self)
             self.items.append(right_kineto)            
         
         self.time_point = 0
@@ -67,7 +67,7 @@ class GraphCell(QtGui.QGraphicsItem):
             if newPos == item.pos():
                 return False
             item.setPos(newPos)
-            if isinstance(item, GraphKinetochore):
+            if isinstance(item, GraphCentromere):
                 for plugsite in item.plugsites:
                     newPos = plugsite.getSimPos(self.time_point)
                     plugsite.setPos(newPos)
@@ -101,7 +101,7 @@ class GraphCell(QtGui.QGraphicsItem):
         painter.drawRoundedRect(self.boundingRect(), 30, 100, QtCore.Qt.RelativeSize)
 
 
-class GraphKinetochore(QtGui.QGraphicsItem):
+class GraphCentromere(QtGui.QGraphicsItem):
 
     def __init__(self, n, side, parent = None):
 
@@ -119,11 +119,11 @@ class GraphKinetochore(QtGui.QGraphicsItem):
         self.ch = self.graphcell.mt.KD.chromosomes[n]
 
         if side == 0:
-            x = self.ch.rightpos
-            self.traj = self.ch.righttraj
+            x = self.ch.cen_A.pos
+            self.traj = self.ch.cen_A.traj
         else:
-            x = self.ch.leftpos
-            self.traj = self.ch.lefttraj
+            x = self.ch.cen_B.pos
+            self.traj = self.ch.cen_B.traj
         self.y = ( n - (N - 1) / 2. ) * 0.4 #* ( Mk * SITE_OFFSET + CH_OFFSET)
 
         self.width = 0.2 
@@ -163,10 +163,10 @@ class GraphKinetochore(QtGui.QGraphicsItem):
         return self.path
     
     def paint(self, painter, option, widget):
-        if self.ch.active_sac:
-            brush = QtGui.QBrush(ACTIVE_SAC_COLOR)
-        else:
+        if self.ch.cen_A.is_attached() and self.ch.cen_B.is_attached():
             brush = QtGui.QBrush(CH_COLOR)
+        else:
+            brush = QtGui.QBrush(ACTIVE_SAC_COLOR)
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
         center = self.newPos
@@ -190,9 +190,9 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         self.m = m
         side = self.kineto.side
         if side == 0:
-            self.sim = self.kineto.ch.rplugs[m]
+            self.sim = self.kineto.ch.cen_A.plugsites[m]
         else:    
-            self.sim = self.kineto.ch.lplugs[m]
+            self.sim = self.kineto.ch.cen_B.plugsites[m]
         
         self.width = 0.1
         self.height = self.kineto.height/Mk 
@@ -200,12 +200,12 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         self.y = self.kineto.y + ( m - (Mk -1 )/2.) * 0.1
         x = self.sim.pos 
         self.newPos = QtCore.QPointF(x, self.y)
-        self.newPlug = self.sim.plug
+        self.newPlug = self.sim.plug_state
         self.setZValue(self.kineto.n * (1 + m))
 
-        if self.sim.plug == 1:
+        if self.sim.plug_state == 1:
             brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
-        elif self.sim.plug == -1:
+        elif self.sim.plug_state == -1:
             brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
         else: 
             brush = QtGui.QBrush(UNPLUGED_COLOR)
@@ -218,8 +218,6 @@ class GraphPlugSite(QtGui.QGraphicsItem):
             x = self.sim.traj[time_point]
         except IndexError:
             x = self.sim.traj[-1]
-
-            
         return  QtCore.QPointF(x, self.y)
 
     def advance(self):

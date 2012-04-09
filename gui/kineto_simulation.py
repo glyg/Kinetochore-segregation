@@ -8,8 +8,7 @@ Graphical User Interface for the kinetochore dynamics simulation
 
 import sys, os, random, time
 from PyQt4 import QtCore, QtGui
-from numpy import arange, sin, pi, array, linalg, mod
-import matplotlib
+from numpy import  linalg, mod
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
@@ -17,19 +16,15 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Naviga
 import pyximport
 pyximport.install()
 
-
-from kt_simul.simul_spindle import Metaphase, paramfile, measurefile, get_fromfile
+from kt_simul.core.simul_spindle import Metaphase, get_fromfile
+from kt_simul.core.simul_spindle import MEASUREFILE, PARAMFILE
+from kt_simul.analysis.eval_simul import metaph_kineto_dist
+from kt_simul.core.xml_handler import ParamTree
 from param_seter import SetParameters, SetMeasures
 from game import InteractiveCellWidget
 
-from kt_simul.eval_simul import metaph_kineto_dist
-from kt_simul.xml_handler import ParamTree
-
 
 __all__ = ['MainWindow']
-
-
-#matplotlib.use('Qt4Agg') #Useless
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -82,24 +77,20 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
     '''
     
     def __init__(self, paramtree, measuretree,
-                 plug = None, parent = None):
+                 initial_plug=None, parent=None):
 
         Metaphase.__init__(self, paramtree, measuretree,
-                           plug = plug)
+                           initial_plug=initial_plug)
         QtGui.QWidget.__init__(self, None)
         self.date = 0
         
     def _one_step(self):
             
         if not self.KD.anaphase:
-            self.KD.plug_unplug()
             self.emit(QtCore.SIGNAL('inMetaphase'))
             
-        A = self.KD.calcA()
-        b = - self.KD.calcb()
-        speeds = linalg.solve(A,b)
-        self.KD.position_update(speeds)
-
+        self.KD.one_step(self.date)
+        
         nb_mero = self._mero_checkpoint()
         if nb_mero > 0:
             self.emit(QtCore.SIGNAL('meroCheckPoint'), nb_mero)
@@ -120,8 +111,8 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent=None):
 
 
-        self.paramtree = ParamTree(paramfile)
-        self.measuretree = ParamTree(measurefile, adimentionalized = False)
+        self.paramtree = ParamTree(PARAMFILE)
+        self.measuretree = ParamTree(MEASUREFILE, adimentionalized = False)
         self.measures = self.measuretree.absolute_dic
 
         self.mt = None
@@ -255,9 +246,10 @@ class MainWindow(QtGui.QMainWindow):
     def prepare_simulation(self):
 
         plug_idx = self.attachCombo.currentIndex()
-        plug = self.attachment_list[plug_idx]
+        initial_plug = self.attachment_list[plug_idx]
 
-        self.mt = SigMetaphase(self.paramtree, self.measuretree, plug = plug)
+        self.mt = SigMetaphase(self.paramtree, self.measuretree,
+                               initial_plug=initial_plug)
 
         self.progressBar.setMaximum(int(self.paramtree.absolute_dic['span']))
         
