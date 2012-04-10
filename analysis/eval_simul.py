@@ -15,7 +15,6 @@ pyximport.install()
 from ..core.xml_handler import *
 from ..core.spindle_dynamics import *
 
-
 __all__ = ["evaluations", "anaphase_rate", "metaph_rate",
            "metaph_kineto_dist", "auto_corel", "poleward_speed",
            "kt_rms_speed", "time_of_arrival", "pluged_stats"]
@@ -35,14 +34,14 @@ def get_kt_speeds(KD, step = 2):
     
     speeds = []
     for ch in KD.chromosomes.values():
-        speeds.append(np.diff(np.array(ch.righttraj[::step]))/step)
-        speeds.append(np.diff(np.array(ch.lefttraj[::step]))/step)
+        speeds.append(np.diff(ch.cen_A.traj[::step])/step)
+        speeds.append(np.diff(ch.cen_B.traj[::step])/step)
 
     return speeds
     
 def get_spb_speed(KD, step = 2):
     
-    speed = np.diff(np.array(KD.spbR.traj[::step]))/step
+    speed = np.diff(KD.spbR.traj[::step])/step
     return speed
 
 
@@ -50,10 +49,11 @@ def anaph_transAB(KD):
     '''
     As anaphase A -> B transition is defined (at least in the lab)
     by the date at which the first kinetochore reaches and stay at the spb
-    we have to retrieve this moment. Fortunately, we already know times of arrival
+    we have to retrieve this moment. Fortunately, we already know
+    times of arrival
     '''
     toas = []
-    for ch in KD.chromosomes.values():
+    for ch in KD.chromosomes:
         toas.append(ch.right_toa)
         toas.append(ch.left_toa)
     trans_AB = min(toas)
@@ -72,7 +72,6 @@ def anaphase_rate(KD):
         spindle_length = np.array(KD.spbR.traj) - np.array(KD.spbL.traj)
         elapsed = np.arange(trans_AB, stop, dt)
         (a, b)=np.polyfit(elapsed, spindle_length[int(trans_AB/dt):], 1)
-
     return a
 
 def metaph_rate(KD):
@@ -81,12 +80,11 @@ def metaph_rate(KD):
     N = int(KD.params['N'])
     t_A = KD.params['t_A']
     dt = KD.params['dt']
-    spindle_length = np.array(KD.spbR.traj) - np.array(KD.spbL.traj)
+    spindle_length = KD.spbR.traj - KD.spbL.traj
     if spindle_length.size >= int(t_A/dt):
         elapsed = np.arange(t_A, step = dt)
         (a, b)=np.polyfit(elapsed, spindle_length[:elapsed.shape[0]], 1)
         print dt
-
     else:
         elapsed = np.arange(spindle_length.size*dt, step = dt)
         (a, b)=np.polyfit(elapsed, spindle_length, 1)
@@ -105,50 +103,15 @@ def metaph_kineto_dist(KD):
     average = 0
     stdev = 0
     for n in range(N):
-        kinetoR = np.array(KD.chromosomes[n].righttraj)
-        kinetoL = np.array(KD.chromosomes[n].lefttraj)
-
+        kinetoR = KD.chromosomes[n].cen_A.traj
+        kinetoL = KD.chromosomes[n].cen_B.traj
         dist = kinetoR - kinetoL
         dist = dist[:trans_MA]
-
         average += np.mean(dist)
         stdev += np.std(dist)
-
-
     average /= N
     stdev /= N
-
     return average, stdev
-
-def add_noise(KD, detect_noise = 65e-3, smth = 5):
-
-    wd = np.hanning(smth)
-    KD.spbR.traj = np.array(KD.spbR.traj)
-    
-    KD.spbR.traj += normal(scale = detect_noise, size = KD.spbR.traj.shape)
-    KD.spbR.traj = np.convolve(KD.spbR.traj, wd/sum(wd), mode = 'same')
-    for ch in KD.chromosomes.values():
-        ch.righttraj = np.array(ch.righttraj)
-        ch.righttraj += normal(scale = detect_noise, size = ch.righttraj.shape)
-        ch.righttraj = np.convolve(ch.righttraj, wd/sum(wd), mode = 'same')
-        ch.lefttraj = np.array(ch.lefttraj)
-        ch.lefttraj += normal(scale = detect_noise, size = ch.lefttraj.shape)
-        ch.lefttraj = np.convolve(ch.lefttraj, wd/sum(wd), mode = 'same')
-
-def metaph_kineto_dist_list(KD):
-    N = int(KD.params['N'])
-    trans_MA = KD.params['t_A']
-    dt = KD.params['dt']
-    trans_MA = int(trans_MA/dt)
-    dist_list = []
-    for n in range(N):
-        kinetoR = np.array(KD.chromosomes[n].righttraj)
-        kinetoL = np.array(KD.chromosomes[n].lefttraj)
-        dist = kinetoR - kinetoL
-        dist = dist[:trans_MA]
-        dist_list.append(dist)
-
-    return dist_list
 
 def poleward_speed(KD):
 
@@ -162,16 +125,16 @@ def poleward_speed(KD):
     trans_AB = anaph_transAB(KD)
 
     pole_speeds = []
-    for ch in KD.chromosomes.values():
+    for ch in KD.chromosomes:
         r_stop = int(ch.right_toa/dt)
         if r_stop - start > 2:
-            r_dist = - np.array(KD.spbR.traj)[start:r_stop] + np.array(ch.righttraj)[start:r_stop]
+            r_dist = - KD.spbR.traj[start:r_stop] + ch.cen_A.traj[start:r_stop]
             elapsed = np.r_[trans_MA:ch.right_toa:dt]
             (ra,rb) = np.polyfit(elapsed, r_dist, 1)
             pole_speeds.append(ra)
         l_stop = int(ch.left_toa/dt)
         if l_stop - start > 2:
-            l_dist = np.array(KD.spbL.traj)[start:l_stop] - np.array(ch.lefttraj)[start:l_stop]
+            l_dist = KD.spbL.traj[start:l_stop] - ch.cen_B.traj[start:l_stop]
             elapsed = np.r_[trans_MA:ch.left_toa:dt]
             (la,lb) = np.polyfit(elapsed, l_dist, 1)
             pole_speeds.append(la)
@@ -188,12 +151,12 @@ def kt_rms_speed(KD):
     stop = int(trans_MA/dt)
     rms_speeds = []
 
-    for ch in KD.chromosomes.values():
-        r_speed = np.diff(np.array(ch.righttraj)[:stop])
+    for ch in KD.chromosomes:
+        r_speed = np.diff(ch.cen_A.traj[:stop])
         r_rmss = np.sqrt((r_speed**2).mean())
         rms_speeds.append(r_rmss)
 
-        l_speed = np.diff(np.array(ch.lefttraj)[:stop])
+        l_speed = np.diff(ch.cen_B.traj[:stop])
         l_rmss = np.sqrt((l_speed**2).mean())
         rms_speeds.append(l_rmss)
 
@@ -204,7 +167,7 @@ def kt_rms_speed(KD):
 def time_of_arrival(KD):
 
     toas = []
-    for ch in KD.chromosomes.values():
+    for ch in KD.chromosomes:
 
         toas.append(ch.right_toa)
         toas.append(ch.left_toa)
@@ -224,21 +187,14 @@ def pluged_stats(KD):
     trans_MA = int(trans_MA/dt)
     tot_avg = 0
     delta_avg = 0
-    for ch in KD.chromosomes.values():
-        plugedR = np.array(ch.pluged_history)[:, 0]
-        plugedL = np.array(ch.pluged_history)[:, 1]
-
-        tot = plugedR + plugedL
-        tot = tot[:trans_MA]
-        delta = abs(plugedR - plugedL)
-        delta = delta[:trans_MA]
-
+    for ch in KD.chromosomes:
+        tot = ch.correct_history[:trans_MA].sum(axis=1)
+        delta = np.diff(ch.correct_history[:trans_MA], axis=1)
+        delta = abs(delta[:trans_MA])
         tot_avg += np.mean(tot)/2
         delta_avg += np.mean(delta)
-
     tot_avg /= N
     delta_avg /= N
-
     return (tot_avg, delta_avg)
 
 def auto_corel(KD, smooth = 10.):
@@ -258,24 +214,22 @@ def auto_corel(KD, smooth = 10.):
     
     for ch in KD.chromosomes.values():
 
-        ktR = np.array(ch.righttraj)[:elapsed.shape[0]]
+        cen_A = ch.cen_A.traj[:elapsed.shape[0]]
         # In order to compare with the 'real world' tracked kinetochores
         # we smooth by a factor smooth/dt
-        ktR_tck = splrep(elapsed, ktR, t = elapsed[smth:-smth:smth])
-        ktR_s = splev(elapsed, ktR_tck, der = 1)
-        m_speed, st_speed = ktR_s.mean(), ktR_s.std()
-        ktR_sc = (ktR_s - m_speed)/st_speed
-        co_ktR = np.correlate(ktR_sc, ktR_sc, 'full') / ktR_sc.size
-        pitches.append(first_min(co_ktR[-co_ktR.size//2:]))
+        cen_A_tck = splrep(elapsed, cen_A, t = elapsed[smth:-smth:smth])
+        cen_A_s = splev(elapsed, cen_A_tck, der = 1)
+        m_speed, st_speed = cen_A_s.mean(), cen_A_s.std()
+        cen_A_sc = (cen_A_s - m_speed)/st_speed
+        co_cen_A = np.correlate(cen_A_sc, cen_A_sc, 'full') / cen_A_sc.size
+        pitches.append(first_min(co_cen_A[-co_cen_A.size//2:]))
 
-        ktL = np.array(ch.lefttraj)[:elapsed.shape[0]]
-        # In order to compare with the 'real world' tracked kinetochores
-        # we smooth by a factor smooth/dt
-        ktL_tck = splrep(elapsed, ktL, t = elapsed[smth:-smth:smth])
-        ktL_s = splev(elapsed, ktL_tck, der = 1)
-        m_speed, st_speed = ktL_s.mean(), ktL_s.std()
-        ktL_sc = (ktL_s - m_speed)/st_speed
-        co_ktL = np.correlate(ktL_sc, ktL_sc, 'full') / ktL_sc.size
+        cen_B = ch.cen_B.traj[:elapsed.shape[0]]
+        cen_B_tck = splrep(elapsed, cen_B, t = elapsed[smth:-smth:smth])
+        cen_B_s = splev(elapsed, cen_B_tck, der = 1)
+        m_speed, st_speed = cen_B_s.mean(), cen_B_s.std()
+        cen_B_sc = (cen_B_s - m_speed)/st_speed
+        co_cen_B = np.correlate(cen_B_sc, cen_B_sc, 'full') / cen_B_sc.size
         pitches.append(first_min(co_ktL[-co_ktL.size//2:]))
     try:    
         pitches = 1/(np.array(pitches)*dt)
@@ -292,11 +246,11 @@ def max_freqs(KD, show_fig = True):
     elapsed = np.arange(0, trans_MA , dt)
     if show_fig : figure(100)
     max_fs = []
-    for ch in KD.chromosomes.values():
-        cen = (np.array(ch.righttraj) + np.array(ch.lefttraj))/2
-        cen_m = cen[:elapsed.shape[0]]
+    for ch in KD.chromosomes:
+        center = (ch.cen_A.traj + ch.cen_B.traj)/2
+        center_metaphase = center[:elapsed.shape[0]]
         knots = elapsed[smth:-smth:smth]
-        tck = splrep(elapsed, cen_m, t = knots)
+        tck = splrep(elapsed, center_metaphase, t = knots)
         sp_speed = splev(elapsed, tck, der = 1)
         sp_fft = rfft(sp_speed)
         freqs = fftfreq(elapsed.shape[0], dt)

@@ -143,9 +143,25 @@ cdef class Chromosome(Organite):
         else:
             return self.cen_A.left_plugged(), self.cen_B.right_plugged() 
 
-    # def get_right_history(self):
+    def calc_erroneous_history(self):
 
-    # def get_correct_history(self):
+        leftA, rightA = self.cen_A.calc_plug_history()
+        leftB, rightB = self.cen_B.calc_plug_history()
+        erroneous_hist = []
+        for lA, rA, lB, rB in zip(leftA, rightA, leftB, rightB):
+            erroneous = (rA, lB) if lA + rB > rA + lB else (lA, rB)
+            erroneous_hist.append(erroneous)
+        self.erroneous_history =  np.array(erroneous_hist)
+            
+    def calc_correct_history(self):
+
+        leftA, rightA = self.cen_A.calc_plug_history()
+        leftB, rightB = self.cen_B.calc_plug_history()
+        correct_hist = []
+        for lA, rA, lB, rB in zip(leftA, rightA, leftB, rightB):
+            correct = (lA, rB) if lA + rB > rA + lB else (rA, lB)
+            correct_hist.append(correct)
+        self.correct_history = np.array(correct_hist)
 
     def erroneous(self):
         """returns the number of *erroneously* plugged MTs
@@ -220,7 +236,7 @@ cdef class Centromere(Organite):
         Organite.__init__(self, chromosome, init_pos)
         Mk = int(self.KD.params['Mk'])
         self.toa = 0 #time of arrival at pole
-        self.plug_vector = np.zeros(Mk, dtype = np.float)
+        self.plug_vector = np.zeros(Mk, dtype = np.int)
         self.plugsites = []
         cdef PlugSite ps
         for m in range(Mk):
@@ -245,6 +261,16 @@ cdef class Centromere(Organite):
         state = np.array([plugsite.plug_state for plugsite
                           in self.plugsites])
         self.plug_vector = state
+
+    def calc_plug_history(self):
+        cdef np.ndarray[ITYPE_t, ndim=2] state_hist
+        cdef np.ndarray[ITYPE_t] right_hist, left_hist
+        cdef PlugSite plugsite
+        state_hist = np.array([plugsite.state_hist for plugsite
+                               in self.plugsites])
+        right_hist = np.array(state_hist > 0).sum(axis=0)
+        left_hist = np.array(state_hist < 0).sum(axis=0)
+        return left_hist, right_hist
         
     cdef float P_attachleft(self):
         cdef float orientation
@@ -318,7 +344,7 @@ cdef class PlugSite(Organite):
         else:
             self.plug_state = initial_plug
         self.set_pos(init_pos)
-        self.state_hist = np.zeros(self.KD.num_steps)
+        self.state_hist = np.zeros(self.KD.num_steps, dtype=np.int)
         self.state_hist[:] = self.plug_state
         self.P_att = 1 - np.exp(- self.KD.params['k_a'])
 

@@ -221,19 +221,14 @@ class Metaphase(object):
             # Anaphase transition ?
             self._anaphase_test(time_point)
             self.KD.one_step(time_point)
-            #self._one_step(time_point)
         self.KD.params['kappa_c'] = kappa_c
-        #self.KD.delay = self.delay - 1
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
-
-    def get_correct_histories(self):
-        """
-        Caclulates the number of correctly and erroneously plugged Mts
-        for each chromosome
-        """
         for ch in self.KD.chromosomes:
-            ch.get_correct_history()
+            ch.calc_correct_history()
+            ch.calc_erroneous_history()
+
+
         
     def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.
@@ -330,7 +325,6 @@ class Metaphase(object):
             return 0
         for name, function in evaluations.items():
             self.observations[name] = function(self.KD)
-
 
     def show_trajs(self, axes = None): 
         """ Plot the different trajectories
@@ -585,17 +579,22 @@ class Metaphase(object):
             fig = plt.figure()
         fig.clear()
         
-        fig.add_subplot(312)
-        ax = fig.gca()
-        ax.plot(self.timelapse, ch.cen_A.traj, 'b', lw=1.5)
-        ax.plot(self.timelapse, ch.cen_B.traj, 'k', lw=1.5)
+        #fig.add_subplot(312)
+        plt.subplot2grid((5, 1), (1, 0), rowspan=3) 
+        traj_ax = fig.gca()
+        traj_ax.plot(self.timelapse, ch.cen_A.traj, 'g', lw=2, alpha=0.5)
+        traj_ax.plot(self.timelapse, ch.cen_B.traj, 'purple', lw=2, alpha=0.5)
+        traj_ax.plot(self.timelapse, self.KD.spbR.traj, 'k')
+        traj_ax.plot(self.timelapse, self.KD.spbL.traj, 'k')
         for plugsite in ch.cen_A.plugsites:
-            ax.plot(self.timelapse, plugsite.traj, 'g')
+            traj_ax.plot(self.timelapse, plugsite.traj, 'g')
         for plugsite in ch.cen_B.plugsites:
-            ax.plot(self.timelapse, plugsite.traj, 'purple')
+            traj_ax.plot(self.timelapse, plugsite.traj, 'purple')
+
         erroneous_hist = ch.erroneous_history
         correct_hist = ch.correct_history
-        fig.add_subplot(311)
+
+        plt.subplot2grid((5, 1), (0, 0), rowspan=1, sharex=traj_ax) 
         ax = fig.gca()   
         ax.plot(self.timelapse, erroneous_hist[:, 0], 'r',
                 label='number of erroneoustellic MTs')
@@ -603,11 +602,11 @@ class Metaphase(object):
                 label='number of correct MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
 
-        fig.add_subplot(313)
+        plt.subplot2grid((5, 1), (4, 0), rowspan=1, sharex=traj_ax) 
         ax = fig.gca()
         ax.plot(self.timelapse, erroneous_hist[:, 1], 'r',
                 label='number of erroneous MTs')
-        ax.plot(self.timelapse, correct_hist[:, 1], 'g',
+        ax.plot(self.timelapse, correct_hist[:, 1], 'purple',
                 label='number of correct MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
         plt.show()
