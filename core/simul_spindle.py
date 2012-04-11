@@ -196,7 +196,7 @@ class Metaphase(object):
         return '\n'.join(lines)
     
 
-    def simul(self, movie = False, ablat = None): 
+    def simul(self, ablat=None, ablat_pos=0.): 
         """ The simulation main loop. 
         
         Keyword arguments:
@@ -217,7 +217,7 @@ class Metaphase(object):
         for time_point in range(1, self.num_steps):
             # Ablation test
             if ablat == time_point:
-                self._ablation(time_point, pos = self.KD.spbL.pos)
+                self._ablation(time_point, pos=ablat_pos)
             # Anaphase transition ?
             self._anaphase_test(time_point)
             self.KD.one_step(time_point)
@@ -227,9 +227,9 @@ class Metaphase(object):
         for ch in self.KD.chromosomes:
             ch.calc_correct_history()
             ch.calc_erroneous_history()
+            ch.cen_A.calc_toa()
+            ch.cen_B.calc_toa()
 
-
-        
     def _anaphase_test(self, time_point):
         """returns True if anaphase has been executed.
         At anaphase onset, set the cohesin spring constent to 0 and
@@ -355,7 +355,7 @@ class Metaphase(object):
         plt.show()
 
     def write_asoctave(self, xmlfname = "results.xml",
-                       datafname = "oct_datas.txt"):
+                       datafname = "oct_data.txt"):
         """Save results in a file compatible with the tools developped
         to caracterize real life movies under octave.
 
@@ -398,7 +398,7 @@ class Metaphase(object):
         dataout.write("# desciptor: "+xmlfname+"\n")
         np.savetxt(dataout, out_array, delimiter=' ')
         
-    def write_results(self, xmlfname = "results.xml", datafname = "datas.npy"):
+    def write_results(self, xmlfname = "results.xml", datafname = "data.npy"):
         """ Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
         and the trajectories in the other.
@@ -488,13 +488,13 @@ class Metaphase(object):
             #Plug Sites
             for m, plugsite in enumerate(ch.cen_A.plugsites):
                 SubElement(experiment, "trajectory", name="plugsite",
-                           index = str((n, m)), tag = 'A',
+                           index=str((n, m)), cen_tag='A',
                            column=str(col_num), units='mu m')
                 wavelist.append(plugsite.traj)
                 col_num += 1
 
                 SubElement(experiment, "state", name="plugsite",
-                           index = str((n, m)), tag = 'A',
+                           index=str((n, m)), cen_tag='A',
                            column=str(col_num), units='')
                 wavelist.append(plugsite.state_hist)
                 col_num += 1
@@ -502,15 +502,15 @@ class Metaphase(object):
             for m, plugsite in enumerate(ch.cen_B.plugsites):
 
                 SubElement(experiment, "trajectory", name="plugsite",
-                           index = str((n, m)), tag='B',
+                           index = str((n, m)), cen_tag='B',
                            column=str(col_num), units='mu m')
-                wavelist.append(lpt_traj)
+                wavelist.append(plugsite.traj)
                 col_num += 1
 
                 SubElement(experiment, "state", name="plugsite",
-                           index = str((n, m)), tag='B',
+                           index = str((n, m)), cen_tag='B',
                            column=str(col_num), units='')
-                wavelist.append(lpt_plug)
+                wavelist.append(plugsite.state_hist)
                 col_num += 1
 
         #Observations
@@ -526,13 +526,13 @@ class Metaphase(object):
         out.close()
         #And the numbers in the file datafname
         dataout = file(datafname, 'w+')
-        data = np.vstack(wavelist)
+        data = np.vstack(wavelist).T
         if datafname.endswith('.npy'):
             np.save(dataout, data)
         else:
             dataout.write("# desciptor: "+xmlfname+"\n")
             np.savetxt(dataout, data, delimiter=' ')
-        print "Simulation saved to file %s " % datafname
+        print "Simulation saved to file %s " % xmlfname
 
     def _make_movie(self, t, imsize):
         """somehow deprecated"""
@@ -580,8 +580,9 @@ class Metaphase(object):
         fig.clear()
         
         #fig.add_subplot(312)
-        plt.subplot2grid((5, 1), (1, 0), rowspan=3) 
-        traj_ax = fig.gca()
+        gridspec = plt.GridSpec(5,1)
+        subplotspec = gridspec.new_subplotspec((1,0), rowspan=3)
+        traj_ax = fig.add_subplot(subplotspec)
         traj_ax.plot(self.timelapse, ch.cen_A.traj, 'g', lw=2, alpha=0.5)
         traj_ax.plot(self.timelapse, ch.cen_B.traj, 'purple', lw=2, alpha=0.5)
         traj_ax.plot(self.timelapse, self.KD.spbR.traj, 'k')
@@ -590,20 +591,22 @@ class Metaphase(object):
             traj_ax.plot(self.timelapse, plugsite.traj, 'g')
         for plugsite in ch.cen_B.plugsites:
             traj_ax.plot(self.timelapse, plugsite.traj, 'purple')
+        traj_ax.set_xticks([], '')
 
         erroneous_hist = ch.erroneous_history
         correct_hist = ch.correct_history
 
-        plt.subplot2grid((5, 1), (0, 0), rowspan=1, sharex=traj_ax) 
-        ax = fig.gca()   
+        subplotspec = gridspec.new_subplotspec((0,0), rowspan=1)
+        ax = fig.add_subplot(subplotspec, sharex=traj_ax)
         ax.plot(self.timelapse, erroneous_hist[:, 0], 'r',
                 label='number of erroneoustellic MTs')
         ax.plot(self.timelapse, correct_hist[:, 0], 'g',
                 label='number of correct MTs')
         ax.axis((0, self.num_steps*dt, -0.5, 4.5))
+        ax.set_xticks([], '')
 
-        plt.subplot2grid((5, 1), (4, 0), rowspan=1, sharex=traj_ax) 
-        ax = fig.gca()
+        subplotspec = gridspec.new_subplotspec((4,0), rowspan=1)
+        ax = fig.add_subplot(subplotspec, sharex=traj_ax)
         ax.plot(self.timelapse, erroneous_hist[:, 1], 'r',
                 label='number of erroneous MTs')
         ax.plot(self.timelapse, correct_hist[:, 1], 'purple',
@@ -881,8 +884,8 @@ def get_fromfile(xmlfname = "results.xml"):
                           measuretree = measuretree)
     
     traj_matrix = restree.get_all_trajs()
-    plugged_matrix = restree.get_all_plugged()
-    mero_matrix = restree.get_all_mero()
+    correct_matrix = restree.get_all_correct()
+    erroneous_matrix = restree.get_all_erroneous()
     state_hist_matrix = restree.get_all_plug_state()
     KD = KinetoDynamics(params)
     KD.spbR.traj = traj_matrix[:, 0]
@@ -895,17 +898,17 @@ def get_fromfile(xmlfname = "results.xml"):
         col_num += 1
         ch.cen_B.traj = traj_matrix[:, col_num]
         col_num += 1
-        ch.plugged_history = (plugged_matrix[:, n*2 : n*2 + 2])
-        ch.mero_history = (mero_matrix[:, n*2 : n*2 + 2])
-        for plugsite in ch.cen_A.plugistes:
+        ch.erroneous_history = (erroneous_matrix[:, n*2 : n*2 + 2])
+        ch.correct_history = (correct_matrix[:, n*2 : n*2 + 2])
+        for plugsite in ch.cen_A.plugsites:
             plugsite.traj = traj_matrix[:, col_num]
             col_num += 1
-            plugsites.state_hist = state_hist_matrix[:, state_num]
+            plugsite.state_hist = state_hist_matrix[:, state_num]
             state_num += 1
-        for plugsite in ch.cen_B.plugistes:
+        for plugsite in ch.cen_B.plugsites:
             plugsite.traj = traj_matrix[:, col_num]
             col_num += 1
-            plugsites.state_hist = state_hist_matrix[:, state_num]
+            plugsite.state_hist = state_hist_matrix[:, state_num]
             state_num += 1
     metaphase.KD = KD
 

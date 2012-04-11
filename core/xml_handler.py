@@ -227,18 +227,18 @@ class ResultTree(ParamTree):
         cols = tuple(cols)
         return self.data.take(cols, axis = 1) 
 
-    def get_all_pluged(self):
+    def get_all_correct(self):
 
         cols = []
-        for traj in self.tree.getiterator("numberpluged"):
+        for traj in self.tree.getiterator("numbercorrect"):
             col = int(traj.get("column"))
             cols.append(col)
         cols = tuple(cols)
         return self.data.take(cols, axis = 1) 
         
-    def get_all_mero(self):
+    def get_all_erroneous(self):
         cols = []
-        for traj in self.tree.getiterator("numbermero"):
+        for traj in self.tree.getiterator("numbererroneous"):
             col = int(traj.get("column"))
             cols.append(col)
 

@@ -313,6 +313,25 @@ cdef class Centromere(Organite):
             return True
         return False
 
+    def calc_toa(self, float tol=0.01):
+        cdef np.ndarray dist_to_pole
+        if self.KD.spbR.traj[-1] - self.traj[-1] < tol:
+            dist_to_pole = self.KD.spbR.traj - self.traj
+        elif self.traj[-1] - self.KD.spbL.traj[-1] < tol:
+            dist_to_pole = self.traj - self.KD.spbL.traj
+        else:
+            self.toa = np.nan
+            return False
+        cdef int toa
+        cdef float d
+        toa = self.num_steps
+        for d in dist_to_pole[::-1]:
+            toa -= 1
+            if d > tol:
+                self.toa = toa * self.KD.params['dt']
+                return True
+    
+
 cdef class PlugSite(Organite):
     """An attachment site object.
 
@@ -402,6 +421,24 @@ cdef class PlugSite(Organite):
         #Detachment
         elif dice < self.P_det():
             self.set_plug_state(0, time_point)
+
+    def is_correct(self, int time_point):
+        """Returns True if the plugsite is plugged
+        correctly, i.e. doesn't contribute to an
+        attachment error
+        """
+        if self.plug_state == 0:
+            return False
+        if self.tag == 'A':
+            if self.centromere.chromosome.is_right_A():
+                return True if self.plug_state == 1 else False
+            else:
+                return True if self.plug_state == -1 else False
+        else:
+            if self.centromere.chromosome.is_right_A():
+                return True if self.plug_state == -1 else False
+            else:
+                return True if self.plug_state == 1 else False
                     
     cdef float P_det(self):
         cdef float d_alpha, k_d0

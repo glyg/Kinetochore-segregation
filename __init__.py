@@ -12,7 +12,7 @@ modules provided:
 __all__ = ["core", "data_analysis", "gui"]
 
 
-from core.simul_spindle import Metaphase, get_fromfile
+from core import simul_spindle# Metaphase, get_fromfile
 
 
 #import gui
