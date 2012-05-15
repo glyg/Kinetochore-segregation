@@ -162,8 +162,8 @@ cdef class KinetoDynamics(object) :
         self.time_dependentA()
         A = self.A0_mat + self.At_mat
         return A
-
-    cdef time_invariantA(self):
+        
+    cpdef time_invariantA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
         cdef float muc = self.params['muc']

@@ -202,10 +202,6 @@ class Metaphase(object):
         Keyword arguments:
         ------------------
         
-        movie: bool, optional
-            If True, runs _make_movie (default False) during the simulation.
-            TODO: implement a public make_movie method that can be runned after
-            the simulation 
         ablat: float, optional
             Timepoint at which ablation takes place. If None (default)
             no ablation is performed.
@@ -271,8 +267,9 @@ class Metaphase(object):
         self.KD.params['Fmz'] = 0.
         self.KD.params['k_a'] = 0.
         self.KD.params['k_d0'] = 0.
+        self.KD.A0_mat = self.KD.time_invariantA()
 
-        for plugsite in self.KD.spindle.all_plugsites():
+        for plugsite in self.KD.spindle.all_plugsites:
             if pos < plugsite.pos and plugsite.plug_state == - 1:
                 plugsite.set_plug_state(0, time_point)
             elif pos > plugsite.pos and plugsite.plug_state == 1:
@@ -289,7 +286,6 @@ class Metaphase(object):
             return True
         for ch in self.KD.chromosomes :
             if not ch.cen_A.is_attached() or not ch.cen_B.is_attached():
-                ch.active_sac = 1
                 return False
         return True
 
