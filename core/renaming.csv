@@ -1,0 +1,15 @@
+# changing the spindle architecture
+# before:     
+#        spbL <--- lplugs -w- leftpos WW rightpos -w- rightplugs ---> spbR
+# now:
+# spb_L <---- plugs_A -w- centromere_A WW centromere_B plugs_B ---> spb_R 
+
+
+pluged, plugged
+
+lplugs, cen_A.plugsites
+rplugs, cen_B.plugsites
+leftpos, cen_A.pos
+right_pos, cen_B.pos
+
+anaphase_switch[0] =

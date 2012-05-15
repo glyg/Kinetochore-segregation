@@ -1,0 +1,12 @@
+*.pyc
+*.so
+*.pyc
+*.*~
+*.aux
+*.log
+*.out
+*.prof
+markov*
+dist/*
+*_region_*
+*details_defect*
