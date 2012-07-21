@@ -18,6 +18,12 @@ accurately describes fission yeast chromosome segregation* J. Cell Biol 2012 ``d
 
 This article should be used for any citation of this work.
 
+FUNDING:
+~~~~~~~~
+
+This project is funded by the French National Research Agency as:
+   *ANR- BLAN 1206 01 Chromocatch, programme blanc 2010*
+
 LICENCE:
 ~~~~~~~~
 This code is provided under the GPL compatible CeCILL licence (see
