@@ -10,3 +10,4 @@ markov*
 dist/*
 *_region_*
 *details_defect*
+build/
