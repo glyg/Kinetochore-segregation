@@ -7,9 +7,14 @@ Graphical User Interface for the kinetochore dynamics simulation
 '''
 
 import sys, os, random, time
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 from numpy import  linalg, mod
 from matplotlib.figure import Figure
+
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 
@@ -33,7 +38,7 @@ class MyMplCanvas(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         # We want the axes cleared every time plot() is called
         self.axes.hold(False)
-
+        
         self.compute_initial_figure(span)
 
         #
@@ -66,7 +71,7 @@ class MyMplCanvas(FigureCanvas):
         self.draw()
 
 
-class SigMetaphase(Metaphase, QtGui.QWidget):
+class SigMetaphase(QtGui.QWidget, Metaphase):
 
     '''
     The aim of this hybrid is to retrieve signals from the
@@ -81,7 +86,8 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
 
         Metaphase.__init__(self, paramtree, measuretree,
                            initial_plug=initial_plug)
-        QtGui.QWidget.__init__(self, None)
+        QtGui.QWidget.__init__(self, parent)
+                           
         self.date = 0
         
     def _one_step(self):
@@ -103,7 +109,7 @@ class SigMetaphase(Metaphase, QtGui.QWidget):
     def sig_simul(self):
         
         self.simul()
-        self.emit(QtCore.SIGNAL('simulDone'),self.report)
+        self.emit(QtCore.SIGNAL('simulDone(bool)'),self.report)
         self.simulDone = True
 
 class MainWindow(QtGui.QMainWindow):
@@ -116,35 +122,35 @@ class MainWindow(QtGui.QMainWindow):
         self.measures = self.measuretree.absolute_dic
 
         self.mt = None
-
+       
         QtGui.QMainWindow.__init__(self, parent)
         self.centralwidget = QtGui.QWidget()
-
+        
         self.setCentralWidget(self.centralwidget)
         self.create_docks()
         self.create_tabs()
         self.create_buttons()
+        
         #self.prepare_simulation()
         
         
     def create_docks(self):
 
-
         #Parameter Setting in a Dock Widget
         self.paramdock = QtGui.QDockWidget('Parameters Setting')
         self.setParameters = SetParameters(self.paramtree)
-        scrollArea = QtGui.QScrollArea()
-        scrollArea.setWidget(self.setParameters)
-        self.paramdock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
+#        scrollArea = QtGui.QScrollArea()
+#        scrollArea.setWidget(self.setParameters)
+#        self.paramdock.setWidget(scrollArea)
+#        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
 
-        #Measures Setting in another Dock Widget
-        self.measuredock = QtGui.QDockWidget('Measures Setting')
-        self.setMeasures = SetMeasures(self.measuretree)
-        scrollArea = QtGui.QScrollArea()
-        scrollArea.setWidget(self.setMeasures)
-        self.measuredock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
+#        #Measures Setting in another Dock Widget
+#        self.measuredock = QtGui.QDockWidget('Measures Setting')
+#        self.setMeasures = SetMeasures(self.measuretree)
+#        scrollArea = QtGui.QScrollArea()
+#        scrollArea.setWidget(self.setMeasures)
+#        self.measuredock.setWidget(scrollArea)
+#        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
 
     def create_tabs(self):
         #Text Area
@@ -155,10 +161,11 @@ class MainWindow(QtGui.QMainWindow):
 
         #Plotting Areas
         span = self.paramtree.relative_dic['span']
+
         self.plotarea1 = MyMplCanvas(span)
         mpl_toolbar = NavigationToolbar(self.plotarea1, self.centralwidget)
         vbox1 = QtGui.QVBoxLayout()
-        vbox1.setMargin(5)
+        vbox1.setSpacing(5)
         vbox1.addWidget(self.plotarea1)
         vbox1.addWidget(mpl_toolbar)
         self.w1 = QtGui.QWidget()
@@ -167,7 +174,7 @@ class MainWindow(QtGui.QMainWindow):
         self.plotarea2 = MyMplCanvas(span)
         mpl_toolbar = NavigationToolbar(self.plotarea2, self.centralwidget)
         vbox2 = QtGui.QVBoxLayout()
-        vbox2.setMargin(5)
+        vbox2.setSpacing(5)
         vbox2.addWidget(self.plotarea2)
         vbox2.addWidget(mpl_toolbar)
         self.w2 = QtGui.QWidget()
@@ -211,7 +218,7 @@ class MainWindow(QtGui.QMainWindow):
         self.progressBar = QtGui.QProgressBar()
 
         hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(5)
+        hbox.setSpacing(5)
         hbox.addWidget(runButton)
         hbox.addWidget(showTrajButton)
         hbox.addWidget(showOneButton)
@@ -219,7 +226,7 @@ class MainWindow(QtGui.QMainWindow):
         hbox.addWidget(self.interactiveButton)
 
         vbox = QtGui.QVBoxLayout()
-        vbox.setMargin(5)
+        vbox.setSpacing(5)
         vbox.addLayout(hbox)#self.buttonGroup)
         vbox.addWidget(self.tabWidget)
 
@@ -302,10 +309,10 @@ class MainWindow(QtGui.QMainWindow):
 
     
     def print_report(self, report):
-        self.simLog.append(QtCore.QString("Simulation's done!"))
+        self.simLog.append("Simulation's done!")
         for l in report:
-            ls = QtCore.QString(l)
-            self.simLog.append(QtCore.QString(ls))
+            ls = l
+            self.simLog.append(ls)
 
         self.progressBar.setValue(0)
             
@@ -325,14 +332,14 @@ class MainWindow(QtGui.QMainWindow):
     def newFile(self):
         if self.maybeSave():
             self.textEdit.clear()
-            self.setCurrentFile(QtCore.QString())
+            self.setCurrentFile("")
 
     def open(self):
         if self.maybeSave():
-            fileName = QtGui.QFileDialog.getOpenFileName(self,
+            fileName, selectedFilter = QtGui.QFileDialog.getOpenFileName(self,
                                                          filter = "XML files (*.xml);;All Files (*.*)")
-            if not fileName.isEmpty():
-                self.loadFile(fileName)
+            self.loadFile(fileName)
+            
         self.setCurrentFile(fileName)
 
         
@@ -341,11 +348,11 @@ class MainWindow(QtGui.QMainWindow):
         #     self.curFile = default_filename
         #     #return self.saveAs()
         # else:
-        return self.saveFile(QtCore.QString(self.curFile))
+        return self.saveFile(self.curFile)
 
     # TODO: The saveAs functions trigs a segfault
     # def saveAs(self):
-    #     #QtCore.QString('test_save')#
+    #     #'test_save'#
     #     saveDiag = QtGui.QFileDialog()
     #     fileName = saveDiag.getSaveFileName(self,
     #                                         self.tr("Save Simulation"),
@@ -354,7 +361,7 @@ class MainWindow(QtGui.QMainWindow):
     ### SegFaults here, I don't know why ###
     #     print filename
     #     if fileName.isEmpty():
-    #         fileName = QtCore.QString("default.xml")
+    #         fileName = "default.xml"
         
     #     self.saveFile(fileName)
     #     del saveDiag

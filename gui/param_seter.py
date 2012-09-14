@@ -13,7 +13,7 @@ used in the simulation
 '''
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 from kt_simul.core.xml_handler import *
 from numpy import log10, floor
 
@@ -39,7 +39,7 @@ class DoubleParamBox(QtGui.QDoubleSpinBox):
 class SetParameters(QtGui.QWidget):
 
     def __init__(self, paramtree, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super(SetParameters, self).__init__(parent)
 
         self.setWindowTitle('Parameters')
         self.paramtree = paramtree
@@ -69,12 +69,13 @@ class SetParameters(QtGui.QWidget):
             p_min = param.get("min")
             p_max = param.get("max")
             label = QtGui.QLabel(description, self)
+
             if not '.' or 'e' in value:
                 value = int(value)
                 p_min = int(p_min)
                 p_max = int(p_max)
                 p_step = int(p_step)
-                
+
                 spinbox = ParamBox(param, self)
                 self.connect(spinbox,  QtCore.SIGNAL('valueChanged(int)'),
                              spinbox.my_emiter)
@@ -97,15 +98,14 @@ class SetParameters(QtGui.QWidget):
                 spinbox.setDecimals(dec)
                 self.connect(spinbox,  QtCore.SIGNAL('valueChanged(double)'),
                              spinbox.my_emiter)
-                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged'),
+                self.connect(spinbox, QtCore.SIGNAL('doubleparamValueChanged(bool)'),
                              self.set_new_val)
                 self.connect(spinbox, QtCore.SIGNAL('valueChanged(float)'),
                              self.setModified)
-
             spinbox.setSingleStep(p_step)
             spinbox.setRange(p_min,p_max)
             spinbox.setSuffix(' '+unit)
-            spinbox.setValue(value)
+            spinbox.setValue(int(value))
 
             vbox1.addWidget(label)
             vbox2.addWidget(spinbox)
