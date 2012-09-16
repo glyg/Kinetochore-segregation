@@ -139,18 +139,18 @@ class MainWindow(QtGui.QMainWindow):
         #Parameter Setting in a Dock Widget
         self.paramdock = QtGui.QDockWidget('Parameters Setting')
         self.setParameters = SetParameters(self.paramtree)
-#        scrollArea = QtGui.QScrollArea()
-#        scrollArea.setWidget(self.setParameters)
-#        self.paramdock.setWidget(scrollArea)
-#        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
+        scrollArea = QtGui.QScrollArea()
+        scrollArea.setWidget(self.setParameters)
+        self.paramdock.setWidget(scrollArea)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
 
-#        #Measures Setting in another Dock Widget
-#        self.measuredock = QtGui.QDockWidget('Measures Setting')
-#        self.setMeasures = SetMeasures(self.measuretree)
-#        scrollArea = QtGui.QScrollArea()
-#        scrollArea.setWidget(self.setMeasures)
-#        self.measuredock.setWidget(scrollArea)
-#        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
+        #Measures Setting in another Dock Widget
+        self.measuredock = QtGui.QDockWidget('Measures Setting')
+        self.setMeasures = SetMeasures(self.measuretree)
+        scrollArea = QtGui.QScrollArea()
+        scrollArea.setWidget(self.setMeasures)
+        self.measuredock.setWidget(scrollArea)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
 
     def create_tabs(self):
         #Text Area
