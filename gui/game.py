@@ -5,7 +5,7 @@
 ## Author:uillaume Gay<elagachado AT  gmail DOT com>
 ## Commentary:
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 import math
 import sys, os
@@ -350,7 +350,7 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
         self.connect(self.ccw.pauseButton, QtCore.SIGNAL('clicked()'),
                      self.pause)
         self.ccw.slider.valueChanged.connect(self.gotoTime)
-        vbox.setMargin(5)
+        vbox.setSpacing(5)
         vbox.addWidget(self.view)
         vbox.addWidget(self.ccw)
         self.setLayout(vbox)
@@ -395,7 +395,7 @@ class ControlCellWidget(QtGui.QWidget):
 
     
     def __init__(self, mt, parent = None):
-        super(ControlCellWidget, self).__init__(parent = parent)
+        super(ControlCellWidget, self).__init__(parent)
         numsteps = int(mt.KD.params['span'] / mt.KD.params['dt'])
 
         orientation = QtCore.Qt.Horizontal
@@ -420,7 +420,7 @@ class ControlCellWidget(QtGui.QWidget):
         self.pauseButton.setIcon(QtGui.QIcon(pause_icon))
 
         hbox = QtGui.QHBoxLayout()
-        hbox.setMargin(5)
+        hbox.setSpacing(5)
         hbox.addWidget(self.playButton)
         hbox.addWidget(self.pauseButton)
         hbox.addWidget(self.slider)

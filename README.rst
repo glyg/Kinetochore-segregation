@@ -36,7 +36,7 @@ Package manager versions of the python libraries should work.
 * Python >= 2.5
 * Numpy >= 1.4 and Scipy >= 0.9
 * Cython >= 0.14
-* Qt4 and PyQt4
+* Qt4 and PySide (optional)
 
 INSTALLATION:
 ~~~~~~~~~~~~
