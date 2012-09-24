@@ -183,6 +183,7 @@ class ResultTree(ParamTree):
                                               datafname.split('/')[-1])
         else:
             self.datafname = datafname
+        print self.datafname
         if self.datafname is None or not os.path.isfile(self.datafname):
             raise ValueError, "Corresponding data file not specified"
         if self.datafname.endswith('.npy'):

@@ -5,7 +5,7 @@
 ## Author:uillaume Gay<elagachado AT  gmail DOT com>
 ## Commentary:
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 import math
 import sys
