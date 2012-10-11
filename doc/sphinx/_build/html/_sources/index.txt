@@ -34,7 +34,7 @@ Funding
 This project is funded by the French National Research Agency as:
    *ANR- BLAN 1206 01 Chromocatch, programme blanc 2010*
 
-LICENCE
+License
 =======
 
 This code is provided under the GPL compatible CeCILL licence (see
