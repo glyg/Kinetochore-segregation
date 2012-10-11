@@ -1,1 +1,2 @@
 * fix bug : ValueError: Corresponding data file not specified in GUI
+* merge sphinx doc and pdf doc

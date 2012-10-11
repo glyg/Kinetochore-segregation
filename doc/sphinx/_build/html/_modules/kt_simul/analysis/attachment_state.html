@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kt_simul.analysis.attachment_state &mdash; kt_simul 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="kt_simul 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">kt_simul 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for kt_simul.analysis.attachment_state</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="c">## Title: attachment_state</span>
+<span class="c">## Description: Here are several calculi of the attachment state evolution</span>
+<span class="c">## and the various errors</span>
+<span class="c">## Author:uillaume Gay&lt;elagachado AT  gmail DOT com&gt;</span>
+<span class="c">## Commentary:</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="o">*</span>
+
+<div class="viewcode-block" id="get_history"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.get_history">[docs]</a><span class="k">def</span> <span class="nf">get_history</span><span class="p">(</span><span class="n">kd</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">meros</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">mero_history</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">kd</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+    <span class="n">plugs</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">pluged_history</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">kd</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+    <span class="k">return</span> <span class="n">plugs</span><span class="p">,</span> <span class="n">meros</span>
+ 
+</div>
+<div class="viewcode-block" id="balance_histories"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.balance_histories">[docs]</a><span class="k">def</span> <span class="nf">balance_histories</span><span class="p">(</span><span class="n">kd</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    input: a kt_simul.spindle_dynamics.KinetochoreDynamics()</span>
+<span class="sd">    after a simulation instance.</span>
+
+<span class="sd">    Returns the difference between the number of correctly</span>
+<span class="sd">    and erroneously attached plug sites when those two are != 0.</span>
+<span class="sd">    This is  stored in an 2D array for which each line gives the</span>
+<span class="sd">    number of kt in each of the possible cases</span>
+<span class="sd">    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point. </span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">Mk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kd</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;Mk&#39;</span><span class="p">])</span>
+    <span class="n">num_steps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kd</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
+
+    <span class="c">#The number of cases is (Mk-1) * 2 + 1</span>
+
+    <span class="n">balance</span> <span class="o">=</span> <span class="n">vsplit</span><span class="p">(</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">)),</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">num_cuts</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">)</span>
+ 
+    <span class="n">merotelic_types</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;corrected&#39;</span><span class="p">:</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">),</span>
+                       <span class="s">&#39;cut&#39;</span><span class="p">:</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">),</span>
+                       <span class="s">&#39;monotelic&#39;</span><span class="p">:</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">),</span>
+                       <span class="s">&#39;syntelic&#39;</span><span class="p">:</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">)}</span>
+    
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">kd</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+
+        <span class="n">mh</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">mero_history</span><span class="p">)</span>
+        <span class="n">ph</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">pluged_history</span><span class="p">)</span>
+
+        <span class="n">rbalance</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">)</span>
+        <span class="n">lbalance</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="n">num_steps</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">mh</span><span class="p">,</span> <span class="n">ph</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span> <span class="c">#So the kt is not merotelic</span>
+                <span class="n">rbalance</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">nan</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rbalance</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
+                <span class="n">lbalance</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span>  <span class="n">nan</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lbalance</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                
+            <span class="k">if</span> <span class="n">isfinite</span><span class="p">(</span><span class="n">lbalance</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="ow">or</span> <span class="n">isfinite</span><span class="p">(</span><span class="n">rbalance</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;cut&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;monotelic&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;cut&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;monotelic&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+                <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#They are pulled the same way</span>
+                    <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;syntelic&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> 
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c">#they are pulled appart</span>
+                    <span class="n">merotelic_types</span><span class="p">[</span><span class="s">&#39;corrected&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> 
+
+                
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bal</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">balance</span><span class="p">):</span>                
+            <span class="n">bal</span> <span class="o">+=</span> <span class="n">array</span><span class="p">([</span><span class="n">rbalance</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">bal</span> <span class="o">+=</span> <span class="n">array</span><span class="p">([</span><span class="n">lbalance</span> <span class="o">==</span> <span class="n">i</span> <span class="o">-</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>   
+
+    <span class="k">return</span> <span class="n">vstack</span><span class="p">(</span><span class="n">balance</span><span class="p">),</span> <span class="n">merotelic_types</span>
+</div>
+<div class="viewcode-block" id="transition_matrix"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.transition_matrix">[docs]</a><span class="k">def</span> <span class="nf">transition_matrix</span><span class="p">(</span><span class="n">kd</span><span class="p">):</span>
+    
+    <span class="n">def_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;merotelic&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;syntelic&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;amphitelic&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="s">&#39;monotelic&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;unattached&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kd</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">])</span>
+    <span class="n">num_defects</span><span class="p">,</span> <span class="n">were_defects</span> <span class="o">=</span> <span class="n">defect_histories</span><span class="p">(</span><span class="n">kd</span><span class="p">)</span>
+    <span class="n">trans_mat</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">wd</span> <span class="ow">in</span> <span class="n">were_defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key2</span><span class="p">,</span> <span class="n">wd2</span> <span class="ow">in</span> <span class="n">were_defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">num_trans</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+                <span class="n">num_trans</span> <span class="o">+=</span> <span class="p">(</span><span class="n">wd</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">wd2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)[</span><span class="mi">1</span><span class="p">:,</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">trans_mat</span><span class="p">[</span><span class="n">def_tags</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">def_tags</span><span class="p">[</span><span class="n">key2</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">num_trans</span>
+    
+    <span class="k">return</span> <span class="n">trans_mat</span>
+</div>
+<div class="viewcode-block" id="defect_histories"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.defect_histories">[docs]</a><span class="k">def</span> <span class="nf">defect_histories</span><span class="p">(</span><span class="n">kd</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    returns the history of the various attachment states.</span>
+<span class="sd">    Takes a KinetochoreDynamics instance as unique argument</span>
+
+<span class="sd">    output:</span>
+<span class="sd">    num_defects, were_defects: dectionnaries</span>
+<span class="sd">    </span>
+<span class="sd">    The following outputs are established on a per chromosome</span>
+<span class="sd">    (i.e. kt pairs) basis</span>
+
+<span class="sd">    Those outputs are returned in a dictionnary called num_defects:</span>
+<span class="sd">    num_defects = {&quot;amphitelic&quot;:the number of correctely plugged chromosomes,</span>
+<span class="sd">               &quot;merotelic&quot;:the number of merotelic chromosomes,</span>
+<span class="sd">               &quot;monotelic&quot;:the number of monotelic chromosomes,</span>
+<span class="sd">               &quot;syntelic&quot;:the number of syntelic chromosomes</span>
+<span class="sd">               &quot;unattached&quot;:the number of unpluged chromosomes}</span>
+<span class="sd">    Normaly num_plugs+num_synt+num_mono+num_mero+num_unplugs = N</span>
+
+<span class="sd">    were_plug, were_mero, etc. : 2D arrays of booleans giving the state</span>
+<span class="sd">    of each chromosome</span>
+<span class="sd">    </span>
+
+
+<span class="sd">    &#39;&#39;&#39;</span>     
+    <span class="n">Mk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kd</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;Mk&#39;</span><span class="p">])</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kd</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">])</span>
+    
+    <span class="n">meros</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">mero_history</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">kd</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+    <span class="n">plugs</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">pluged_history</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">kd</span><span class="o">.</span><span class="n">chromosomes</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+    <span class="n">meros</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">(</span><span class="n">meros</span><span class="p">)</span>
+    <span class="n">plugs</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">(</span><span class="n">plugs</span><span class="p">)</span>
+    <span class="n">mh_b</span> <span class="o">=</span> <span class="n">meros</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">ph_b</span> <span class="o">=</span> <span class="n">plugs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    
+    <span class="c">#Put all this in a dictionary</span>
+    <span class="n">were_defects</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;amphitelic&#39;</span><span class="p">:</span><span class="n">were_plug</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">),</span>
+                   <span class="s">&#39;merotelic&#39;</span><span class="p">:</span><span class="n">were_mero</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">),</span>
+                   <span class="s">&#39;monotelic&#39;</span><span class="p">:</span><span class="n">were_mono</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">),</span>
+                   <span class="s">&#39;syntelic&#39;</span><span class="p">:</span><span class="n">were_synt</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">),</span>
+                   <span class="s">&#39;unattached&#39;</span><span class="p">:</span><span class="n">were_unat</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">)}</span>
+
+    <span class="n">num_defects</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">were_defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">num_defects</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num_defects</span><span class="p">,</span> <span class="n">were_defects</span>
+</div>
+<div class="viewcode-block" id="were_plug"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_plug">[docs]</a><span class="k">def</span> <span class="nf">were_plug</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Test wether chromosomes were  amphitelic</span>
+<span class="sd">                Correct  Merotelic</span>
+<span class="sd">    -------------------------------</span>
+<span class="sd">         Left  |  True     False    </span>
+<span class="sd">    AND  Right |  True     False  </span>
+<span class="sd">    OR</span>
+<span class="sd">         Left  |  False    True</span>
+<span class="sd">    AND  Right |  False    True  </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">correct_r</span> <span class="o">=</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">correct_l</span> <span class="o">=</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">and_x</span> <span class="o">=</span> <span class="n">correct_r</span> <span class="o">&amp;</span> <span class="n">correct_l</span>    
+
+    <span class="n">mero_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">mero_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">and_x_mero</span> <span class="o">=</span> <span class="n">mero_r</span> <span class="o">&amp;</span> <span class="n">mero_l</span>    
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">and_x</span> <span class="o">|</span> <span class="n">and_x_mero</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="were_synt"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_synt">[docs]</a><span class="k">def</span> <span class="nf">were_synt</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+
+    <span class="c">#The number of syntelic chromosomes</span>
+    <span class="c">#        Correct  Merotelic OR  Correct  Merotelic</span>
+    <span class="c">#------------------------------------------------</span>
+    <span class="c"># Left  |  True     False        False    True</span>
+    <span class="c"># Right | False     True         True     False</span>
+
+    <span class="n">xor_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span>   <span class="c">#left</span>
+    <span class="n">xor_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="c">#right </span>
+    <span class="n">xor_x</span> <span class="o">=</span>  <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="c">#crossed</span>
+    <span class="n">xor_t</span> <span class="o">=</span> <span class="n">xor_l</span> <span class="o">&amp;</span> <span class="n">xor_r</span> <span class="o">&amp;</span> <span class="n">xor_x</span>
+    <span class="k">return</span> <span class="n">xor_t</span>
+</div>
+<div class="viewcode-block" id="were_mero"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_mero">[docs]</a><span class="k">def</span> <span class="nf">were_mero</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+
+    <span class="c">#The number of merotelic chromosomes</span>
+    <span class="n">and_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span>   <span class="c">#          Correct  Merotelic</span>
+    <span class="n">and_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="c">#     Left   True     True    </span>
+    <span class="n">or_x</span> <span class="o">=</span> <span class="n">and_r</span> <span class="o">|</span> <span class="n">and_l</span>                <span class="c"># OR  Right  True     True  </span>
+    <span class="k">return</span> <span class="n">or_x</span>
+
+<span class="c">#On a phenotype point of view, one should futher distinguish between merotelic chromosomes :</span>
+<span class="c">###  * The ones that are amphitelic - merotelic (i.e kts tend to segregate correctly)</span>
+<span class="c">###  * The ones that are syntelic - merotelic (both kts go to the same poles)</span>
+<span class="c">###  * The ones that are monotelic - merotelic (one kt is merotelic and the other is unattached)</span>
+<span class="c">###  * The ones that are cut (one or both kts are equaly attached to both poles)</span>
+
+<span class="c">#So let&#39;s go</span></div>
+<div class="viewcode-block" id="were_amphi_mero"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_amphi_mero">[docs]</a><span class="k">def</span> <span class="nf">were_amphi_mero</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+
+    <span class="n">and_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">and_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">nor_r</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">nor_l</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">(</span> <span class="n">and_r</span> <span class="o">&amp;</span> <span class="n">nor_l</span> <span class="p">)</span> <span class="o">^</span> <span class="p">(</span> <span class="n">and_l</span> <span class="o">&amp;</span> <span class="n">nor_r</span> <span class="p">)</span>
+    
+
+
+
+</div>
+<div class="viewcode-block" id="were_mono"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_mono">[docs]</a><span class="k">def</span> <span class="nf">were_mono</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+
+    <span class="n">xor_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="c">#right</span>
+    <span class="n">xor_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span>   <span class="c">#left</span>
+    <span class="c">#The number of monotelic chromosomes</span>
+    <span class="n">nand_r</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">])</span>    <span class="c">#            Correct  Merotelic</span>
+    <span class="n">nand_l</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>   <span class="c">#      Left   False     False    </span>
+    <span class="n">xor_x</span> <span class="o">=</span>  <span class="p">(</span><span class="n">nand_r</span> <span class="o">&amp;</span> <span class="n">xor_r</span><span class="p">)</span>  <span class="o">^</span>  <span class="p">(</span><span class="n">nand_l</span> <span class="o">&amp;</span> <span class="n">xor_l</span><span class="p">)</span>  <span class="c"># XOR  Right  False     False  </span>
+    <span class="k">return</span> <span class="n">xor_x</span>
+</div>
+<div class="viewcode-block" id="were_unat"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.attachment_state.were_unat">[docs]</a><span class="k">def</span> <span class="nf">were_unat</span><span class="p">(</span><span class="n">mh_b</span><span class="p">,</span> <span class="n">ph_b</span><span class="p">):</span>
+    <span class="c">#The number of unattached chromosomes</span>
+    <span class="c">#             Correct  Merotelic</span>
+    <span class="c"># -------------------------------</span>
+    <span class="c">#      Left  |  False     False    </span>
+    <span class="c"># AND  Right |  False     False</span>
+    <span class="n">xor_r</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="c">#right</span>
+    <span class="n">xor_l</span> <span class="o">=</span> <span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">^</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span>   <span class="c">#left</span>
+    <span class="n">nand_r</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">nand_l</span> <span class="o">=</span> <span class="n">logical_not</span><span class="p">(</span><span class="n">mh_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">|</span> <span class="n">ph_b</span><span class="p">[:,</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">and_x</span> <span class="o">=</span> <span class="n">nand_r</span> <span class="o">&amp;</span> <span class="n">nand_l</span>    
+    <span class="k">return</span> <span class="n">and_x</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">kt_simul 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, glyg.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

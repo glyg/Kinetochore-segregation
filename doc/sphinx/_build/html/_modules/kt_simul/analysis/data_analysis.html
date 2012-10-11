@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kt_simul.analysis.data_analysis &mdash; kt_simul 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="kt_simul 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">kt_simul 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for kt_simul.analysis.data_analysis</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="c">## Title: </span>
+<span class="c">## Description: </span>
+<span class="c">## Author:uillaume Gay&lt;elagachado AT  gmail DOT com&gt;</span>
+<span class="c">## Commentary:</span>
+
+
+<span class="kn">from</span> <span class="nn">pylab</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c"># pcs1s = linspace(0., 1., 21)[::-1] # 14/02/2011</span>
+<span class="c"># auroras = logspace(-1.5, .2, 41)</span>
+
+<span class="n">pcs1s</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mi">41</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c"># 16/02/2011</span>
+<span class="n">auroras</span> <span class="o">=</span> <span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="mi">41</span><span class="p">)</span>
+
+
+<span class="c"># num_steps = 1001 # 14/02/2011</span>
+<span class="c"># num_ech = 10 #14/02/2011</span>
+
+<span class="c"># num_steps = 501 # 14/02/2011</span>
+<span class="c"># num_ech = 15 #14/02/2011</span>
+
+<span class="c">#num_steps = 401 # 14/02/2011</span>
+<span class="c">#num_ech = 30 #14/02/2011</span>
+
+<span class="c"># num_steps = 401 # 14/02/2011</span>
+<span class="c"># num_ech = 50 #14/02/2011</span>
+
+<span class="n">num_steps</span> <span class="o">=</span> <span class="mi">801</span> <span class="c"># 18/10/2011</span>
+<span class="n">num_ech</span> <span class="o">=</span> <span class="mi">50</span> <span class="c">#18/10/2011</span>
+
+
+<span class="n">time_step</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="n">Mk</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">num_proc</span> <span class="o">=</span> <span class="mi">4</span>
+
+
+<div class="viewcode-block" id="Explored"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored">[docs]</a><span class="k">class</span> <span class="nc">Explored</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">base_name</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_pcs1s.npy&#39;</span> <span class="o">%</span><span class="n">base_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_auroras.npy&#39;</span> <span class="o">%</span><span class="n">base_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span> <span class="o">=</span> <span class="n">num_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_ech</span> <span class="o">=</span> <span class="n">num_ech</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span> <span class="o">=</span> <span class="n">arange</span><span class="p">(</span><span class="n">num_steps</span><span class="p">)</span> <span class="o">*</span> <span class="n">time_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_name</span> <span class="o">=</span> <span class="n">base_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">defect_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;amphitelic&#39;</span><span class="p">,</span> <span class="s">&#39;merotelic&#39;</span><span class="p">,</span><span class="s">&#39;monotelic&#39;</span><span class="p">,</span>
+                            <span class="s">&#39;syntelic&#39;</span><span class="p">,</span><span class="s">&#39;unattached&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mero_keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;corrected&#39;</span><span class="p">,</span> <span class="s">&#39;cut&#39;</span><span class="p">,</span>
+                          <span class="s">&#39;monotelic&#39;</span><span class="p">,</span> <span class="s">&#39;syntelic&#39;</span><span class="p">)</span>
+ 
+        <span class="bp">self</span><span class="o">.</span><span class="n">linestyles</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;amphitelic&#39;</span><span class="p">:</span><span class="s">&#39;k--&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;merotelic&#39;</span><span class="p">:</span><span class="s">&#39;r-&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;monotelic&#39;</span><span class="p">:</span><span class="s">&#39;g-&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;syntelic&#39;</span><span class="p">:</span><span class="s">&#39;purple&#39;</span><span class="p">,</span>
+                           <span class="s">&#39;unattached&#39;</span><span class="p">:</span><span class="s">&#39;b-&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">def_tags</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;merotelic&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;syntelic&#39;</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;amphitelic&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="s">&#39;monotelic&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;unattached&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">space_shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_shape</span> <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">balance_shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span>
+                              <span class="n">num_ech</span><span class="p">,</span>  <span class="n">num_steps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_bshape</span> <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trans_shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub_tshape</span> <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> 
+        <span class="c">#self.get_all()</span>
+
+<div class="viewcode-block" id="Explored.get_all"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.get_all">[docs]</a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">defects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">balance</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_bshape</span><span class="p">)</span>
+        <span class="n">transition</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_tshape</span><span class="p">)</span>
+        
+        <span class="n">total</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defect_keys</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">num_proc</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">npy_name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%i</span><span class="s">defect_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">.npy&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+                <span class="n">def_i</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">npy_name</span><span class="p">)</span>
+                <span class="n">def_i</span> <span class="o">=</span> <span class="n">def_i</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space_shape</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">+=</span> <span class="n">def_i</span>
+                
+            <span class="n">defects</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">/</span><span class="n">num_proc</span>
+            <span class="k">if</span> <span class="s">&#39;amphi&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">value</span>
+
+        <span class="n">total_mero</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_shape</span><span class="p">)</span>
+        <span class="n">mero_types</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mero_keys</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">num_proc</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">npy_name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%i</span><span class="s">mero_types_</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">.npy&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+                <span class="n">def_i</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">npy_name</span><span class="p">)</span>
+                <span class="n">def_i</span> <span class="o">=</span> <span class="n">def_i</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space_shape</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">+=</span> <span class="n">def_i</span>
+                
+            <span class="n">mero_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">/</span><span class="n">num_proc</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r_</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">num_proc</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c"># balance_name = &#39;%s%ibalance_%s.npy&#39; %(self.base_name, i, self.default)</span>
+            <span class="c"># bal = load(balance_name).reshape(self.balance_shape).mean(axis = 3)</span>
+            <span class="c"># balance += bal</span>
+
+            <span class="n">trans_name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%i</span><span class="s">transition_</span><span class="si">%s</span><span class="s">.npy&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_name</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+            <span class="n">tran</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">trans_name</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trans_shape</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">transition</span> <span class="o">+=</span> <span class="n">tran</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">balance</span> <span class="o">=</span> <span class="n">balance</span><span class="o">/</span><span class="n">num_proc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="n">total</span><span class="o">/</span><span class="n">num_proc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defects</span> <span class="o">=</span> <span class="n">defects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition</span> <span class="o">=</span> <span class="n">transition</span><span class="o">/</span><span class="n">num_proc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mero_types</span> <span class="o">=</span> <span class="n">mero_types</span>
+</div>
+<div class="viewcode-block" id="Explored.get_from_filelist"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.get_from_filelist">[docs]</a>    <span class="k">def</span> <span class="nf">get_from_filelist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_file_list</span><span class="p">):</span>
+        
+        <span class="kn">from</span> <span class="nn">kt_simul</span> <span class="kn">import</span> <span class="n">simul_spindle</span> <span class="k">as</span> <span class="n">sim</span>
+        <span class="kn">from</span> <span class="nn">kt_simul</span> <span class="kn">import</span> <span class="n">attachment_state</span> <span class="k">as</span> <span class="n">atst</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">defects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mero_types</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xml_file_list</span> <span class="o">=</span> <span class="n">xml_file_list</span>
+
+
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_file_list</span><span class="p">))[::</span><span class="n">num_ech</span><span class="p">]:</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">num_ech</span><span class="p">:</span>
+                <span class="n">mp</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_fromfile</span><span class="p">(</span> <span class="n">i</span> <span class="o">*</span> <span class="n">num_ech</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">*</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">defects</span><span class="p">,</span> <span class="n">were_defects</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">defect_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+                    <span class="n">balance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mero_types</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">balance_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">defects</span><span class="p">,</span> <span class="n">were_defects</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">defect_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+                    <span class="n">balance</span><span class="p">,</span> <span class="n">mero_types</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">balance_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">defect</span> <span class="ow">in</span> <span class="n">defects</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="n">defect</span><span class="p">]</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="n">defect</span><span class="p">],</span>
+                                                       <span class="n">defects</span><span class="p">[</span><span class="n">defect</span><span class="p">]))</span>
+                    <span class="k">for</span> <span class="n">mero_type</span> <span class="ow">in</span> <span class="n">mero_types</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">],</span>
+                                                             <span class="n">mero_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">]))</span>
+                    <span class="k">del</span> <span class="n">defects</span><span class="p">,</span> <span class="n">were_defects</span><span class="p">,</span> <span class="n">balance</span>
+                <span class="k">del</span> <span class="n">mp</span>
+                <span class="k">if</span> <span class="n">mod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s">&#39;</span><span class="si">%i</span><span class="s"> / </span><span class="si">%i</span><span class="s">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xml_file_list</span><span class="p">))</span>
+
+
+</div>
+<div class="viewcode-block" id="Explored.plot_defects"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.plot_defects">[docs]</a>    <span class="k">def</span> <span class="nf">plot_defects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_start</span><span class="p">,</span> <span class="n">t_stop</span><span class="p">):</span>
+
+        <span class="n">sub_total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">[:,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pcolor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">,</span> <span class="n">sub_total</span><span class="p">,</span>
+               <span class="n">vmin</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mf">3.</span><span class="p">)</span>
+        <span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">xscale</span><span class="p">(</span><span class="s">&#39;log&#39;</span><span class="p">)</span>
+        <span class="n">axis</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">ylabel</span><span class="p">(</span><span class="s">r&#39;Orientation effect&#39;</span><span class="p">)</span>
+        <span class="n">xlabel</span><span class="p">(</span><span class="s">r&#39;$d_\alpha$&#39;</span><span class="p">)</span>
+        <span class="n">title</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)</span>
+        <span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">defect</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s">&#39;amphi&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">sub_defect</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[:,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">pcolor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">,</span> <span class="n">sub_defect</span><span class="p">,</span>
+                       <span class="n">vmin</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="mf">3.</span><span class="p">)</span>
+                <span class="n">colorbar</span><span class="p">()</span>
+                <span class="n">xscale</span><span class="p">(</span><span class="s">&#39;log&#39;</span><span class="p">)</span>
+                <span class="n">ylabel</span><span class="p">(</span><span class="s">r&#39;Orientation effect&#39;</span><span class="p">)</span>
+                <span class="n">xlabel</span><span class="p">(</span><span class="s">r&#39;$d_\alpha$&#39;</span><span class="p">)</span>
+                <span class="n">axis</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">title</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="Explored.plot_dynamics"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.plot_dynamics">[docs]</a>    <span class="k">def</span> <span class="nf">plot_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pcs1</span><span class="p">,</span> <span class="n">aurora</span><span class="p">):</span>
+    
+        <span class="n">sub_total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">[</span><span class="n">pcs1</span><span class="p">,</span><span class="n">aurora</span><span class="p">,:]</span>
+
+        <span class="n">figure</span><span class="p">()</span>
+        <span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">sub_total</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Total&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">defect</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sub_defect</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[</span><span class="n">pcs1</span><span class="p">,</span><span class="n">aurora</span><span class="p">,:]</span>
+            <span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span> <span class="n">sub_defect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">linestyles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                 <span class="n">label</span> <span class="o">=</span> <span class="n">key</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">)</span>
+
+
+</div></div>
+<div class="viewcode-block" id="renormalize"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.renormalize">[docs]</a><span class="k">def</span> <span class="nf">renormalize</span><span class="p">(</span><span class="n">in_array</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+
+    <span class="n">out_array</span> <span class="o">=</span> <span class="n">in_array</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">out_array</span><span class="p">[</span><span class="n">reference</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span>  <span class="n">reference</span><span class="p">[</span><span class="n">reference</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c">#out_array[reference == 0] </span>
+    <span class="k">return</span> <span class="n">out_array</span>
+</div>
+<div class="viewcode-block" id="plot_mero_types"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.plot_mero_types">[docs]</a><span class="k">def</span> <span class="nf">plot_mero_types</span><span class="p">(</span><span class="n">explo</span><span class="p">,</span> <span class="n">t_start</span><span class="p">,</span> <span class="n">t_stop</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a_sample</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">b_sample</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+
+    <span class="n">optimum</span> <span class="o">=</span> <span class="n">argmin</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">total</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">350</span><span class="p">:</span><span class="mi">370</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">meros</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="s">&#39;merotelic&#39;</span><span class="p">]</span>
+    <span class="n">cor</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;corrected&#39;</span><span class="p">]</span>
+    <span class="n">cut</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;cut&#39;</span><span class="p">]</span>
+    <span class="n">synt</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;syntelic&#39;</span><span class="p">]</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">cor</span> <span class="o">+</span> <span class="n">cut</span> <span class="o">+</span> <span class="n">synt</span>
+    
+    <span class="n">cor</span> <span class="o">=</span> <span class="n">renormalize</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;corrected&#39;</span><span class="p">],</span> <span class="n">total</span><span class="p">)</span>
+    <span class="n">cut</span> <span class="o">=</span> <span class="n">renormalize</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;cut&#39;</span><span class="p">],</span> <span class="n">total</span> <span class="p">)</span>
+    <span class="n">synt</span> <span class="o">=</span> <span class="n">renormalize</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;syntelic&#39;</span><span class="p">],</span> <span class="n">total</span><span class="p">)</span>
+    <span class="n">mono</span> <span class="o">=</span> <span class="n">renormalize</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">mero_types</span><span class="p">[</span><span class="s">&#39;monotelic&#39;</span><span class="p">],</span> <span class="n">total</span><span class="p">)</span>
+
+    <span class="c"># figure()</span>
+    <span class="c"># for i, pcs1 in enumerate(explo.pcs1s[1:]):</span>
+        
+    <span class="c">#     plot(explo.auroras, cor[i,:,t_start:t_stop].mean(-1),</span>
+    <span class="c">#          &#39;go&#39;, alpha = 0.5)</span>
+    <span class="c">#     plot(explo.auroras, cut[i,:,t_start:t_stop].mean(-1),</span>
+    <span class="c">#          &#39;ro&#39;, alpha = 0.5)</span>
+    <span class="c">#     plot(explo.auroras, synt[i,:,t_start:t_stop].mean(-1),</span>
+    <span class="c">#          &#39;bo&#39;, alpha = 0.5)</span>
+    <span class="c">#     plot(explo.auroras, mono[i,:,t_start:t_stop].mean(-1),</span>
+    <span class="c">#          &#39;o&#39;, c=&#39;grey&#39;, alpha = 0.5)</span>
+    <span class="n">figure</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">a_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">/</span> <span class="mf">3.</span>
+    <span class="n">b_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">explo</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">defect</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="nb">zip</span><span class="p">((</span><span class="n">cor</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">synt</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;g&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">))):</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[</span><span class="n">p</span><span class="p">,::</span><span class="n">a_sample</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span>
+        <span class="n">ys_err</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[</span><span class="n">p</span><span class="p">,::</span><span class="n">a_sample</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span>
+        <span class="n">bar</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">])</span><span class="o">+</span><span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="n">a_width</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">ys_err</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">a_width</span><span class="p">,</span>
+                 <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">)</span>
+
+    <span class="n">plot</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">]),</span> <span class="n">explo</span><span class="o">.</span><span class="n">total</span><span class="p">[</span><span class="n">p</span><span class="p">,::</span><span class="n">a_sample</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span>
+         <span class="s">&#39;k-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">]),</span> <span class="n">meros</span><span class="p">[</span><span class="n">p</span><span class="p">,::</span><span class="n">a_sample</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span>
+         <span class="s">&#39;ko-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">xticks</span><span class="p">(</span><span class="n">log10</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">]),</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[::</span><span class="n">a_sample</span><span class="p">]])</span>
+    <span class="n">xlabel</span><span class="p">(</span><span class="s">u&#39;dα (µm)&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">ylabel</span><span class="p">(</span><span class="s">&#39;Fraction of merotelic chromosomes&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+
+    <span class="n">axis</span><span class="p">((</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">110</span><span class="p">))</span>
+
+    <span class="n">figure</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">defect</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="nb">zip</span><span class="p">((</span><span class="n">cor</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">synt</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;g&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">,</span><span class="s">&#39;b&#39;</span><span class="p">))):</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">,</span><span class="n">optimum</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span>
+        <span class="n">ys_err</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">,</span><span class="n">optimum</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span>
+
+        <span class="n">bar</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="n">b_width</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">ys_err</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">b_width</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">)</span>
+
+        <span class="c"># errorbar(explo.pcs1s, ys, yerr=ys_err,</span>
+        <span class="c">#          color=&#39;k&#39;, lw=1, ls = &#39;.&#39;)</span>
+        
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">],</span> <span class="n">explo</span><span class="o">.</span><span class="n">total</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">,</span><span class="n">optimum</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span>
+         <span class="s">&#39;k-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">pcs1s</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">],</span> <span class="n">meros</span><span class="p">[::</span><span class="n">b_sample</span><span class="p">,</span><span class="n">optimum</span><span class="p">,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span>
+         <span class="s">&#39;ko-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">xlabel</span><span class="p">(</span><span class="s">u&#39;β&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">ylabel</span><span class="p">(</span><span class="s">&#39;Fraction of merotelic chromosomes (%)&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">12</span><span class="p">)</span>
+    <span class="n">axis</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">110</span><span class="p">))</span>
+
+
+    <span class="c"># xscale(&#39;log&#39;)</span>
+    <span class="c"># xlabel(u&#39;dα (µm)&#39;, fontsize = 12)</span>
+    <span class="c"># ylabel(&#39;Fraction of merotelic chromosomes&#39;, fontsize = 12)</span>
+
+    <span class="c">#    figure(4)</span>
+
+    
+
+
+    <span class="c"># xs = explo.auroras[::5]</span>
+    <span class="c"># zs = explo.pcs1s[::5]</span>
+    <span class="c"># x_width = (log10(xs[1]/xs[0])) / 3.</span>
+    <span class="c"># z_width = (zs[0]- zs[1]) / 3.</span>
+    <span class="c"># for s, (defect, c) in enumerate( zip((cor, cut, synt), (&#39;g&#39;,&#39;r&#39;,&#39;b&#39;))):</span>
+    <span class="c">#     ys = defect[::5,::10, 350:370].mean(-1)*100</span>
+    <span class="c">#     ys_err = defect[::5,::10, 350:370].std(-1)*100</span>
+        
+        
+    <span class="c">#     #for n, z in enumerate(zs):</span>
+    <span class="c">#     figure(10)</span>
+        
+    <span class="c">#     bar(log10(xs) + s * x_width, ys[0,:], width = x_width, color=c, alpha=0.8)</span>
+    <span class="c">#     errorbar(log10(xs)+ (s + 0.5)*x_width, ys[0,:],</span>
+    <span class="c">#              yerr=ys_err[0,:], color=&#39;k&#39;, ls=&#39;.&#39;)</span>
+
+
+    <span class="c">#     figure(11)</span>
+    <span class="c">#     bar(zs + s * z_width, ys[:,3], width = z_width, color=c, alpha=0.8)</span>
+    <span class="c">#     errorbar(zs+ (s + 0.5) * z_width, ys[:,3],</span>
+    <span class="c">#              yerr=ys_err[:,3], color=&#39;k&#39;, ls=&#39;.&#39;)</span>
+
+
+    <span class="c"># figure(10)</span>
+    <span class="c"># xlabel(u&#39;dα (µm)&#39;, fontsize = 12)</span>
+    <span class="c"># ylabel(&#39;Fraction of merotelic chromosomes (%)&#39;, fontsize = 12)</span>
+    <span class="c"># xticks(log10(xs)+x_width*(s+1)/2., [&#39;%0.2f&#39;%x for x in xs])</span>
+
+    <span class="c"># figure(11)</span>
+    <span class="c"># xlabel(u&#39;β&#39;, fontsize = 12)</span>
+    <span class="c"># ylabel(&#39;Fraction of merotelic chromosomes (%)&#39;, fontsize = 12)</span>
+    
+    <span class="c"># xticks(zs+z_width*s/2., [&#39;%0.2f&#39;%z for z in zs])</span>
+        
+
+    <span class="k">return</span> <span class="n">cor</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">synt</span>
+
+</div>
+<div class="viewcode-block" id="compute_defects"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.compute_defects">[docs]</a><span class="k">def</span> <span class="nf">compute_defects</span><span class="p">(</span><span class="n">xml_file_list</span><span class="p">,</span> <span class="n">base_name</span><span class="p">):</span>
+
+    <span class="kn">from</span> <span class="nn">kt_simul</span> <span class="kn">import</span> <span class="n">simul_spindle</span> <span class="k">as</span> <span class="n">sim</span>
+    <span class="kn">from</span> <span class="nn">kt_simul</span> <span class="kn">import</span> <span class="n">attachment_state</span> <span class="k">as</span> <span class="n">atst</span>
+    
+
+    <span class="n">all_defects</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">all_merotelic_types</span> <span class="o">=</span> <span class="p">{}</span>
+    
+
+    <span class="n">all_pcs1s</span> <span class="o">=</span> <span class="p">[]</span><span class="c">#load(base_name+&#39;_pcs1s.npy&#39;)</span>
+    <span class="n">all_auroras</span> <span class="o">=</span> <span class="p">[]</span><span class="c">#load(base_name+&#39;_auroras.npy&#39;)</span>
+    <span class="c">#base_shape = (pcs1s.size, auroras.size)</span>
+    
+    
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xml_file_list</span><span class="p">):</span>
+
+        <span class="n">mp</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_fromfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_name</span><span class="p">,</span><span class="n">fname</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">all_defects</span><span class="p">,</span> <span class="n">all_were_defects</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">defect_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+            <span class="n">all_balance</span><span class="p">,</span> <span class="n">all_merotelic_types</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">balance_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">defects</span><span class="p">,</span> <span class="n">were_defects</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">defect_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+            <span class="n">balance</span><span class="p">,</span> <span class="n">merotelic_types</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">balance_histories</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+            <span class="n">trans_mat</span> <span class="o">=</span> <span class="n">atst</span><span class="o">.</span><span class="n">transition_matrix</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">defect</span> <span class="ow">in</span> <span class="n">defects</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">all_defects</span><span class="p">[</span><span class="n">defect</span><span class="p">]</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">((</span><span class="n">all_defects</span><span class="p">[</span><span class="n">defect</span><span class="p">],</span>
+                                              <span class="n">defects</span><span class="p">[</span><span class="n">defect</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">mero_type</span> <span class="ow">in</span> <span class="n">merotelic_types</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">all_merotelic_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">((</span><span class="n">all_merotelic_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">],</span>
+                                                         <span class="n">merotelic_types</span><span class="p">[</span><span class="n">mero_type</span><span class="p">]))</span>
+            <span class="k">del</span> <span class="n">defects</span><span class="p">,</span> <span class="n">were_defects</span><span class="p">,</span> <span class="n">balance</span><span class="p">,</span> <span class="n">trans_mat</span>
+        
+        <span class="n">all_pcs1s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;orientation&#39;</span><span class="p">])</span>
+        <span class="n">all_auroras</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;aurora&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">mod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;</span><span class="si">%i</span><span class="s"> / </span><span class="si">%i</span><span class="s">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xml_file_list</span><span class="p">))</span>
+        <span class="k">del</span> <span class="n">mp</span>
+
+    <span class="k">return</span> <span class="n">all_pcs1s</span><span class="p">,</span> <span class="n">all_auroras</span><span class="p">,</span> <span class="n">all_defects</span><span class="p">,</span> <span class="n">all_merotelic_types</span>
+    
+        
+
+        </div>
+<div class="viewcode-block" id="plot_defects_slice"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.plot_defects_slice">[docs]</a><span class="k">def</span> <span class="nf">plot_defects_slice</span><span class="p">(</span><span class="n">explo</span><span class="p">,</span> <span class="n">pcs1</span><span class="p">,</span> <span class="n">t_start</span><span class="p">,</span> <span class="n">t_stop</span><span class="p">):</span>
+
+    <span class="n">sub_total</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">total</span><span class="p">[</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sub_balance</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">balance</span><span class="p">[</span><span class="n">pcs1</span><span class="p">,:,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">figure</span><span class="p">()</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[:],</span> <span class="n">sub_total</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Total&#39;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">defect</span> <span class="ow">in</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s">&#39;amphi&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+            <span class="n">sub_defect</span> <span class="o">=</span> <span class="n">defect</span><span class="p">[</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[:],</span> <span class="n">sub_defect</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span> <span class="n">explo</span><span class="o">.</span><span class="n">linestyles</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
+                 <span class="n">label</span> <span class="o">=</span> <span class="n">key</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">gca</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">set_marker</span><span class="p">(</span><span class="s">&#39;o&#39;</span><span class="p">)</span>
+    
+
+    <span class="n">figure</span><span class="p">()</span>
+    <span class="c">#cumul = zeros(sub_balance.shape[0])</span>
+    <span class="n">cumul</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="s">&#39;unattached&#39;</span><span class="p">][</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">cumul</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">)</span>
+    <span class="n">cumul</span> <span class="o">+=</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="s">&#39;monotelic&#39;</span><span class="p">][</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">cumul</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">)</span>
+    
+    <span class="n">cumul</span> <span class="o">+=</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="s">&#39;syntelic&#39;</span><span class="p">][</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">cumul</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sub_balance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">cumul</span> <span class="o">+=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span>
+        <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">cumul</span><span class="p">,</span> <span class="s">&#39;k-&#39;</span><span class="p">)</span>
+
+    <span class="c">#xscale(&#39;log&#39;)</span>
+    <span class="n">axis</span><span class="p">((</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+
+
+    <span class="n">figure</span><span class="p">()</span>
+    <span class="n">total_aneu</span> <span class="o">=</span> <span class="n">explo</span><span class="o">.</span><span class="n">defects</span><span class="p">[</span><span class="s">&#39;syntelic&#39;</span><span class="p">][</span><span class="n">pcs1</span><span class="p">,:,</span><span class="n">t_start</span><span class="p">:</span><span class="n">t_stop</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span>
+    <span class="n">total_aneu</span> <span class="o">+=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span> <span class="c">#balance = -2</span>
+    <span class="n">total_aneu</span> <span class="o">+=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span> <span class="c">#balance = -1</span>
+
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">total_aneu</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;pink&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Aneuploidy&#39;</span><span class="p">)</span>
+
+    <span class="n">cut</span> <span class="o">=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span> <span class="c">#balance = 0</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;red&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Cut&#39;</span><span class="p">)</span>
+    
+    <span class="n">lag</span> <span class="o">=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span> <span class="c">#balance = 1</span>
+    <span class="n">lag</span> <span class="o">+=</span> <span class="n">sub_balance</span><span class="p">[:,</span><span class="mi">4</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="o">/</span><span class="mf">3.</span> <span class="c">#balance = 2</span>
+    <span class="n">plot</span><span class="p">(</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">,</span> <span class="n">lag</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s">&#39;Corrected&#39;</span><span class="p">)</span>
+    
+    <span class="c">#xscale(&#39;log&#39;)</span>
+    <span class="n">axis</span><span class="p">((</span><span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">explo</span><span class="o">.</span><span class="n">auroras</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">kt_simul 0.1 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, glyg.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
