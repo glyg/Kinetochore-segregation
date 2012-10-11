@@ -21,7 +21,7 @@
 :mod:`spindle_components`
 -------------------------
 
-.. automodule:: kt_simul.core.spindle_components
+.. automodule:: kt_simul.core.components
     :members:
     :undoc-members:
     :show-inheritance:

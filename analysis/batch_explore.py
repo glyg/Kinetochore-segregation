@@ -8,9 +8,9 @@ import time
 import pyximport
 pyximport.install()
 
-from kt_simul.simul_spindle import *
-from kt_simul.xml_handler import *
-from kt_simul.attachment_state import *
+from kt_simul.core.simul_spindle import *
+from kt_simul.core.xml_handler import *
+from kt_simul.analysis.attachment_state import *
 
 #You can change the path to the default parameter and measure files here
 try:

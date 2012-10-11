@@ -140,8 +140,23 @@ OR</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="batch-explore">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">batch_explore</span></tt><a class="headerlink" href="#batch-explore" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-kt_simul.analysis.batch_explore">
+<span id="batch-explore"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">batch_explore</span></tt><a class="headerlink" href="#module-kt_simul.analysis.batch_explore" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="kt_simul.analysis.batch_explore.explore_2D">
+<tt class="descclassname">kt_simul.analysis.batch_explore.</tt><tt class="descname">explore_2D</tt><big>(</big><em>pcs1s</em>, <em>auroras</em>, <em>num_steps</em>, <em>num_ech</em>, <em>plug</em>, <em>dt=1</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/batch_explore.html#explore_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.batch_explore.explore_2D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="kt_simul.analysis.batch_explore.full_simul">
+<tt class="descclassname">kt_simul.analysis.batch_explore.</tt><tt class="descname">full_simul</tt><big>(</big><em>new_params</em>, <em>plug='monotelic'</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/batch_explore.html#full_simul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.batch_explore.full_simul" title="Permalink to this definition">¶</a></dt>
+<dd><p>this functions runs a kinetochore dynamics simulation after having changed
+the parameters specified in the dictionnary new_params. plug is the initial
+attachment state of the kinetochores.</p>
+<p>accepted values for plug are:
+&#8216;monotelic&#8217;, &#8216;merotelic&#8217;, &#8216;null&#8217; or &#8216;random&#8217;</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-kt_simul.analysis.data_analysis">
 <span id="data-analysis"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">data_analysis</span></tt><a class="headerlink" href="#module-kt_simul.analysis.data_analysis" title="Permalink to this headline">¶</a></h2>
@@ -2723,7 +2738,7 @@ Pitch detection algorithm</p>
   <ul>
 <li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.analysis</span></tt> module</a><ul>
 <li><a class="reference internal" href="#module-kt_simul.analysis.attachment_state"><tt class="docutils literal"><span class="pre">attachment_state</span></tt></a></li>
-<li><a class="reference internal" href="#batch-explore"><tt class="docutils literal"><span class="pre">batch_explore</span></tt></a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.batch_explore"><tt class="docutils literal"><span class="pre">batch_explore</span></tt></a></li>
 <li><a class="reference internal" href="#module-kt_simul.analysis.data_analysis"><tt class="docutils literal"><span class="pre">data_analysis</span></tt></a></li>
 <li><a class="reference internal" href="#module-kt_simul.analysis.eval_simul"><tt class="docutils literal"><span class="pre">eval_simul</span></tt></a></li>
 </ul>
