@@ -1,6 +1,6 @@
 
-:mod:`kt_simul.analysis` module
-===============================
+:mod:`kt_simul.analysis`
+========================
 
 :mod:`attachment_state`
 -----------------------

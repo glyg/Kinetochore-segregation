@@ -1,6 +1,6 @@
 
-:mod:`kt_simul.core` module
-============================
+:mod:`kt_simul.core`
+====================
 
 :mod:`simul_spindle`
 --------------------

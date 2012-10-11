@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>kt_simul.analysis module &mdash; kt_simul 0.1 documentation</title>
+    <title>kt_simul.analysis &mdash; kt_simul 1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1',
+        VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="kt_simul 0.1 documentation" href="index.html" />
-    <link rel="prev" title="kt_simul.core module" href="core.html" /> 
+    <link rel="top" title="kt_simul 1.0 documentation" href="index.html" />
+    <link rel="up" title="Explore the API" href="api.html" />
+    <link rel="prev" title="kt_simul.core" href="core.html" /> 
   </head>
   <body>
     <div class="related">
@@ -40,9 +40,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="core.html" title="kt_simul.core module"
+          <a href="core.html" title="kt_simul.core"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">kt_simul 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">kt_simul 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" accesskey="U">Explore the API</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -51,8 +52,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="kt-simul-analysis-module">
-<h1><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.analysis</span></tt> module<a class="headerlink" href="#kt-simul-analysis-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="kt-simul-analysis">
+<h1><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.analysis</span></tt><a class="headerlink" href="#kt-simul-analysis" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-kt_simul.analysis.attachment_state">
 <span id="attachment-state"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">attachment_state</span></tt><a class="headerlink" href="#module-kt_simul.analysis.attachment_state" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -194,13 +195,13 @@ attachment state of the kinetochores.</p>
 and is related to the Gamma distribution.  It has the probability
 distribution function</p>
 <div class="math">
-\[f(x; a,b) = \frac{1}{B(\alpha, \beta)} x^{\alpha - 1}
-(1 - x)^{\beta - 1},\]</div>
-<p>where the normalisation, B, is the beta function,</p>
+<p><img src="_images/math/37bb2a387b6dfea075157d3944bfaf6ee0e341bd.png" alt="f(x; a,b) = \frac{1}{B(\alpha, \beta)} x^{\alpha - 1}
+(1 - x)^{\beta - 1},"/></p>
+</div><p>where the normalisation, B, is the beta function,</p>
 <div class="math">
-\[B(\alpha, \beta) = \int_0^1 t^{\alpha - 1}
-(1 - t)^{\beta - 1} dt.\]</div>
-<p>It is often seen in Bayesian inference and order statistics.</p>
+<p><img src="_images/math/689e8f70354551948e1fb4473ce573702fe52fea.png" alt="B(\alpha, \beta) = \int_0^1 t^{\alpha - 1}
+(1 - t)^{\beta - 1} dt."/></p>
+</div><p>It is often seen in Bayesian inference and order statistics.</p>
 <dl class="docutils">
 <dt>a <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>Alpha, non-negative.</dd>
@@ -244,9 +245,9 @@ input as a float, but it is truncated to an integer in use)</p>
 </dl>
 <p>The probability density for the Binomial distribution is</p>
 <div class="math">
-\[P(N) = \binom{n}{N}p^N(1-p)^{n-N},\]</div>
-<p>where <span class="math">\(n\)</span> is the number of trials, <span class="math">\(p\)</span> is the probability
-of success, and <span class="math">\(N\)</span> is the number of successes.</p>
+<p><img src="_images/math/f26bc548a3dd0ca454d2fb94182e0d1a4586717b.png" alt="P(N) = \binom{n}{N}p^N(1-p)^{n-N},"/></p>
+</div><p>where <img class="math" src="_images/math/174fadd07fd54c9afe288e96558c92e0c1da733a.png" alt="n"/> is the number of trials, <img class="math" src="_images/math/36f73fc1312ee0349b3f3a0f3bd9eb5504339011.png" alt="p"/> is the probability
+of success, and <img class="math" src="_images/math/fc97ef67268cd4e91bacdf12b8901d7036c9a056.png" alt="N"/> is the number of successes.</p>
 <p>When estimating the standard error of a proportion in a population by
 using a random sample, the normal distribution works well unless the
 product p*n &lt;=5, where p = population proportion estimate, and n =
@@ -335,18 +336,18 @@ is given.</dd>
 <p>The variable obtained by summing the squares of <cite>df</cite> independent,
 standard normally distributed random variables:</p>
 <div class="math">
-\[Q = \sum_{i=0}^{\mathtt{df}} X^2_i\]</div>
-<p>is chi-square distributed, denoted</p>
+<p><img src="_images/math/5ea0f387855cf6501ff5547901ade6114ce297f0.png" alt="Q = \sum_{i=0}^{\mathtt{df}} X^2_i"/></p>
+</div><p>is chi-square distributed, denoted</p>
 <div class="math">
-\[Q \sim \chi^2_k.\]</div>
-<p>The probability density function of the chi-squared distribution is</p>
+<p><img src="_images/math/e4fb83b9c874e7beb268cdb97e845a4174e3eaed.png" alt="Q \sim \chi^2_k."/></p>
+</div><p>The probability density function of the chi-squared distribution is</p>
 <div class="math">
-\[p(x) = \frac{(1/2)^{k/2}}{\Gamma(k/2)}
-x^{k/2 - 1} e^{-x/2},\]</div>
-<p>where <span class="math">\(\Gamma\)</span> is the gamma function,</p>
+<p><img src="_images/math/f9865842b8caa2c88713644d1d98152043f605c9.png" alt="p(x) = \frac{(1/2)^{k/2}}{\Gamma(k/2)}
+x^{k/2 - 1} e^{-x/2},"/></p>
+</div><p>where <img class="math" src="_images/math/913e49ea63c6c130bb8d9d1c3556b052ecc404f8.png" alt="\Gamma"/> is the gamma function,</p>
 <div class="math">
-\[\Gamma(x) = \int_0^{-\infty} t^{x - 1} e^{-t} dt.\]</div>
-<p><a class="reference external" href="http://www.itl.nist.gov/div898/handbook/eda/section3/eda3666.htm">NIST/SEMATECH e-Handbook of Statistical Methods</a></p>
+<p><img src="_images/math/f0fa4b831f818b59e6ca1f259f4d06538ead565f.png" alt="\Gamma(x) = \int_0^{-\infty} t^{x - 1} e^{-t} dt."/></p>
+</div><p><a class="reference external" href="http://www.itl.nist.gov/div898/handbook/eda/section3/eda3666.htm">NIST/SEMATECH e-Handbook of Statistical Methods</a></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">chisquare</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
 <span class="go">array([ 1.89920014,  9.00867716,  3.13710533,  5.62318272])</span>
 </pre></div>
@@ -364,9 +365,9 @@ x^{k/2 - 1} e^{-x/2},\]</div>
 <dd><p>Exponential distribution.</p>
 <p>Its probability density function is</p>
 <div class="math">
-\[f(x; \frac{1}{\beta}) = \frac{1}{\beta} \exp(-\frac{x}{\beta}),\]</div>
-<p>for <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span></tt> and 0 elsewhere. <span class="math">\(\beta\)</span> is the scale parameter,
-which is the inverse of the rate parameter <span class="math">\(\lambda = 1/\beta\)</span>.
+<p><img src="_images/math/611bcaa2a5e2746bf645d66c73a94c28d19f5d65.png" alt="f(x; \frac{1}{\beta}) = \frac{1}{\beta} \exp(-\frac{x}{\beta}),"/></p>
+</div><p>for <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span></tt> and 0 elsewhere. <img class="math" src="_images/math/fdb63b9e51abe6bbb16acfb5d7b773ddbb5bf4a8.png" alt="\beta"/> is the scale parameter,
+which is the inverse of the rate parameter <img class="math" src="_images/math/da0da1a5c7b68416f8c0046468f8d84d496be340.png" alt="\lambda = 1/\beta"/>.
 The rate parameter is an alternative, widely used parameterization
 of the exponential distribution <a href="#id58"><span class="problematic" id="id59"><span id="id6"></span>[3]_</span></a>.</p>
 <p>The exponential distribution is a continuous analogue of the
@@ -375,7 +376,7 @@ the size of raindrops measured over many rainstorms <a href="#id60"><span class=
 between page requests to Wikipedia <a href="#id62"><span class="problematic" id="id63"><span id="id8"></span>[2]_</span></a>.</p>
 <dl class="docutils">
 <dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The scale parameter, <span class="math">\(\beta = 1/\lambda\)</span>.</dd>
+<dd>The scale parameter, <img class="math" src="_images/math/d20490a45677e0c49d2e0bd5ef472efa88b6fd93.png" alt="\beta = 1/\lambda"/>.</dd>
 <dt>size <span class="classifier-delimiter">:</span> <span class="classifier">tuple of ints</span></dt>
 <dd>Number of samples to draw.  The output is shaped
 according to <cite>size</cite>.</dd>
@@ -503,9 +504,9 @@ level.</p>
 </dl>
 <p>The probability density for the Gamma distribution is</p>
 <div class="math">
-\[p(x) = x^{k-1}\frac{e^{-x/\theta}}{\theta^k\Gamma(k)},\]</div>
-<p>where <span class="math">\(k\)</span> is the shape and <span class="math">\(\theta\)</span> the scale,
-and <span class="math">\(\Gamma\)</span> is the Gamma function.</p>
+<p><img src="_images/math/2cab7459ce0c717ae011f30027767c081c239f5f.png" alt="p(x) = x^{k-1}\frac{e^{-x/\theta}}{\theta^k\Gamma(k)},"/></p>
+</div><p>where <img class="math" src="_images/math/8c325612684d41304b9751c175df7bcc0f61f64f.png" alt="k"/> is the shape and <img class="math" src="_images/math/52e8ed7a3ba22130ad3984eb2cd413406475a689.png" alt="\theta"/> the scale,
+and <img class="math" src="_images/math/913e49ea63c6c130bb8d9d1c3556b052ecc404f8.png" alt="\Gamma"/> is the Gamma function.</p>
 <p>The Gamma distribution is often used to model the times to failure of
 electronic components, and arises naturally in processes for which the
 waiting times between Poisson distributed events are relevant.</p>
@@ -553,8 +554,8 @@ that must be run in order to achieve success.  It is therefore
 supported on the positive integers, <tt class="docutils literal"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">...</span></tt>.</p>
 <p>The probability mass function of the geometric distribution is</p>
 <div class="math">
-\[f(k) = (1 - p)^{k - 1} p\]</div>
-<p>where <cite>p</cite> is the probability of success of an individual trial.</p>
+<p><img src="_images/math/723af01f3038f4b2c6b9be5b9656c8cc5f50caf2.png" alt="f(k) = (1 - p)^{k - 1} p"/></p>
+</div><p>where <cite>p</cite> is the probability of success of an individual trial.</p>
 <dl class="docutils">
 <dt>p <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>The probability of success of an individual trial.</dd>
@@ -636,9 +637,9 @@ special case of the Extreme Value Type I distribution for maximums from
 distributions with &#8220;exponential-like&#8221; tails.</p>
 <p>The probability density for the Gumbel distribution is</p>
 <div class="math">
-\[p(x) = \frac{e^{-(x - \mu)/ \beta}}{\beta} e^{ -e^{-(x - \mu)/
-\beta}},\]</div>
-<p>where <span class="math">\(\mu\)</span> is the mode, a location parameter, and <span class="math">\(\beta\)</span> is
+<p><img src="_images/math/6c739f32f10496eadb8b377f14c78105e382f8d0.png" alt="p(x) = \frac{e^{-(x - \mu)/ \beta}}{\beta} e^{ -e^{-(x - \mu)/
+\beta}},"/></p>
+</div><p>where <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/> is the mode, a location parameter, and <img class="math" src="_images/math/fdb63b9e51abe6bbb16acfb5d7b773ddbb5bf4a8.png" alt="\beta"/> is
 the scale parameter.</p>
 <p>The Gumbel (named for German mathematician Emil Julius Gumbel) was used
 very early in the hydrology literature, for modeling the occurrence of
@@ -651,8 +652,8 @@ of extreme events.</p>
 <p>It is one of a class of extreme value distributions, the Generalized
 Extreme Value (GEV) distributions, which also includes the Weibull and
 Frechet.</p>
-<p>The function has a mean of <span class="math">\(\mu + 0.57721\beta\)</span> and a variance of
-<span class="math">\(\frac{\pi^2}{6}\beta^2\)</span>.</p>
+<p>The function has a mean of <img class="math" src="_images/math/c8e82925bb214a1423d8f7dbb757e6bf209cd1c1.png" alt="\mu + 0.57721\beta"/> and a variance of
+<img class="math" src="_images/math/19b184c846d6b79fc92e781f400f8968e3912bba.png" alt="\frac{\pi^2}{6}\beta^2"/>.</p>
 <p>Gumbel, E. J., <em>Statistics of Extremes</em>, New York: Columbia University
 Press, 1958.</p>
 <p>Reiss, R.-D. and Thomas, M., <em>Statistical Analysis of Extreme Values from
@@ -724,8 +725,8 @@ than or equal to the sum ngood + nbad.</p>
 </dl>
 <p>The probability density for the Hypergeometric distribution is</p>
 <div class="math">
-\[P(x) = \frac{\binom{m}{n}\binom{N-m}{n-x}}{\binom{N}{n}},\]</div>
-<p>where <span class="math">\(0 \le x \le m\)</span> and <span class="math">\(n+m-N \le x \le n\)</span></p>
+<p><img src="_images/math/0ff4ae4bd06dca461867019c5db34a1c1d36096e.png" alt="P(x) = \frac{\binom{m}{n}\binom{N-m}{n-x}}{\binom{N}{n}},"/></p>
+</div><p>where <img class="math" src="_images/math/634af8daf5a69ebc7aa83e832a9f48a4b1b9ae9f.png" alt="0 \le x \le m"/> and <img class="math" src="_images/math/801f4c8df15c51a2462d6c5f5c1b1d74b02a6b6c.png" alt="n+m-N \le x \le n"/></p>
 <p>for P(x) the probability of x successes, n = ngood, m = nbad, and
 N = number of samples.</p>
 <p>Consider an urn with black and white marbles in it, ngood of them
@@ -788,15 +789,15 @@ difference between two independent, identically distributed exponential
 random variables.</p>
 <dl class="docutils">
 <dt>loc <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>The position, <span class="math">\(\mu\)</span>, of the distribution peak.</dd>
+<dd>The position, <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/>, of the distribution peak.</dd>
 <dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><span class="math">\(\lambda\)</span>, the exponential decay.</dd>
+<dd><img class="math" src="_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png" alt="\lambda"/>, the exponential decay.</dd>
 </dl>
 <p>It has the probability density function</p>
 <div class="math">
-\[f(x; \mu, \lambda) = \frac{1}{2\lambda}
-\exp\left(-\frac{|x - \mu|}{\lambda}\right).\]</div>
-<p>The first law of Laplace, from 1774, states that the frequency of an error
+<p><img src="_images/math/6941d00600839da5597209f0445702905678826b.png" alt="f(x; \mu, \lambda) = \frac{1}{2\lambda}
+\exp\left(-\frac{|x - \mu|}{\lambda}\right)."/></p>
+</div><p>The first law of Laplace, from 1774, states that the frequency of an error
 can be expressed as an exponential function of the absolute magnitude of
 the error, which leads to the Laplace distribution. For many problems in
 Economics and Health sciences, this distribution seems to model the data
@@ -877,8 +878,8 @@ parameters, loc (location or mean, also median), and scale (&gt;0).</p>
 </dl>
 <p>The probability density for the Logistic distribution is</p>
 <div class="math">
-\[P(x) = P(x) = \frac{e^{-(x-\mu)/s}}{s(1+e^{-(x-\mu)/s})^2},\]</div>
-<p>where <span class="math">\(\mu\)</span> = location and <span class="math">\(s\)</span> = scale.</p>
+<p><img src="_images/math/0a2bc02f92279c1af5522071722699aa77ee59b0.png" alt="P(x) = P(x) = \frac{e^{-(x-\mu)/s}}{s(1+e^{-(x-\mu)/s})^2},"/></p>
+</div><p>where <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/> = location and <img class="math" src="_images/math/f37bba504894945c07a32f5496d74299a37aa51c.png" alt="s"/> = scale.</p>
 <p>The Logistic distribution is used in Extreme Value problems where it
 can act as a mixture of Gumbel distributions, in Epidemiology, and by
 the World Chess Federation (FIDE) where it is used in the Elo ranking
@@ -948,9 +949,9 @@ distribution it is derived from.</p>
 distributed.</p>
 <p>The probability density function for the log-normal distribution is</p>
 <div class="math">
-\[p(x) = \frac{1}{\sigma x \sqrt{2\pi}}
-e^{(-\frac{(ln(x)-\mu)^2}{2\sigma^2})}\]</div>
-<p>where <span class="math">\(\mu\)</span> is the mean and <span class="math">\(\sigma\)</span> is the standard deviation
+<p><img src="_images/math/32aae757f3e5c79f55c2fdf54e0cc69057345664.png" alt="p(x) = \frac{1}{\sigma x \sqrt{2\pi}}
+e^{(-\frac{(ln(x)-\mu)^2}{2\sigma^2})}"/></p>
+</div><p>where <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/> is the mean and <img class="math" src="_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png" alt="\sigma"/> is the standard deviation
 of the normally distributed logarithm of the variable.</p>
 <p>A log-normal distribution results if a random variable is the <em>product</em> of
 a large number of independent, identically-distributed variables in the
@@ -1062,8 +1063,8 @@ parameter, p (probability, 0 &lt; p &lt; 1).</p>
 </dl>
 <p>The probability density for the Log Series distribution is</p>
 <div class="math">
-\[P(k) = \frac{-p^k}{k \ln(1-p)},\]</div>
-<p>where p = probability.</p>
+<p><img src="_images/math/d4d5d27887157442015a2652c370d48dd7f0fa7c.png" alt="P(k) = \frac{-p^k}{k \ln(1-p)},"/></p>
+</div><p>where p = probability.</p>
 <p>The Log Series distribution is frequently used to represent species
 richness and occurrence, first proposed by Fisher, Corbet, and
 Williams in 1943 [2].  It may also be used to model the numbers of
@@ -1197,9 +1198,9 @@ analogous to the peak of the bell curve for the one-dimensional or
 univariate normal distribution.</p>
 <p>Covariance indicates the level to which two variables vary together.
 From the multivariate normal distribution, we draw N-dimensional
-samples, <span class="math">\(X = [x_1, x_2, ... x_N]\)</span>.  The covariance matrix
-element <span class="math">\(C_{ij}\)</span> is the covariance of <span class="math">\(x_i\)</span> and <span class="math">\(x_j\)</span>.
-The element <span class="math">\(C_{ii}\)</span> is the variance of <span class="math">\(x_i\)</span> (i.e. its
+samples, <img class="math" src="_images/math/8000a340636a80e715766ba653718435e467e3bb.png" alt="X = [x_1, x_2, ... x_N]"/>.  The covariance matrix
+element <img class="math" src="_images/math/fe66a348757c2edecb43c873c16afe89ba497e1b.png" alt="C_{ij}"/> is the covariance of <img class="math" src="_images/math/67bc6daa9d6b964201d6cef60cbeb1ac5fd26ead.png" alt="x_i"/> and <img class="math" src="_images/math/ac0e6fa105993ce976db0dc241d59ab8e68e6efc.png" alt="x_j"/>.
+The element <img class="math" src="_images/math/062c01af31b5cde928375daf9b07c79905fb97e6.png" alt="C_{ii}"/> is the variance of <img class="math" src="_images/math/67bc6daa9d6b964201d6cef60cbeb1ac5fd26ead.png" alt="x_i"/> (i.e. its
 &#8220;spread&#8221;).</p>
 <p>Instead of specifying the full covariance matrix, popular
 approximations include:</p>
@@ -1263,9 +1264,9 @@ integer &gt; 0 and <cite>p</cite> is in the interval [0, 1].</p>
 </dl>
 <p>The probability density for the Negative Binomial distribution is</p>
 <div class="math">
-\[P(N;n,p) = \binom{N+n-1}{n-1}p^{n}(1-p)^{N},\]</div>
-<p>where <span class="math">\(n-1\)</span> is the number of successes, <span class="math">\(p\)</span> is the probability
-of success, and <span class="math">\(N+n-1\)</span> is the number of trials.</p>
+<p><img src="_images/math/ffa3178efd590f2889c496473e79c50655674950.png" alt="P(N;n,p) = \binom{N+n-1}{n-1}p^{n}(1-p)^{N},"/></p>
+</div><p>where <img class="math" src="_images/math/4bdca93962a2beaffc172ca394e04fe05bd74ffd.png" alt="n-1"/> is the number of successes, <img class="math" src="_images/math/36f73fc1312ee0349b3f3a0f3bd9eb5504339011.png" alt="p"/> is the probability
+of success, and <img class="math" src="_images/math/c75c6f7c29789f2bc8f7225c83bc106a77608911.png" alt="N+n-1"/> is the number of trials.</p>
 <p>The negative binomial distribution gives the probability of n-1 successes
 and N failures in N+n-1 trials, and success on the (N+n)th trial.</p>
 <p>If one throws a die repeatedly until the third time a &#8220;1&#8221; appears, then the
@@ -1304,8 +1305,8 @@ etc.?</p>
 <dt id="kt_simul.analysis.data_analysis.noncentral_chisquare">
 <tt class="descclassname">kt_simul.analysis.data_analysis.</tt><tt class="descname">noncentral_chisquare</tt><big>(</big><em>df</em>, <em>nonc</em>, <em>size=None</em><big>)</big><a class="headerlink" href="#kt_simul.analysis.data_analysis.noncentral_chisquare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw samples from a noncentral chi-square distribution.</p>
-<p>The noncentral <span class="math">\(\chi^2\)</span> distribution is a generalisation of
-the <span class="math">\(\chi^2\)</span> distribution.</p>
+<p>The noncentral <img class="math" src="_images/math/a61c1e51680e27d35d05bebed87d474972fc70bd.png" alt="\chi^2"/> distribution is a generalisation of
+the <img class="math" src="_images/math/a61c1e51680e27d35d05bebed87d474972fc70bd.png" alt="\chi^2"/> distribution.</p>
 <dl class="docutils">
 <dt>df <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd>Degrees of freedom, should be &gt;= 1.</dd>
@@ -1317,9 +1318,9 @@ the <span class="math">\(\chi^2\)</span> distribution.</p>
 <p>The probability density function for the noncentral Chi-square distribution
 is</p>
 <div class="math">
-\[P(x;df,nonc) = \sum^{\infty}_{i=0}
-\frac{e^{-nonc/2}(nonc/2)^{i}}{i!}P_{Y_{df+2i}}(x),\]</div>
-<p>where <span class="math">\(Y_{q}\)</span> is the Chi-square with q degrees of freedom.</p>
+<p><img src="_images/math/f44442887935e99ccd459e6324b2f1daad456827.png" alt="P(x;df,nonc) = \sum^{\infty}_{i=0}
+\frac{e^{-nonc/2}(nonc/2)^{i}}{i!}P_{Y_{df+2i}}(x),"/></p>
+</div><p>where <img class="math" src="_images/math/e640025fd7d59f55afc4d0122ce95eac7bc64d03.png" alt="Y_{q}"/> is the Chi-square with q degrees of freedom.</p>
 <p>In Delhi (2007), it is noted that the noncentral chi-square is useful in
 bombing and coverage problems, the probability of killing the point target
 given by the noncentral chi-squared distribution.</p>
@@ -1444,14 +1445,14 @@ unique distribution <a href="#id66"><span class="problematic" id="id67"><span id
 </dl>
 <p>The probability density for the Gaussian distribution is</p>
 <div class="math">
-\[p(x) = \frac{1}{\sqrt{ 2 \pi \sigma^2 }}
-e^{ - \frac{ (x - \mu)^2 } {2 \sigma^2} },\]</div>
-<p>where <span class="math">\(\mu\)</span> is the mean and <span class="math">\(\sigma\)</span> the standard deviation.
-The square of the standard deviation, <span class="math">\(\sigma^2\)</span>, is called the
+<p><img src="_images/math/04513fb09ca57647636b1992a43381b094ac1ab0.png" alt="p(x) = \frac{1}{\sqrt{ 2 \pi \sigma^2 }}
+e^{ - \frac{ (x - \mu)^2 } {2 \sigma^2} },"/></p>
+</div><p>where <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/> is the mean and <img class="math" src="_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png" alt="\sigma"/> the standard deviation.
+The square of the standard deviation, <img class="math" src="_images/math/741fb9098efcb98055f467f87630a5d0ca599b6b.png" alt="\sigma^2"/>, is called the
 variance.</p>
 <p>The function has its peak at the mean, and its &#8220;spread&#8221; increases with
 the standard deviation (the function reaches 0.607 times its maximum at
-<span class="math">\(x + \sigma\)</span> and <span class="math">\(x - \sigma\)</span> <a href="#id68"><span class="problematic" id="id69"><span id="id39"></span>[2]_</span></a>).  This implies that
+<img class="math" src="_images/math/a9fd20918e2b3b787262c8b1b8138e00cb34ba63.png" alt="x + \sigma"/> and <img class="math" src="_images/math/dc7fba0ae93ac170ceb9fdd84f8c0c7d0eeab71d.png" alt="x - \sigma"/> <a href="#id68"><span class="problematic" id="id69"><span id="id39"></span>[2]_</span></a>).  This implies that
 <cite>numpy.random.normal</cite> is more likely to return samples lying close to the
 mean, rather than those far away.</p>
 <table class="docutils footnote" frame="void" id="id40" rules="none">
@@ -1526,8 +1527,8 @@ percent fill the remaining 80 percent of the range.</p>
 </dl>
 <p>The probability density for the Pareto distribution is</p>
 <div class="math">
-\[p(x) = \frac{am^a}{x^{a+1}}\]</div>
-<p>where <span class="math">\(a\)</span> is the shape and <span class="math">\(m\)</span> the location</p>
+<p><img src="_images/math/80d0442aad0306c094dab5644e8f69724e8edf5e.png" alt="p(x) = \frac{am^a}{x^{a+1}}"/></p>
+</div><p>where <img class="math" src="_images/math/c7d457e388298246adb06c587bccd419ea67f7e8.png" alt="a"/> is the shape and <img class="math" src="_images/math/f5047d1e0cbb50ec208923a22cd517c55100fa7b.png" alt="m"/> the location</p>
 <p>The Pareto distribution, named after the Italian economist Vilfredo Pareto,
 is a power law probability distribution useful in many real world problems.
 Outside the field of economics it is generally referred to as the Bradford
@@ -1637,10 +1638,10 @@ distribution for large N.</p>
 </dl>
 <p>The Poisson distribution</p>
 <div class="math">
-\[f(k; \lambda)=\frac{\lambda^k e^{-\lambda}}{k!}\]</div>
-<p>For events with an expected separation <span class="math">\(\lambda\)</span> the Poisson
-distribution <span class="math">\(f(k; \lambda)\)</span> describes the probability of
-<span class="math">\(k\)</span> events occurring within the observed interval <span class="math">\(\lambda\)</span>.</p>
+<p><img src="_images/math/36f9550f3e658c004bd0ee5242e315a477df57c7.png" alt="f(k; \lambda)=\frac{\lambda^k e^{-\lambda}}{k!}"/></p>
+</div><p>For events with an expected separation <img class="math" src="_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png" alt="\lambda"/> the Poisson
+distribution <img class="math" src="_images/math/dcc27ebed6df4d8960353035e64653d8413bf058.png" alt="f(k; \lambda)"/> describes the probability of
+<img class="math" src="_images/math/8c325612684d41304b9751c175df7bcc0f61f64f.png" alt="k"/> events occurring within the observed interval <img class="math" src="_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png" alt="\lambda"/>.</p>
 <p>Because the output is limited to the range of the C long type, a
 ValueError is raised when <cite>lam</cite> is within 10 sigma of the maximum
 representable value.</p>
@@ -1749,7 +1750,7 @@ uniformly distributed discrete non-integers.</dd>
 <p>If positive, int_like or int-convertible arguments are provided,
 <cite>randn</cite> generates an array of shape <tt class="docutils literal"><span class="pre">(d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></tt>, filled
 with random floats sampled from a univariate &#8220;normal&#8221; (Gaussian)
-distribution of mean 0 and variance 1 (if any of the <span class="math">\(d_i\)</span> are
+distribution of mean 0 and variance 1 (if any of the <img class="math" src="_images/math/f1544d77330dc5a289ad6a42beeb236b8dd70a9a.png" alt="d_i"/> are
 floats, they are first converted to integers by truncation). A single
 float randomly sampled from the distribution is returned if no
 argument is provided.</p>
@@ -1766,7 +1767,7 @@ the standard normal distribution, or a single such float if
 no parameters were supplied.</dd>
 </dl>
 <p>random.standard_normal : Similar, but takes a tuple as its argument.</p>
-<p>For random samples from <span class="math">\(N(\mu, \sigma^2)\)</span>, use:</p>
+<p>For random samples from <img class="math" src="_images/math/adbb4ce441cd7277f61353fde37bbd8150e05a55.png" alt="N(\mu, \sigma^2)"/>, use:</p>
 <p><tt class="docutils literal"><span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">np.random.randn(...)</span> <span class="pre">+</span> <span class="pre">mu</span></tt></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">()</span>
 <span class="go">2.1923875335537315 #random</span>
@@ -1825,7 +1826,7 @@ use:</p>
 </div>
 <p>Choose five random numbers from the set of five evenly-spaced
 numbers between 0 and 2.5, inclusive (<em>i.e.</em>, from the set
-<span class="math">\({0, 5/8, 10/8, 15/8, 20/8}\)</span>):</p>
+<img class="math" src="_images/math/082312228e637609cdeb6c18b357175f2f1482ff.png" alt="{0, 5/8, 10/8, 15/8, 20/8}"/>):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mf">2.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_integers</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">4.</span>
 <span class="go">array([ 0.625,  1.25 ,  0.625,  0.625,  2.5  ])</span>
 </pre></div>
@@ -1849,7 +1850,7 @@ numbers between 0 and 2.5, inclusive (<em>i.e.</em>, from the set
 <tt class="descclassname">kt_simul.analysis.data_analysis.</tt><tt class="descname">random_sample</tt><big>(</big><em>size=None</em><big>)</big><a class="headerlink" href="#kt_simul.analysis.data_analysis.random_sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return random floats in the half-open interval [0.0, 1.0).</p>
 <p>Results are from the &#8220;continuous uniform&#8221; distribution over the
-stated interval.  To sample <span class="math">\(Unif[a, b), b &gt; a\)</span> multiply
+stated interval.  To sample <img class="math" src="_images/math/9c7b1735a9016764f78288c80eb2f6ccae8e65b6.png" alt="Unif[a, b), b &gt; a"/> multiply
 the output of <cite>random_sample</cite> by <cite>(b-a)</cite> and add <cite>a</cite>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">random_sample</span><span class="p">()</span> <span class="o">+</span> <span class="n">a</span>
 </pre></div>
@@ -1887,7 +1888,7 @@ case a single float is returned).</dd>
 <dd><p>random_sample(size=None)</p>
 <p>Return random floats in the half-open interval [0.0, 1.0).</p>
 <p>Results are from the &#8220;continuous uniform&#8221; distribution over the
-stated interval.  To sample <span class="math">\(Unif[a, b), b &gt; a\)</span> multiply
+stated interval.  To sample <img class="math" src="_images/math/9c7b1735a9016764f78288c80eb2f6ccae8e65b6.png" alt="Unif[a, b), b &gt; a"/> multiply
 the output of <cite>random_sample</cite> by <cite>(b-a)</cite> and add <cite>a</cite>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">random_sample</span><span class="p">()</span> <span class="o">+</span> <span class="n">a</span>
 </pre></div>
@@ -1923,7 +1924,7 @@ case a single float is returned).</dd>
 <dt id="kt_simul.analysis.data_analysis.rayleigh">
 <tt class="descclassname">kt_simul.analysis.data_analysis.</tt><tt class="descname">rayleigh</tt><big>(</big><em>scale=1.0</em>, <em>size=None</em><big>)</big><a class="headerlink" href="#kt_simul.analysis.data_analysis.rayleigh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw samples from a Rayleigh distribution.</p>
-<p>The <span class="math">\(\chi\)</span> and Weibull distributions are generalizations of the
+<p>The <img class="math" src="_images/math/6dcb9b88aaa5f14312835145edf06fb2d0823c29.png" alt="\chi"/> and Weibull distributions are generalizations of the
 Rayleigh.</p>
 <dl class="docutils">
 <dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">scalar</span></dt>
@@ -1934,8 +1935,8 @@ value is returned.</dd>
 </dl>
 <p>The probability density function for the Rayleigh distribution is</p>
 <div class="math">
-\[P(x;scale) = \frac{x}{scale^2}e^{\frac{-x^2}{2 \cdotp scale^2}}\]</div>
-<p>The Rayleigh distribution arises if the wind speed and wind direction are
+<p><img src="_images/math/400ac0e28b8ed8c768a92dddc793407038fe4e34.png" alt="P(x;scale) = \frac{x}{scale^2}e^{\frac{-x^2}{2 \cdotp scale^2}}"/></p>
+</div><p>The Rayleigh distribution arises if the wind speed and wind direction are
 both gaussian variables, then the vector wind velocity forms a Rayleigh
 distribution. The Rayleigh distribution is used to model the expected
 output from wind turbines.</p>
@@ -1975,7 +1976,7 @@ meters?</p>
 <dd><p>random_sample(size=None)</p>
 <p>Return random floats in the half-open interval [0.0, 1.0).</p>
 <p>Results are from the &#8220;continuous uniform&#8221; distribution over the
-stated interval.  To sample <span class="math">\(Unif[a, b), b &gt; a\)</span> multiply
+stated interval.  To sample <img class="math" src="_images/math/9c7b1735a9016764f78288c80eb2f6ccae8e65b6.png" alt="Unif[a, b), b &gt; a"/> multiply
 the output of <cite>random_sample</cite> by <cite>(b-a)</cite> and add <cite>a</cite>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">random_sample</span><span class="p">()</span> <span class="o">+</span> <span class="n">a</span>
 </pre></div>
@@ -2102,10 +2103,10 @@ multi-dimensional array:</p>
 </dl>
 <p>The probability density function for the full Cauchy distribution is</p>
 <div class="math">
-\[P(x; x_0, \gamma) = \frac{1}{\pi \gamma \bigl[ 1+
-(\frac{x-x_0}{\gamma})^2 \bigr] }\]</div>
-<p>and the Standard Cauchy distribution just sets <span class="math">\(x_0=0\)</span> and
-<span class="math">\(\gamma=1\)</span></p>
+<p><img src="_images/math/07d02d33b8c2a907bc83253e5e189971674a9d2e.png" alt="P(x; x_0, \gamma) = \frac{1}{\pi \gamma \bigl[ 1+
+(\frac{x-x_0}{\gamma})^2 \bigr] }"/></p>
+</div><p>and the Standard Cauchy distribution just sets <img class="math" src="_images/math/ce5ecb16cc84187bc12033307375ad5504cc813d.png" alt="x_0=0"/> and
+<img class="math" src="_images/math/e2ce879a30de26bdc81e97a97a4df4021567c568.png" alt="\gamma=1"/></p>
 <p>The Cauchy distribution arises in the solution to the driven harmonic
 oscillator problem, and also describes spectral line broadening. It
 also describes the distribution of values at which a line tilted at
@@ -2176,9 +2177,9 @@ shape (sometimes designated &#8220;k&#8221;) and scale=1.</p>
 </dl>
 <p>The probability density for the Gamma distribution is</p>
 <div class="math">
-\[p(x) = x^{k-1}\frac{e^{-x/\theta}}{\theta^k\Gamma(k)},\]</div>
-<p>where <span class="math">\(k\)</span> is the shape and <span class="math">\(\theta\)</span> the scale,
-and <span class="math">\(\Gamma\)</span> is the Gamma function.</p>
+<p><img src="_images/math/2cab7459ce0c717ae011f30027767c081c239f5f.png" alt="p(x) = x^{k-1}\frac{e^{-x/\theta}}{\theta^k\Gamma(k)},"/></p>
+</div><p>where <img class="math" src="_images/math/8c325612684d41304b9751c175df7bcc0f61f64f.png" alt="k"/> is the shape and <img class="math" src="_images/math/52e8ed7a3ba22130ad3984eb2cd413406475a689.png" alt="\theta"/> the scale,
+and <img class="math" src="_images/math/913e49ea63c6c130bb8d9d1c3556b052ecc404f8.png" alt="\Gamma"/> is the Gamma function.</p>
 <p>The Gamma distribution is often used to model the times to failure of
 electronic components, and arises naturally in processes for which the
 waiting times between Poisson distributed events are relevant.</p>
@@ -2261,9 +2262,9 @@ returned.</dd>
 </dl>
 <p>The probability density function for the t distribution is</p>
 <div class="math">
-\[P(x, df) = \frac{\Gamma(\frac{df+1}{2})}{\sqrt{\pi df}
-\Gamma(\frac{df}{2})}\Bigl( 1+\frac{x^2}{df} \Bigr)^{-(df+1)/2}\]</div>
-<p>The t test is based on an assumption that the data come from a Normal
+<p><img src="_images/math/8e425c94101a1ce5e2707af2f76b0a144bf76465.png" alt="P(x, df) = \frac{\Gamma(\frac{df+1}{2})}{\sqrt{\pi df}
+\Gamma(\frac{df}{2})}\Bigl( 1+\frac{x^2}{df} \Bigr)^{-(df+1)/2}"/></p>
+</div><p>The t test is based on an assumption that the data come from a Normal
 distribution. The t test provides a way to test whether the sample mean
 (that is the mean calculated from the data) is a good estimate of the true
 mean.</p>
@@ -2345,12 +2346,12 @@ returned.</dd>
 </dl>
 <p>The probability density function for the Triangular distribution is</p>
 <div class="math">
-\[\begin{split}P(x;l, m, r) = \begin{cases}
+<p><img src="_images/math/6274382730bd100c85c39cab86705db62070cbbf.png" alt="P(x;l, m, r) = \begin{cases}
 \frac{2(x-l)}{(r-l)(m-l)}&amp; \text{for $l \leq x \leq m$},\\
 \frac{2(m-x)}{(r-l)(r-m)}&amp; \text{for $m \leq x \leq r$},\\
 0&amp; \text{otherwise}.
-\end{cases}\end{split}\]</div>
-<p>The triangular distribution is often used in ill-defined problems where the
+\end{cases}"/></p>
+</div><p>The triangular distribution is often used in ill-defined problems where the
 underlying distribution is not known, but some knowledge of the limits and
 mode exists. Often it is used in simulations.</p>
 <dl class="docutils">
@@ -2402,8 +2403,8 @@ rand : Convenience function that accepts dimensions as input, e.g.,</p>
 uniformly distributed over <tt class="docutils literal"><span class="pre">[0,</span> <span class="pre">1)</span></tt>.</div></blockquote>
 <p>The probability density function of the uniform distribution is</p>
 <div class="math">
-\[p(x) = \frac{1}{b - a}\]</div>
-<p>anywhere within the interval <tt class="docutils literal"><span class="pre">[a,</span> <span class="pre">b)</span></tt>, and zero elsewhere.</p>
+<p><img src="_images/math/52a6f8fb16ceb5bb862c3466da7d88a4d4b3e763.png" alt="p(x) = \frac{1}{b - a}"/></p>
+</div><p>anywhere within the interval <tt class="docutils literal"><span class="pre">[a,</span> <span class="pre">b)</span></tt>, and zero elsewhere.</p>
 <p>Draw samples from the distribution:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
 </pre></div>
@@ -2454,9 +2455,9 @@ distribution.</p>
 </dl>
 <p>The probability density for the von Mises distribution is</p>
 <div class="math">
-\[p(x) = \frac{e^{\kappa cos(x-\mu)}}{2\pi I_0(\kappa)},\]</div>
-<p>where <span class="math">\(\mu\)</span> is the mode and <span class="math">\(\kappa\)</span> the dispersion,
-and <span class="math">\(I_0(\kappa)\)</span> is the modified Bessel function of order 0.</p>
+<p><img src="_images/math/2a0ac8d6d67238c2e7c885aee115c03bf9e1db62.png" alt="p(x) = \frac{e^{\kappa cos(x-\mu)}}{2\pi I_0(\kappa)},"/></p>
+</div><p>where <img class="math" src="_images/math/2d8c833ed800824727cd7bd2fb9de1a12ad7e674.png" alt="\mu"/> is the mode and <img class="math" src="_images/math/da61bb0fa48fe71269aebf9c8e56b39275813994.png" alt="\kappa"/> the dispersion,
+and <img class="math" src="_images/math/a614770739f6f8bb28db40082ec164c4aff5901d.png" alt="I_0(\kappa)"/> is the modified Bessel function of order 0.</p>
 <p>The von Mises is named for Richard Edler von Mises, who was born in
 Austria-Hungary, in what is now the Ukraine.  He fled to the United
 States in 1939 and became a professor at Harvard.  He worked in
@@ -2511,9 +2512,9 @@ returned.</dd>
 </dl>
 <p>The probability density function for the Wald distribution is</p>
 <div class="math">
-\[P(x;mean,scale) = \sqrt{\frac{scale}{2\pi x^3}}e^
-\frac{-scale(x-mean)^2}{2\cdotp mean^2x}\]</div>
-<p>As noted above the Inverse Gaussian distribution first arise from attempts
+<p><img src="_images/math/2cc3f450f46910b514814614a2f4bfafc921dff5.png" alt="P(x;mean,scale) = \sqrt{\frac{scale}{2\pi x^3}}e^
+\frac{-scale(x-mean)^2}{2\cdotp mean^2x}"/></p>
+</div><p>As noted above the Inverse Gaussian distribution first arise from attempts
 to model Brownian Motion. It is also a competitor to the Weibull for use in
 reliability modeling and modeling stock returns and interest rate
 processes.</p>
@@ -2541,10 +2542,10 @@ processes.</p>
 <p>Draw samples from a 1-parameter Weibull distribution with the given
 shape parameter <cite>a</cite>.</p>
 <div class="math">
-\[X = (-ln(U))^{1/a}\]</div>
-<p>Here, U is drawn from the uniform distribution over (0,1].</p>
+<p><img src="_images/math/88bc0c1e7ab13d1216b3a41f9e597db83ddb9dd1.png" alt="X = (-ln(U))^{1/a}"/></p>
+</div><p>Here, U is drawn from the uniform distribution over (0,1].</p>
 <p>The more common 2-parameter Weibull, including a scale parameter
-<span class="math">\(\lambda\)</span> is just <span class="math">\(X = \lambda(-ln(U))^{1/a}\)</span>.</p>
+<img class="math" src="_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png" alt="\lambda"/> is just <img class="math" src="_images/math/48f9fda8e55ad93a9f98383c2615e8eb1e41513d.png" alt="X = \lambda(-ln(U))^{1/a}"/>.</p>
 <dl class="docutils">
 <dt>a <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>Shape of the distribution.</dd>
@@ -2563,11 +2564,11 @@ Generalized Extreme Value (GEV) distributions used in modeling extreme
 value problems.  This class includes the Gumbel and Frechet distributions.</p>
 <p>The probability density for the Weibull distribution is</p>
 <div class="math">
-\[p(x) = \frac{a}
-{\lambda}(\frac{x}{\lambda})^{a-1}e^{-(x/\lambda)^a},\]</div>
-<p>where <span class="math">\(a\)</span> is the shape and <span class="math">\(\lambda\)</span> the scale.</p>
+<p><img src="_images/math/1d7f51645d8e25f8006d52ecd93d83e52645295c.png" alt="p(x) = \frac{a}
+{\lambda}(\frac{x}{\lambda})^{a-1}e^{-(x/\lambda)^a},"/></p>
+</div><p>where <img class="math" src="_images/math/c7d457e388298246adb06c587bccd419ea67f7e8.png" alt="a"/> is the shape and <img class="math" src="_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png" alt="\lambda"/> the scale.</p>
 <p>The function has its peak (the mode) at
-<span class="math">\(\lambda(\frac{a-1}{a})^{1/a}\)</span>.</p>
+<img class="math" src="_images/math/37e4f1ab45330ab8b495dc10db1dd3e8b506b005.png" alt="\lambda(\frac{a-1}{a})^{1/a}"/>.</p>
 <p>When <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">1</span></tt>, the Weibull distribution reduces to the exponential
 distribution.</p>
 <table class="docutils footnote" frame="void" id="id55" rules="none">
@@ -2645,8 +2646,8 @@ scalar is returned.</dd>
 </dl>
 <p>The probability density for the Zipf distribution is</p>
 <div class="math">
-\[p(x) = \frac{x^{-a}}{\zeta(a)},\]</div>
-<p>where <span class="math">\(\zeta\)</span> is the Riemann Zeta function.</p>
+<p><img src="_images/math/a863dcb1948a38fad2fe7a9be2b950798581b7d8.png" alt="p(x) = \frac{x^{-a}}{\zeta(a)},"/></p>
+</div><p>where <img class="math" src="_images/math/fda38f45a64bbd4451aedeeb4584e01d91239172.png" alt="\zeta"/> is the Riemann Zeta function.</p>
 <p>It is named for the American linguist George Kingsley Zipf, who noted
 that the frequency of any word in a sample of a language is inversely
 proportional to its rank in the frequency table.</p>
@@ -2736,7 +2737,7 @@ Pitch detection algorithm</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.analysis</span></tt> module</a><ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.analysis</span></tt></a><ul>
 <li><a class="reference internal" href="#module-kt_simul.analysis.attachment_state"><tt class="docutils literal"><span class="pre">attachment_state</span></tt></a></li>
 <li><a class="reference internal" href="#module-kt_simul.analysis.batch_explore"><tt class="docutils literal"><span class="pre">batch_explore</span></tt></a></li>
 <li><a class="reference internal" href="#module-kt_simul.analysis.data_analysis"><tt class="docutils literal"><span class="pre">data_analysis</span></tt></a></li>
@@ -2747,7 +2748,7 @@ Pitch detection algorithm</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="core.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">kt_simul.core</span></tt> module</a></p>
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">kt_simul.core</span></tt></a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/analysis.txt"
@@ -2780,9 +2781,10 @@ Pitch detection algorithm</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="core.html" title="kt_simul.core module"
+          <a href="core.html" title="kt_simul.core"
              >previous</a> |</li>
-        <li><a href="index.html">kt_simul 0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">kt_simul 1.0 documentation</a> &raquo;</li>
+          <li><a href="api.html" >Explore the API</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

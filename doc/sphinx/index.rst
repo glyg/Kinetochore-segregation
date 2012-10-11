@@ -1,18 +1,44 @@
-.. kt_simul documentation master file, created by
-   sphinx-quickstart on Tue Oct  9 14:04:54 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Welcome to kt_simul's documentation
+===================================
 
-Welcome to kt_simul's documentation!
-====================================
+This python module provides the simulation of mitotic spindle elements (for now, the
+kinetochore and the spindle pole bodies), during cell division in
+fission yeast.
 
-Contents:
+If you're interested in this work, please contact :
+
+* Sylvie Tournier (sylvie.tournier-gachet@univ-tlse3.fr) for
+  all aspects related to the biology and for academical collaboration purposes.
+* Guillaume Gay (gllm.gay@gmail.com) for all aspects related to the code
+
+The underlying model is fully described in:
+
+G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet. *A stochastic model of kinetochore–microtubule attachment
+accurately describes fission yeast chromosome segregation* J. Cell Biol 2012 ``doi: 10.1083/jcb.201107124``
+
+This article should be used for any citation of this work.
+
+Contents
+========
 
 .. toctree::
    :maxdepth: 2
 
-   core
-   analysis
+   theory
+   install
+   api
+
+Funding
+=======
+
+This project is funded by the French National Research Agency as:
+   *ANR- BLAN 1206 01 Chromocatch, programme blanc 2010*
+
+LICENCE
+=======
+
+This code is provided under the GPL compatible CeCILL licence (see
+LICENCE.txt for full details).
 
 Indices and tables
 ==================
