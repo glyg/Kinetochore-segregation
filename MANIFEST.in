@@ -1,4 +1,0 @@
-include *.rst
-recursive-include examples *.pdf *.xml *.npy
-recursive-include doc *.pdf *.tex
-
