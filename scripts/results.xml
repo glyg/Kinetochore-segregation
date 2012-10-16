@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<experiment datafile="data.npy" date="Tue Oct 16 17:14:11 2012">
+<experiment datafile="data.npy" date="Tue Oct 16 18:25:24 2012">
   <parameters>
     <param max="2000." min="0.1" name="span" step="10." value="1000.0">
       <unit>s</unit>
@@ -211,5 +211,14 @@
   <state cen_tag="B" column="65" index="(2, 2)" name="plugsite" units="" />
   <trajectory cen_tag="B" column="66" index="(2, 3)" name="plugsite" units="mu m" />
   <state cen_tag="B" column="67" index="(2, 3)" name="plugsite" units="" />
-  <observations />
+  <observations>
+    <MaxFreqs>[0.020833333333333336, 0.016666666666666666, 0.0013888888888888889]</MaxFreqs>
+    <Metaphase Kineto Distance>(-0.25281684593625103, 0.1482902817818367)</Metaphase Kineto Distance>
+    <Metaphase rate>0.00306314106348</Metaphase rate>
+    <Poleward Speed>(-0.016368452398409322, 0.026054200678261828)</Poleward Speed>
+    <Anaphase rate>0.0137407892089</Anaphase rate>
+    <PlugedStats>(3.5594907407407406, 0.50324074074074077)</PlugedStats>
+    <KtRmsSpeed>(0.0050266294675213362, 0.00040013099574275751)</KtRmsSpeed>
+    <TimeOfArrival>[  0.  84.  60.  33.  33.  61.]</TimeOfArrival>
+  </observations>
 </experiment>

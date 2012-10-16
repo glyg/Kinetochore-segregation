@@ -26,7 +26,7 @@ pyximport.install()
 # Local imports
 from kt_simul.core.spindle_dynamics import KinetoDynamics
 from kt_simul.core.xml_handler import ParamTree, indent, ResultTree
-from kt_simul.analysis.evaluate import evaluations
+from kt_simul.analysis import evaluations
 import parameters
 import utils
 
@@ -248,8 +248,8 @@ class Metaphase(object):
             logging.info("No simulation was runned")
             return False
 
-        for name, function in evaluations().iteritems():
-            self.observations[name] = function(self.KD)
+        for evaluation in evaluations.find_evaluations():
+            self.observations[evaluation.name] = evaluation().run(self.KD)
 
         return True
 

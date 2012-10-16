@@ -6,30 +6,32 @@ Data processing, analysis, batch scripts
 import sys
 import os
 
-def find_evaluations(path, cls):
+EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
+
+def find_evaluations():
     """
     Source: http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
 
     Find all subclass of cls in py files located below path
     (does look in sub directories)
 
-    :param path: the path to the top level folder to walk
-    :type path: str
-    :param cls: the base class that all subclasses should inherit from
-    :type cls: class
+    .. todo:: add selector and filter
+
     :rtype: list
     :return: a list if classes that are subclasses of cls
     """
+
+    path = EVAL_PATH
+    cls = Evaluation
 
     subclasses=[]
 
     def look_for_subclass(modulename):
         module=__import__(modulename)
-        print module
+
         # walk the dictionaries to get to the last one
         d=module.__dict__
         for m in modulename.split('.')[1:]:
-            print m
             d=d[m].__dict__
 
         #look through this dictionary for things
@@ -56,11 +58,13 @@ def find_evaluations(path, cls):
     for plugin in plugin_files:
         look_for_subclass("kt_simul.analysis.evaluations." + plugin)
 
-    return subclasses
+    evaluations = []
+    for cls in subclasses:
+        if cls.enable:
+            evaluations.append(cls)
+
+    return evaluations
 
 class Evaluation(object):
     def __init__(self,):
         pass
-
-    def hello(self):
-        print "salut grand"
