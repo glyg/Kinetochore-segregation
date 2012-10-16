@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<experiment datafile="data.txt" date="Tue Oct 16 13:00:48 2012">
+<experiment datafile="data.txt" date="Tue Oct 16 15:18:58 2012">
   <parameters>
     <param max="2000." min="0.1" name="span" step="10." value="1000.0">
       <unit>s</unit>
@@ -212,12 +212,12 @@
   <trajectory cen_tag="B" column="66" index="(2, 3)" name="plugsite" units="mu m" />
   <state cen_tag="B" column="67" index="(2, 3)" name="plugsite" units="" />
   <observations>
-    <mean_metaph_k_dist>(0.27118517096472244, 0.16695516297201499)</mean_metaph_k_dist>
-    <pluged_stats>(3.5057870370370368, 0.56990740740740742)</pluged_stats>
-    <poleward_speed>(0.0020086842749749267, 0.02618953198615246)</poleward_speed>
-    <anaphase_rate>0.0137624795754</anaphase_rate>
-    <kt_rms_speed>(0.0054482799470219048, 0.00076927030903138171)</kt_rms_speed>
-    <metaph_rate>0.00313343548269</metaph_rate>
-    <times_of_arrival>[ 23.  32.   0.  48.  50.   0.]</times_of_arrival>
+    <mean_metaph_k_dist>(-0.85870943613643591, 0.19851404652175417)</mean_metaph_k_dist>
+    <pluged_stats>(3.4724537037037035, 0.59398148148148155)</pluged_stats>
+    <poleward_speed>(-0.036522662865869242, 0.0037633104502188181)</poleward_speed>
+    <anaphase_rate>0.0156888987776</anaphase_rate>
+    <kt_rms_speed>(0.0061027198426509797, 0.0012140009740994307)</kt_rms_speed>
+    <metaph_rate>0.00274753221216</metaph_rate>
+    <times_of_arrival>[ 37.  68.  73.   0.  62.   9.]</times_of_arrival>
   </observations>
 </experiment>

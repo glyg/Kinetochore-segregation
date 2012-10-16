@@ -51,19 +51,19 @@
 <span class="c">#!/usr/bin/python</span>
 <span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">.. module:: simul_spindle</span>
-<span class="sd">   :synopsis:</span>
-<span class="sd">        This module provides the core simulation functionalities.</span>
+<span class="sd">This module provides the core simulation functionalities.</span>
 
-<span class="sd">        See Gay et al. J. Cell Biol., 2012 http://dx.doi.org/10.1083/jcb.201107124</span>
-<span class="sd">        The original framework was adapted from:</span>
-<span class="sd">        Civelekoglu-Scholey et al. Biophys. J. 90(11), 2006</span>
-<span class="sd">        http://dx.doi.org/10.1529/biophysj.105.078691</span>
+<span class="sd">See Gay et al. J. Cell Biol., 2012 http://dx.doi.org/10.1083/jcb.201107124</span>
+<span class="sd">The original framework was adapted from:</span>
+<span class="sd">Civelekoglu-Scholey et al. Biophys. J. 90(11), 2006</span>
+<span class="sd">http://dx.doi.org/10.1529/biophysj.105.078691</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">normal</span>
@@ -73,13 +73,14 @@
 <span class="kn">import</span> <span class="nn">pyximport</span>
 <span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
 
-<span class="c">## local imports</span>
-<span class="kn">from</span> <span class="nn">.spindle_dynamics</span> <span class="kn">import</span> <span class="n">KinetoDynamics</span>
-<span class="kn">from</span> <span class="nn">.xml_handler</span> <span class="kn">import</span> <span class="n">ParamTree</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">ResultTree</span>
-<span class="kn">from</span> <span class="nn">..analysis.eval_simul</span> <span class="kn">import</span> <span class="n">evaluations</span> <span class="c"># as eval_simul</span>
+<span class="c"># Local imports</span>
+<span class="kn">from</span> <span class="nn">kt_simul.core.spindle_dynamics</span> <span class="kn">import</span> <span class="n">KinetoDynamics</span>
+<span class="kn">from</span> <span class="nn">kt_simul.core.xml_handler</span> <span class="kn">import</span> <span class="n">ParamTree</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">ResultTree</span>
+<span class="kn">import</span> <span class="nn">parameters</span>
+<span class="kn">import</span> <span class="nn">utils</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Metaphase&quot;</span><span class="p">,</span> <span class="s">&quot;reduce_params&quot;</span><span class="p">,</span> <span class="s">&quot;PARAMFILE&quot;</span><span class="p">,</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Metaphase&quot;</span><span class="p">,</span> <span class="s">&quot;PARAMFILE&quot;</span><span class="p">,</span>
            <span class="s">&quot;MEASUREFILE&quot;</span><span class="p">,</span> <span class="s">&quot;get_fromfile&quot;</span><span class="p">]</span>
 
 <span class="n">CURRENT_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
@@ -91,11 +92,11 @@
 
 
 <div class="viewcode-block" id="Metaphase"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase">[docs]</a><span class="k">class</span> <span class="nc">Metaphase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;An instance of the Metaphase class is a wrapper around</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An instance of the Metaphase class is a wrapper around</span>
 <span class="sd">    the whole simulation.</span>
 
-<span class="sd">    Typical usage :</span>
-<span class="sd">    ---------------</span>
+<span class="sd">    **Typical usage**</span>
 
 <span class="sd">    &gt;&gt;&gt; from kt_simul.simul_spindle import Metaphase</span>
 <span class="sd">    &gt;&gt;&gt; m = Metaphase()</span>
@@ -104,8 +105,7 @@
 <span class="sd">    &gt;&gt;&gt; m.write_results(&#39;examples/docstring_results.xml&#39;,</span>
 <span class="sd">                        &#39;examples/docstring_data.npy&#39;)</span>
 
-<span class="sd">    From an already runned simulation:</span>
-<span class="sd">    ----------------------------------</span>
+<span class="sd">    **From an already runned simulation**</span>
 
 <span class="sd">    &gt;&gt;&gt; from kt_simul.simul_spindle import Metaphase</span>
 <span class="sd">    &gt;&gt;&gt; m1 = get_fromfile(&#39;examples/docstring_results.xml&#39;)</span>
@@ -113,89 +113,71 @@
 <span class="sd">    &gt;&gt;&gt; m2 = Metaphase(m1.paramtree, m1.measuretree) #A new simulation</span>
 <span class="sd">    &gt;&gt;&gt; m2.simul(ablat = 600) #this time with spindle ablation</span>
 
-<span class="sd">    Public methods:</span>
-<span class="sd">    ---------------</span>
-<span class="sd">    simul() : runs the simulation</span>
-<span class="sd">    show_trajs() : displays the trajectories</span>
-<span class="sd">    show_one() : displays one of the chromosomes&#39; trajectories</span>
-<span class="sd">    show_one_article() : another display style</span>
-<span class="sd">    evaluate() : calculates the characteristics of the simulation</span>
-<span class="sd">    write_results() : saves the trajectories, evaluations and parameters</span>
-<span class="sd">    write_asoctave() : save the trajectories with a different data layout</span>
-<span class="sd">    get_ch(n) : returns chromosome n object</span>
-<span class="sd">    get_2Dtraj_list : returns 2D trajectories of the spindle elements</span>
-
-<span class="sd">    Public attributes:</span>
-<span class="sd">    ------------------</span>
-<span class="sd">    report : a paragraph containing various output from the simulation</span>
-<span class="sd">    KD : the spindle_dynamics.KinetoDynamics instance</span>
-<span class="sd">    paramtree : a xml_handle.ParamTree instance</span>
-<span class="sd">    measuretree : a xml_handle.MeasureTree instance</span>
-<span class="sd">    num_steps : int</span>
-<span class="sd">        Total number of time points</span>
-<span class="sd">    timelapse : ndarray</span>
-<span class="sd">        An array of num_steps time points with dt increment in seconds</span>
-
-<span class="sd">    See Also:</span>
-<span class="sd">    ---------</span>
-<span class="sd">    spindle_dynamics.KinetoDynamics and xml_handler.ParamTree</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="Metaphase.__init__"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">paramtree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">measuretree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">paramfile</span><span class="o">=</span><span class="n">PARAMFILE</span><span class="p">,</span> <span class="n">measurefile</span><span class="o">=</span><span class="n">MEASUREFILE</span><span class="p">,</span>
-                 <span class="n">initial_plug</span><span class="o">=</span><span class="s">&#39;random&#39;</span><span class="p">,</span> <span class="n">reduce_p</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+                 <span class="n">initial_plug</span><span class="o">=</span><span class="s">&#39;random&#39;</span><span class="p">,</span> <span class="n">reduce_p</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
 
-        <span class="sd">&quot;&quot;&quot;Metaphase instanciation method</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Metaphase instanciation method</span>
 
-<span class="sd">        Key-word arguments:</span>
-<span class="sd">        -------------------</span>
 
-<span class="sd">        duration  : a float</span>
-<span class="sd">            the duration of the mitosis in seconds (defaults to 900)</span>
+<span class="sd">        :param duration: The duration of the mitosis in seconds (defaults to 900)</span>
+<span class="sd">        :type duration: float</span>
 
-<span class="sd">        paramtree : a ParamTree instance or None</span>
-<span class="sd">            The paramtree contains the parameters for the simulation</span>
+<span class="sd">        :param paramtree: The paramtree contains the parameters for the simulation</span>
 <span class="sd">            if paramtree is None, the parameters are read</span>
 <span class="sd">            from the file paramfile. Defaults to None.</span>
+<span class="sd">        :type paramtree: ParamTree instance or None</span>
 
-<span class="sd">        measuretree : a ParamTree instance or None</span>
-<span class="sd">            The measuretree contains the observed characteristics</span>
+<span class="sd">        :param measuretree: The measuretree contains the observed characteristics</span>
 <span class="sd">            of the mitosis e.g. metaphase spindle elongation rate, etc.</span>
 <span class="sd">            if measuretree is None, the measures are read from the file</span>
 <span class="sd">            indicated by the measurefile argument. Defaults to None.</span>
+<span class="sd">        :type measuretree: ParamTree instance or None</span>
 
-<span class="sd">        paramfile : string</span>
-<span class="sd">            Path to a xml file to read the parameters from. Defaults to the</span>
+<span class="sd">        :param paramfile: Path to a xml file to read the parameters from. Defaults to the</span>
 <span class="sd">            file params.xml in the module&#39;s default directory. Other parameter</span>
 <span class="sd">            files can be produced by editing and changing the default one.</span>
 <span class="sd">            If the paramtree argument is not None,  paramfile is ignored</span>
+<span class="sd">        :type paramfile: string</span>
 
-<span class="sd">        measurefile : string</span>
-<span class="sd">            Path to a xml file to read the measures from. Defaults to the</span>
+<span class="sd">        :param measurefile: Path to a xml file to read the measures from. Defaults to the</span>
 <span class="sd">            file measures.xml in the module&#39;s default directory.</span>
 <span class="sd">            Other measure files can be produced by editing and changing</span>
-<span class="sd">            the default one.</span>
-<span class="sd">            If the measuretree argument is not None, measurefile is ignored</span>
+<span class="sd">            the default one. If the measuretree argument is not None, measurefile</span>
+<span class="sd">            is ignored</span>
+<span class="sd">        :type measurefile: string</span>
 
-<span class="sd">        initial_plug : string or None</span>
-<span class="sd">            Defines globally the initial attachment states.</span>
+<span class="sd">        :param initial_plug: Defines globally the initial attachment states.</span>
 <span class="sd">            This argument can have the following values:</span>
-<span class="sd">            - &#39;null&#39;: all kinetochores are detached</span>
-<span class="sd">            - &#39;amphitelic&#39;: all chromosmes are amphitelic</span>
-<span class="sd">            - &#39;random&#39;: all attachement site can be bound to</span>
+<span class="sd">                * &#39;null&#39;: all kinetochores are detached</span>
+<span class="sd">                * &#39;amphitelic&#39;: all chromosmes are amphitelic</span>
+<span class="sd">                * &#39;random&#39;: all attachement site can be bound to</span>
 <span class="sd">                        either pole or deteched with equal prob.</span>
-<span class="sd">            - &#39;monotelic&#39;: right kinetochores are attached to the same pole,</span>
+<span class="sd">                * &#39;monotelic&#39;: right kinetochores are attached to the same pole,</span>
 <span class="sd">                           left ones are detached</span>
-<span class="sd">            - &#39;syntelic&#39; : all kinetochores are attached to the same pole</span>
+<span class="sd">                * &#39;syntelic&#39; : all kinetochores are attached to the same pole</span>
+<span class="sd">        :type initial_plug: string or None</span>
 
-<span class="sd">        reduce_p  : bool</span>
-<span class="sd">            If True, changes the parameters according to the measures</span>
+<span class="sd">        :param reduce_p: If True, changes the parameters according to the measures</span>
 <span class="sd">            so that the simulation average behaviour complies with</span>
 <span class="sd">            the data in the measures dictionary</span>
+<span class="sd">        :type reduce_p: bool</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Enable or disable log console</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">False</span>
+
         <span class="k">if</span> <span class="n">paramtree</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">paramtree</span> <span class="o">=</span> <span class="n">ParamTree</span><span class="p">(</span><span class="n">paramfile</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -205,7 +187,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">measuretree</span> <span class="o">=</span> <span class="n">measuretree</span>
         <span class="k">if</span> <span class="n">reduce_p</span><span class="p">:</span>
-            <span class="n">reduce_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paramtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">measuretree</span><span class="p">)</span>
+            <span class="n">parameters</span><span class="o">.</span><span class="n">reduce_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paramtree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">measuretree</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Parameters loaded&#39;</span><span class="p">)</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paramtree</span><span class="o">.</span><span class="n">relative_dic</span>
         <span class="c"># Reset explicitely the unit parameters to their</span>
@@ -222,11 +206,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delay</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="k">print</span> <span class="s">&quot;pppp&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Simulation initialized&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="Metaphase.__str__"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Metaphase class&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -250,31 +233,53 @@
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Not yet evaluated&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-</div>
 <div class="viewcode-block" id="Metaphase.simul"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.simul">[docs]</a>    <span class="k">def</span> <span class="nf">simul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ablat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ablat_pos</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; The simulation main loop.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The simulation main loop.</span>
 
-<span class="sd">        Keyword arguments:</span>
-<span class="sd">        ------------------</span>
-
-<span class="sd">        ablat: float, optional</span>
-<span class="sd">            Timepoint at which ablation takes place. If None (default)</span>
+<span class="sd">        :param ablat: Timepoint at which ablation takes place. If None (default)</span>
 <span class="sd">            no ablation is performed.</span>
+<span class="sd">        :type ablat: float, optional</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
+
+        <span class="c">#dt = self.KD.params[&#39;dt&#39;]</span>
         <span class="n">kappa_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;kappa_c&#39;</span><span class="p">]</span>
 
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Running simulation&#39;</span><span class="p">)</span>
+        <span class="n">bef</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">log_anaphase_onset</span> <span class="o">=</span> <span class="bp">False</span>
+
         <span class="k">for</span> <span class="n">time_point</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
+
+            <span class="n">progress</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">time_point</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">and</span> <span class="n">progress</span> <span class="o">!=</span> <span class="n">bef</span><span class="p">:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">progress</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">progress</span><span class="p">))</span>
+                <span class="n">bef</span> <span class="o">=</span> <span class="n">progress</span>
+
             <span class="c"># Ablation test</span>
             <span class="k">if</span> <span class="n">ablat</span> <span class="o">==</span> <span class="n">time_point</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Performing ablation&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ablation</span><span class="p">(</span><span class="n">time_point</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">ablat_pos</span><span class="p">)</span>
+
             <span class="c"># Anaphase transition ?</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_anaphase_test</span><span class="p">(</span><span class="n">time_point</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anaphase_test</span><span class="p">(</span><span class="n">time_point</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">log_anaphase_onset</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Anaphase onset at </span><span class="si">%i</span><span class="s"> / </span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="n">time_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
+                    <span class="n">log_anaphase_onset</span> <span class="o">=</span> <span class="bp">True</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">one_step</span><span class="p">(</span><span class="n">time_point</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">and</span> <span class="n">progress</span> <span class="o">!=</span> <span class="n">bef</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">progress</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Simulation done&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;kappa_c&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa_c</span>
         <span class="n">delay_str</span> <span class="o">=</span> <span class="s">&quot;delay = </span><span class="si">%2d</span><span class="s"> seconds&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">delay</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">delay_str</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span>
             <span class="n">ch</span><span class="o">.</span><span class="n">calc_correct_history</span><span class="p">()</span>
             <span class="n">ch</span><span class="o">.</span><span class="n">calc_erroneous_history</span><span class="p">()</span>
@@ -282,10 +287,12 @@
             <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">calc_toa</span><span class="p">()</span>
 </div>
     <span class="k">def</span> <span class="nf">_anaphase_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_point</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;returns True if anaphase has been executed.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns True if anaphase has been executed.</span>
 <span class="sd">        At anaphase onset, set the cohesin spring constent to 0 and</span>
 <span class="sd">        self.KD.anaphase to True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">t_A</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;t_A&#39;</span><span class="p">])</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time_point</span> <span class="o">*</span> <span class="n">dt</span>
@@ -307,17 +314,17 @@
         <span class="k">return</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">_ablation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_point</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Simulates a laser ablation: detaches all the kinetochores</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Simulates a laser ablation: detaches all the kinetochores</span>
 <span class="sd">        and sets the midzone stall force Fmz to 0</span>
 
-<span class="sd">        Parameter:</span>
-<span class="sd">        ----------</span>
-<span class="sd">            pos: float or None, optional</span>
-<span class="sd">                position of the laser beam within the spindle</span>
+<span class="sd">        :param pos: Position of the laser beam within the spindle</span>
+<span class="sd">        :type pos: float or None, optional</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">pos</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">pos</span> <span class="o">&lt;=</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">pos</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&#39;Missed shot, same player play again!&#39;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Missed shot, same player play again!&#39;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;Fmz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;k_a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -331,10 +338,10 @@
                 <span class="n">plugsite</span><span class="o">.</span><span class="n">set_plug_state</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_point</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_plug_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;If the spindle assembly checkpoint is active, returns True</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the spindle assembly checkpoint is active, returns True</span>
 <span class="sd">        if all chromosomes are plugged by at least one kMT, False</span>
 <span class="sd">        otherwise.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;sac&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">sac</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -345,8 +352,9 @@
         <span class="k">return</span> <span class="bp">True</span>
 
     <span class="k">def</span> <span class="nf">_mero_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;returns the total number of merotellic kT</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: The total number of merotellic kT</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nb_mero</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span> <span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">erroneous</span><span class="p">())</span> <span class="p">:</span>
@@ -355,9 +363,9 @@
         <span class="k">return</span> <span class="n">nb_mero</span>
 
     <span class="k">def</span> <span class="nf">_mplate_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;returns True if each kinetochore is in the proper half</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: Returns True if each kinetochore is in the proper half</span>
 <span class="sd">        of the spindle</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span>
             <span class="n">ktR</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">pos</span>
@@ -366,562 +374,16 @@
                 <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">True</span>
 
-<div class="viewcode-block" id="Metaphase.evaluate"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; passes all the evaluations in eval_simul.py</span>
-<span class="sd">        results are stored in the self.observations dictionnary</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">step_count</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s">&quot;No simulation was runned ... exiting&quot;</span>
-            <span class="k">return</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">function</span> <span class="ow">in</span> <span class="n">evaluations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Metaphase.show_trajs"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.show_trajs">[docs]</a>    <span class="k">def</span> <span class="nf">show_trajs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Plot the different trajectories</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">axes</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-            <span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-        <span class="n">spbRtraj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">spbLtraj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">spbRtraj</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">spbLtraj</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">fmt_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;g-&#39;</span><span class="p">,</span> <span class="s">&#39;b-&#39;</span><span class="p">,</span> <span class="s">&#39;m-&#39;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
-            <span class="n">right_traj</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">left_traj</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">fmt</span> <span class="o">=</span> <span class="n">fmt_list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
-            <span class="n">line1</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">right_traj</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-            <span class="n">line2</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">left_traj</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">line1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
-                <span class="n">line2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
-        <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;Time (seconds)&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="s">&#39;small&#39;</span><span class="p">)</span>
-        <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">u&#39;Distance from center (um)&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="s">&#39;small&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</div>
-<div class="viewcode-block" id="Metaphase.write_asoctave"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.write_asoctave">[docs]</a>    <span class="k">def</span> <span class="nf">write_asoctave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlfname</span> <span class="o">=</span> <span class="s">&quot;results.xml&quot;</span><span class="p">,</span>
-                       <span class="n">datafname</span> <span class="o">=</span> <span class="s">&quot;oct_data.txt&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save results in a file compatible with the tools developped</span>
-<span class="sd">        to caracterize real life movies under octave.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        xmlfname : string</span>
-<span class="sd">            name of the xml file where the paramters and observations</span>
-<span class="sd">            are stored, defaults to ``results.xml``</span>
-<span class="sd">        datafname : string</span>
-<span class="sd">            name of the xml file where the trajectories coordinates</span>
-<span class="sd">            are stored, defaults to ``oct_data.txt``</span>
-
-<span class="sd">        Note that this will also call self.write_results(xmlfname).</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="n">xmlfname</span> <span class="o">=</span> <span class="n">xmlfname</span><span class="p">)</span>
-        <span class="n">spbRx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">spbRx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">spbRx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">spbRx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">out_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">spbRx</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">idxs</span><span class="p">))</span>
-
-        <span class="n">spbLx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">idxs</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">vstack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">spbLx</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">idxs</span><span class="p">))</span>
-        <span class="n">out_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_array</span><span class="p">,</span> <span class="n">vstack</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span>
-            <span class="n">idxs</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">chRx</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">vstack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">chRx</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">idxs</span><span class="p">))</span>
-            <span class="n">out_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_array</span><span class="p">,</span> <span class="n">vstack</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-            <span class="n">idxs</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">chLx</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">vstack</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">chLx</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">idxs</span><span class="p">))</span>
-            <span class="n">out_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_array</span><span class="p">,</span> <span class="n">vstack</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
-
-        <span class="n">dataout</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">datafname</span><span class="p">,</span> <span class="s">&#39;w+&#39;</span><span class="p">)</span>
-        <span class="n">dataout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;# desciptor: &quot;</span><span class="o">+</span><span class="n">xmlfname</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">dataout</span><span class="p">,</span> <span class="n">out_array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Metaphase.write_results"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.write_results">[docs]</a>    <span class="k">def</span> <span class="nf">write_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlfname</span> <span class="o">=</span> <span class="s">&quot;results.xml&quot;</span><span class="p">,</span> <span class="n">datafname</span> <span class="o">=</span> <span class="s">&quot;data.npy&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Saves the results of the simulation in two files</span>
-<span class="sd">        with the parameters, measures and observations in one file</span>
-<span class="sd">        and the trajectories in the other.</span>
-
-<span class="sd">        Keyword arguments:</span>
-<span class="sd">        ------------------</span>
-<span class="sd">        xmlfname : string, optional</span>
-<span class="sd">            name of the xml file where parameters and observations</span>
-<span class="sd">            will be written</span>
-<span class="sd">        datafname : string, optional</span>
-<span class="sd">            name of the file where the trajectories will be written</span>
-<span class="sd">            file type is determined by the file suffix:</span>
-<span class="sd">                 - *.npy : data are stored in numpy&#39;s binary format</span>
-<span class="sd">                           (less portable but quite efficient)</span>
-<span class="sd">                 - *.txt : simple text</span>
-<span class="sd">                 - *.txt.gz : text files compressed transparently</span>
-
-<span class="sd">        Any other suffix will be saved as plain text. Column index for</span>
-<span class="sd">        each trajectory is an attribute of the corresponding element</span>
-<span class="sd">        in the xml file.</span>
-
-<span class="sd">        TODO : This function should be chopped off some how, it&#39;s messy</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;observations&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
-
-        <span class="n">chromosomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span>
-        <span class="n">wavelist</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">xmlfname</span><span class="p">,</span> <span class="s">&#39;w+&#39;</span><span class="p">)</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;&lt;?xml version=&quot;1.0&quot;?&gt;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="n">today</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">asctime</span><span class="p">()</span>
-        <span class="n">experiment</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s">&quot;experiment&quot;</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="n">today</span><span class="p">,</span> <span class="n">datafile</span><span class="o">=</span><span class="n">datafname</span><span class="p">)</span>
-        <span class="n">experiment</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paramtree</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-        <span class="n">experiment</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measuretree</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
-
-        <span class="c">#right SPB</span>
-        <span class="n">spbR</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;rightspb&quot;</span><span class="p">,</span>
-                          <span class="n">column</span><span class="o">=</span><span class="s">&#39;0&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">spbR</span><span class="p">,</span> <span class="s">&quot;description&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;right spb trajectory&quot;</span>
-        <span class="n">spbRtraj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
-        <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spbRtraj</span><span class="p">)</span>
-
-        <span class="c">#left SPB</span>
-        <span class="n">spbL</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&quot;leftspb&quot;</span><span class="p">,</span>
-                          <span class="n">column</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">spbL</span><span class="p">,</span> <span class="s">&quot;description&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;left spb trajectory&quot;</span>
-        <span class="n">spbLtraj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
-        <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spbLtraj</span><span class="p">)</span>
-
-        <span class="n">col_num</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="c">#chromosomes</span>
-        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chromosomes</span><span class="p">):</span>
-            <span class="n">rch</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;centromereA&quot;</span><span class="p">,</span>
-                             <span class="n">index</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="s">&quot;chromosome </span><span class="si">%i</span><span class="s"> centromere A trajectory&quot;</span> <span class="o">%</span> <span class="n">n</span>
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">rch</span><span class="p">,</span> <span class="s">&quot;description&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;numbercorrect&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;centromereA&quot;</span><span class="p">,</span>
-                       <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">))</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">correct_history</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;numbererroneous&quot;</span><span class="p">,</span>
-                       <span class="n">name</span><span class="o">=</span><span class="s">&quot;centromereA&quot;</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
-                       <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">))</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">erroneous_history</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="n">lch</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
-                             <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="s">&quot;chromosome </span><span class="si">%s</span><span class="s"> left kinetochore trajectory&quot;</span> <span class="o">%</span> <span class="n">n</span>
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">lch</span><span class="p">,</span> <span class="s">&quot;description&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span><span class="p">))</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;numbercorrect&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;centromereB&quot;</span><span class="p">,</span>
-                       <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">))</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">correct_history</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;numbererroneous&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;centromereB&quot;</span><span class="p">,</span>
-                       <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">))</span>
-            <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">erroneous_history</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="c">#Plug Sites</span>
-            <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">plugsite</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">plugsites</span><span class="p">):</span>
-                <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;plugsite&quot;</span><span class="p">,</span>
-                           <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)),</span> <span class="n">cen_tag</span><span class="o">=</span><span class="s">&#39;A&#39;</span><span class="p">,</span>
-                           <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-                <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugsite</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
-                <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-                <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;state&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;plugsite&quot;</span><span class="p">,</span>
-                           <span class="n">index</span><span class="o">=</span><span class="nb">str</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)),</span> <span class="n">cen_tag</span><span class="o">=</span><span class="s">&#39;A&#39;</span><span class="p">,</span>
-                           <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-                <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugsite</span><span class="o">.</span><span class="n">state_hist</span><span class="p">)</span>
-                <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">plugsite</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">plugsites</span><span class="p">):</span>
-
-                <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;trajectory&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;plugsite&quot;</span><span class="p">,</span>
-                           <span class="n">index</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)),</span> <span class="n">cen_tag</span><span class="o">=</span><span class="s">&#39;B&#39;</span><span class="p">,</span>
-                           <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;mu m&#39;</span><span class="p">)</span>
-                <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugsite</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
-                <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-                <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;state&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&quot;plugsite&quot;</span><span class="p">,</span>
-                           <span class="n">index</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)),</span> <span class="n">cen_tag</span><span class="o">=</span><span class="s">&#39;B&#39;</span><span class="p">,</span>
-                           <span class="n">column</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">col_num</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-                <span class="n">wavelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plugsite</span><span class="o">.</span><span class="n">state_hist</span><span class="p">)</span>
-                <span class="n">col_num</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="c">#Observations</span>
-        <span class="n">obs_elem</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">experiment</span><span class="p">,</span> <span class="s">&quot;observations&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;observations&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">SubElement</span><span class="p">(</span><span class="n">obs_elem</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-
-        <span class="c">#Now we write down the whole experiment XML element</span>
-        <span class="n">indent</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tostring</span><span class="p">(</span><span class="n">experiment</span><span class="p">))</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="c">#And the numbers in the file datafname</span>
-        <span class="n">dataout</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">datafname</span><span class="p">,</span> <span class="s">&#39;w+&#39;</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">wavelist</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">if</span> <span class="n">datafname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.npy&#39;</span><span class="p">):</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dataout</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">dataout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;# desciptor: &quot;</span><span class="o">+</span><span class="n">xmlfname</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">dataout</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">)</span>
-        <span class="k">print</span> <span class="s">&quot;Simulation saved to file </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="n">xmlfname</span>
-</div>
-    <span class="k">def</span> <span class="nf">_make_movie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">imsize</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;somehow deprecated&quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s">&quot;movie&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="k">pass</span>
-
-        <span class="n">imname</span> <span class="o">=</span> <span class="s">&quot;movie/spindle</span><span class="si">%03i</span><span class="s">.tif&quot;</span> <span class="o">%</span> <span class="n">t</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">imname</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">imname</span><span class="p">)</span>
-
-        <span class="n">imarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">imsize</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-
-        <span class="n">xspbR</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">yspbR</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">xspbL</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">yspbL</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">imarray</span><span class="p">[</span><span class="n">yspbR</span><span class="p">,</span> <span class="n">xspbR</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">128</span>
-        <span class="n">imarray</span><span class="p">[</span><span class="n">yspbL</span><span class="p">,</span> <span class="n">xspbL</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">128</span>
-
-        <span class="n">chromosomes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span>
-        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chromosomes</span><span class="p">):</span>
-            <span class="n">xchR</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">ychR</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">n</span> <span class="o">-</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">xchL</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">ychL</span> <span class="o">=</span> <span class="n">scale</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">n</span> <span class="o">-</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">imsize</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">imarray</span><span class="p">[</span><span class="n">ychR</span><span class="p">,</span> <span class="n">xchR</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">42</span>
-            <span class="n">imarray</span><span class="p">[</span><span class="n">ychL</span><span class="p">,</span> <span class="n">xchL</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">42</span>
-
-        <span class="k">if</span> <span class="mi">80</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">testim</span> <span class="o">=</span>  <span class="n">imarray</span>
-            <span class="k">print</span> <span class="n">xchR</span><span class="p">,</span> <span class="n">ychR</span><span class="p">,</span> <span class="n">t</span>
-        <span class="n">im</span> <span class="o">=</span> <span class="n">image_fromarray</span><span class="p">(</span><span class="n">imarray</span><span class="p">,</span> <span class="s">&#39;RGB&#39;</span><span class="p">)</span>
-        <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">imname</span><span class="p">)</span>
-        <span class="k">del</span> <span class="n">im</span>
-
-<div class="viewcode-block" id="Metaphase.show_one"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.show_one">[docs]</a>    <span class="k">def</span> <span class="nf">show_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">fig</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Shows chromosome n trajectory and plug state &quot;&quot;&quot;</span>
-        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
-        <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">fig</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-
-        <span class="c">#fig.add_subplot(312)</span>
-        <span class="n">gridspec</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">subplotspec</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="n">traj_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">subplotspec</span><span class="p">)</span>
-        <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-        <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;purple&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-        <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)</span>
-        <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;k&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">plugsite</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">plugsites</span><span class="p">:</span>
-            <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">plugsite</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">plugsite</span> <span class="ow">in</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">plugsites</span><span class="p">:</span>
-            <span class="n">traj_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">plugsite</span><span class="o">.</span><span class="n">traj</span><span class="p">,</span> <span class="s">&#39;purple&#39;</span><span class="p">)</span>
-        <span class="n">traj_ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([],</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-
-        <span class="n">erroneous_hist</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">erroneous_history</span>
-        <span class="n">correct_hist</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">correct_history</span>
-
-        <span class="n">subplotspec</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">subplotspec</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">traj_ax</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">erroneous_hist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span>
-                <span class="n">label</span><span class="o">=</span><span class="s">&#39;number of erroneoustellic MTs&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">correct_hist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="s">&#39;g&#39;</span><span class="p">,</span>
-                <span class="n">label</span><span class="o">=</span><span class="s">&#39;number of correct MTs&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([],</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-
-        <span class="n">subplotspec</span> <span class="o">=</span> <span class="n">gridspec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">rowspan</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">subplotspec</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">traj_ax</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">erroneous_hist</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s">&#39;r&#39;</span><span class="p">,</span>
-                <span class="n">label</span><span class="o">=</span><span class="s">&#39;number of erroneous MTs&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timelapse</span><span class="p">,</span> <span class="n">correct_hist</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="s">&#39;purple&#39;</span><span class="p">,</span>
-                <span class="n">label</span><span class="o">=</span><span class="s">&#39;number of correct MTs&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="o">*</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</div>
-<div class="viewcode-block" id="Metaphase.get_ch"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.get_ch">[docs]</a>    <span class="k">def</span> <span class="nf">get_ch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
-</div>
-<div class="viewcode-block" id="Metaphase.get_2Dtraj_list"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.get_2Dtraj_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_2Dtraj_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ang_noise</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">pos_noise</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
-                        <span class="n">perp_distance</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
-                        <span class="n">cen</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cen_sigma</span><span class="o">=</span><span class="mf">0.6</span><span class="p">):</span>
-
-        <span class="sd">&quot;&quot;&quot;returns a list of 2D trajectories, adding a random mouvement</span>
-<span class="sd">        to the whole spindle.</span>
-
-<span class="sd">        Keyword arguments:</span>
-<span class="sd">        ------------------</span>
-<span class="sd">        ang_noise : float</span>
-<span class="sd">            angular variation in radians per seconds</span>
-<span class="sd">        pos_noise : float</span>
-<span class="sd">            center of mass displacement in um/s</span>
-<span class="sd">        perp_distance: float</span>
-<span class="sd">            perpendicular distance between the kinetochore pairs</span>
-<span class="sd">        cen: int or None</span>
-<span class="sd">            chromosome index for which a centromere trajectory is</span>
-<span class="sd">            simulated. Be aware that this adds a random coiled coil</span>
-<span class="sd">            movement around the kinetochore position.</span>
-<span class="sd">            If cen is None returns all 6 trajectories plus the SPBs</span>
-<span class="sd">        cen_sigma: float</span>
-<span class="sd">            sets the amplitude of the simulated random coiled coil</span>
-<span class="sd">            movement of the cen marker with respect to the chromosome</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">        --------</span>
-<span class="sd">        trajectories: ndarray</span>
-<span class="sd">            Trajectories is an array of shape (n, 2, num_steps),</span>
-<span class="sd">            where n is the number of trajectories</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
-        <span class="n">N</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">]</span>
-        <span class="n">ang_noise</span> <span class="o">*=</span> <span class="n">dt</span> <span class="c"># rad.s^-1</span>
-        <span class="n">pos_noise</span> <span class="o">*=</span>  <span class="n">dt</span> <span class="c"># um.s^-1</span>
-
-        <span class="n">n_traj</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span> <span class="k">if</span> <span class="n">cen</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="mi">4</span>
-        <span class="n">trajs_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_traj</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">)</span>
-        <span class="n">trajectories</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">trajs_shape</span><span class="p">)</span>
-
-        <span class="n">trajectories</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span>
-
-        <span class="k">if</span> <span class="n">cen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ch</span><span class="p">(</span><span class="n">cen</span><span class="p">)</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">cen_sigma</span><span class="p">,</span>
-                                           <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">):</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">perp_distance</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">perp_distance</span>
-        <span class="c"># TODO: block needs to be vectorized GG march 2012</span>
-        <span class="n">xcs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">ycs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">rots</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">xd</span><span class="p">,</span> <span class="n">yd</span><span class="p">,</span> <span class="n">thetad</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,)</span><span class="o">*</span><span class="mi">3</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">):</span>
-            <span class="n">xd</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">pos_noise</span><span class="p">)</span>
-            <span class="n">yd</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">pos_noise</span><span class="p">)</span>
-            <span class="n">thetad</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">ang_noise</span><span class="p">)</span>
-            <span class="n">xcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xd</span><span class="p">)</span>
-            <span class="n">ycs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yd</span><span class="p">)</span>
-            <span class="n">rots</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetad</span><span class="p">)],</span>
-                         <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetad</span><span class="p">)]])</span>
-        <span class="c"># TODO: block needs to be vectorized GG march 2012</span>
-        <span class="k">for</span> <span class="n">traj</span> <span class="ow">in</span> <span class="n">trajectories</span><span class="p">:</span>
-            <span class="n">traj</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ycs</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xcs</span><span class="p">)))</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">rot</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">rots</span><span class="p">):</span>
-                <span class="n">new_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">rot</span><span class="p">)</span>
-                <span class="n">traj</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_pos</span>
-                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="c"># TODO: implement a general vectorized Brownian motion</span>
-        <span class="k">return</span> <span class="n">trajectories</span>
-</div>
-<div class="viewcode-block" id="Metaphase.get_3Dtraj_list"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.get_3Dtraj_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_3Dtraj_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ang_noise</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">,</span> <span class="n">pos_noise</span><span class="o">=</span><span class="mf">3e-2</span><span class="p">,</span>
-                        <span class="n">radial_distance</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">cen</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cen_sigma</span><span class="o">=</span><span class="mf">0.6</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;returns a list of 3D trajectories, adding a random mouvement [1]_</span>
-<span class="sd">        to the whole spindle.</span>
-
-<span class="sd">        Keyword arguments:</span>
-<span class="sd">        ------------------</span>
-<span class="sd">        ang_noise : float</span>
-<span class="sd">            angular variation in radians per seconds, sets the standard</span>
-<span class="sd">            deviation of the spindle axis angle in um/s.</span>
-
-<span class="sd">        pos_noise : float</span>
-<span class="sd">            std. dev of the spindle center displacement in um/s</span>
-<span class="sd">        radial_distance: float</span>
-<span class="sd">            radial distance of the centromeres to the spindle axis.</span>
-<span class="sd">            Here, chromosomes are distributed evenly around the spindle</span>
-<span class="sd">            axis.</span>
-<span class="sd">        cen: int or None</span>
-<span class="sd">            chromosome index for which a centromere trajectory is</span>
-<span class="sd">            simulated. Be aware that this adds a random coiled coil</span>
-<span class="sd">            movement around the kinetochore position.</span>
-<span class="sd">            If cen is None returns all 6 trajectories plus the SPBs</span>
-<span class="sd">        cen_sigma: float or None</span>
-<span class="sd">            if cen is not None, sets the</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">        --------</span>
-
-<span class="sd">        trajectories: a list of ndarrays</span>
-
-
-<span class="sd">        .. [1] By adding a normaly distributed noise with a Gaussian</span>
-<span class="sd">               distribution see numpy.random.normal for further details</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">]</span>
-        <span class="n">trajectories</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">ang_noise</span> <span class="o">*=</span> <span class="n">dt</span> <span class="c"># rad.s^-1</span>
-        <span class="n">pos_noise</span> <span class="o">*=</span>  <span class="n">dt</span> <span class="c"># um.s^-1</span>
-
-        <span class="n">n_traj</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span> <span class="k">if</span> <span class="n">cen</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="mi">4</span>
-        <span class="n">trajs_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_traj</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">)</span>
-        <span class="n">trajectories</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">trajs_shape</span><span class="p">)</span>
-        <span class="n">trajectories</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbR</span><span class="o">.</span><span class="n">traj</span>
-        <span class="n">trajectories</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">spbL</span><span class="o">.</span><span class="n">traj</span>
-
-        <span class="k">if</span> <span class="n">cen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ch</span><span class="p">(</span><span class="n">cen</span><span class="p">)</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_B</span><span class="o">.</span><span class="n">traj</span>
-            <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">cen_sigma</span><span class="p">,</span>
-                                           <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KD</span><span class="o">.</span><span class="n">chromsomes</span><span class="p">):</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">cen_A</span><span class="o">.</span><span class="n">traj</span>
-                <span class="n">phi</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">N</span>
-                <span class="n">radial_y</span> <span class="o">=</span> <span class="n">radial_distance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">radial_y</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">radial_y</span>
-                <span class="n">radial_z</span> <span class="o">=</span> <span class="n">radial_distance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
-                <span class="n">trajectories</span><span class="p">[</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">radial_z</span>
-
-        <span class="n">xcs</span><span class="p">,</span> <span class="n">ycs</span><span class="p">,</span> <span class="n">zcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
-        <span class="c">#Fix the x axis, rotate around the two others</span>
-        <span class="n">xy_rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
-        <span class="n">zx_rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_steps</span><span class="p">))</span>
-
-        <span class="n">thetad</span><span class="p">,</span> <span class="n">phid</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">():</span>
-            <span class="n">thetad</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">ang_noise</span><span class="p">)</span>
-            <span class="n">phid</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">ang_noise</span><span class="p">)</span>
-            <span class="n">xcs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">pos_noise</span><span class="p">)</span>
-            <span class="n">ycs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">pos_noise</span><span class="p">)</span>
-            <span class="n">zcs</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+=</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">pos_noise</span><span class="p">)</span>
-            <span class="n">xy_rots</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
-                                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetad</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
-                                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
-            <span class="n">zx_rots</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phid</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phid</span><span class="p">)],</span>
-                                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phid</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phid</span><span class="p">)]]</span>
-        <span class="k">for</span> <span class="n">traj</span> <span class="ow">in</span> <span class="n">trajectories</span><span class="p">:</span>
-            <span class="n">traj</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">xcs</span><span class="p">,</span> <span class="n">ycs</span><span class="p">,</span> <span class="n">zcs</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
-                <span class="n">tmp_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">xy_rots</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n</span><span class="p">])</span>
-                <span class="n">new_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmp_pos</span><span class="p">,</span> <span class="n">zx_rots</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n</span><span class="p">])</span>
-                <span class="n">traj</span><span class="p">[:,</span> <span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_pos</span>
-        <span class="k">return</span> <span class="n">trajectories</span>
-
-</div></div>
-<div class="viewcode-block" id="reduce_params"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.reduce_params">[docs]</a><span class="k">def</span> <span class="nf">reduce_params</span><span class="p">(</span><span class="n">paramtree</span><span class="p">,</span> <span class="n">measuretree</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This functions changes the paramters so that</span>
-<span class="sd">    the dynamical characteristics complies with the measures [1]_.</span>
-
-<span class="sd">    input:</span>
-<span class="sd">    -----</span>
-<span class="sd">    paramtree : xml_handler.ParamTree instance</span>
-<span class="sd">    measuretree : xml_handler.MeasureTree</span>
-
-<span class="sd">    paramtree is modified in place</span>
-
-
-<span class="sd">    .. [1] G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.</span>
-<span class="sd">           J. Cell Biol 2012 http://dx.doi.org/10.1083/jcb.201107124</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="n">paramtree</span><span class="o">.</span><span class="n">absolute_dic</span>
-    <span class="n">measures</span> <span class="o">=</span> <span class="n">measuretree</span><span class="o">.</span><span class="n">absolute_dic</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">poleward_speed</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;poleward_speed&#39;</span><span class="p">]</span>
-        <span class="n">metaph_rate</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;metaph_rate&#39;</span><span class="p">]</span>
-        <span class="n">anaph_rate</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;anaph_rate&#39;</span><span class="p">]</span>
-        <span class="n">mean_metaph_k_dist</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;mean_metaph_k_dist&#39;</span><span class="p">]</span>
-        <span class="n">max_metaph_k_dist</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;max_metaph_k_dist&#39;</span><span class="p">]</span>
-        <span class="n">outer_inner_dist</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;oi_dist&#39;</span><span class="p">]</span>
-        <span class="n">tau_k</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;tau_k&#39;</span><span class="p">]</span>
-        <span class="n">tau_c</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;tau_c&#39;</span><span class="p">]</span>
-        <span class="n">obs_d0</span> <span class="o">=</span> <span class="n">measures</span><span class="p">[</span><span class="s">&#39;obs_d0&#39;</span><span class="p">]</span>
-    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-        <span class="k">print</span> <span class="p">(</span><span class="s">&quot;The measures dictionary should contain&quot;</span>
-               <span class="s">&quot;at least the following keys: &quot;</span><span class="p">)</span>
-        <span class="k">print</span> <span class="n">MEASURES</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="k">return</span> <span class="mi">0</span>
-
-    <span class="n">k_a</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;k_a&#39;</span><span class="p">]</span> <span class="c"># &#39;free&#39; attachement event frequency</span>
-    <span class="n">k_d0</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;k_d0&#39;</span><span class="p">]</span> <span class="c"># &#39;free&#39; detachement event frequency</span>
-    <span class="n">d_alpha</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;d_alpha&#39;</span><span class="p">]</span>
-    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;N&#39;</span><span class="p">])</span>
-    <span class="n">Mk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;Mk&#39;</span><span class="p">])</span>
-    <span class="n">kappa_k</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;kappa_k&#39;</span><span class="p">]</span>
-    <span class="n">Fk</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;Fk&#39;</span><span class="p">]</span>
-
-    <span class="c">#Let&#39;s go for the direct relations</span>
-    <span class="n">d0</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;d0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs_d0</span>
-    <span class="n">Vk</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;Vk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">poleward_speed</span>
-    <span class="n">Vmz</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;Vmz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">anaph_rate</span>
-    <span class="c">#Aurora modifies fd</span>
-    <span class="k">if</span> <span class="n">d_alpha</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">k_d_eff</span> <span class="o">=</span> <span class="n">k_a</span> <span class="o">*</span> <span class="n">d_alpha</span> <span class="o">/</span> <span class="n">mean_metaph_k_dist</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&quot;Warning; things don&#39;t go well without Aurora &quot;</span>
-        <span class="n">k_d_eff</span> <span class="o">=</span> <span class="n">k_d0</span>
-
-    <span class="c"># alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)</span>
-    <span class="n">alpha_mean</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">k_d_eff</span><span class="o">/</span><span class="n">k_a</span><span class="p">)</span>
-    <span class="c">#Take metaphase kt pair distance as the maximum one</span>
-    <span class="n">kappa_c</span> <span class="o">=</span> <span class="n">Fk</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">/</span> <span class="p">(</span> <span class="n">max_metaph_k_dist</span> <span class="o">-</span> <span class="n">d0</span> <span class="p">)</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;kappa_c&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa_c</span>
-
-    <span class="c">#kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )</span>
-    <span class="n">kappa_k</span> <span class="o">=</span> <span class="n">Fk</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">/</span> <span class="p">(</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">outer_inner_dist</span> <span class="p">)</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;kappa_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kappa_k</span>
-    <span class="c">#Ensure we have sufficientely small time steps</span>
-    <span class="n">dt</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span> <span class="n">tau_c</span><span class="o">/</span><span class="mf">4.</span><span class="p">,</span> <span class="n">tau_k</span><span class="o">/</span><span class="mf">4.</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;dt&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dt</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&#39;Time step changed&#39;</span>
-
-    <span class="n">mus</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s">&#39;mus&#39;</span><span class="p">]</span>
-    <span class="n">Fmz</span> <span class="o">=</span>  <span class="p">(</span> <span class="n">Fk</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">Mk</span> <span class="o">*</span> <span class="n">alpha_mean</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span>  <span class="n">metaph_rate</span> <span class="o">/</span> <span class="p">(</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Vk</span> <span class="p">))</span>
-             <span class="o">+</span> <span class="n">mus</span> <span class="o">*</span> <span class="n">metaph_rate</span> <span class="o">/</span> <span class="mf">2.</span>  <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span>  <span class="n">metaph_rate</span> <span class="o">/</span> <span class="n">Vmz</span> <span class="p">)</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;Fmz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Fmz</span>
-    <span class="n">muc</span> <span class="o">=</span> <span class="p">(</span> <span class="n">tau_c</span> <span class="o">*</span> <span class="n">kappa_c</span> <span class="p">)</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;muc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">muc</span>
-    <span class="n">muk</span> <span class="o">=</span> <span class="p">(</span> <span class="n">tau_k</span> <span class="o">*</span> <span class="n">kappa_k</span> <span class="p">)</span>
-    <span class="n">params</span><span class="p">[</span><span class="s">&#39;muk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">muk</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">paramtree</span><span class="o">.</span><span class="n">change_dic</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">write</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="get_fromfile"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.get_fromfile">[docs]</a><span class="k">def</span> <span class="nf">get_fromfile</span><span class="p">(</span><span class="n">xmlfname</span> <span class="o">=</span> <span class="s">&quot;results.xml&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Creates a simul_spindle.Metaphase from a XML file.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a simul_spindle.Metaphase from a XML file.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">    --------</span>
-<span class="sd">        metaphase: a Metaphase instance</span>
+<span class="sd">    :param xmlfname: The xml file where results from the existing</span>
+<span class="sd">                        simulation are.</span>
+<span class="sd">    :type xmlfname: string, optional</span>
+<span class="sd">    :return: a Metaphase instance</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">restree</span> <span class="o">=</span> <span class="n">ResultTree</span><span class="p">(</span><span class="n">xmlfname</span><span class="p">)</span>
@@ -963,17 +425,7 @@
             <span class="n">state_num</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="n">metaphase</span><span class="o">.</span><span class="n">KD</span> <span class="o">=</span> <span class="n">KD</span>
 
-    <span class="k">return</span> <span class="n">metaphase</span>
-</div>
-<span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">pix_size</span> <span class="o">=</span> <span class="mf">0.0645</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Scale the position x on a line of size &quot;size&quot; from microns to pixels</span>
-<span class="sd">    origin is put in the center of the line</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">pix_size</span> <span class="o">+</span> <span class="n">size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">circ_box</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">rad</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">rad</span><span class="p">,</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">rad</span> <span class="p">,</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">rad</span> <span class="p">,</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">rad</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metaphase</span></div>
 </pre></div>
 
           </div>

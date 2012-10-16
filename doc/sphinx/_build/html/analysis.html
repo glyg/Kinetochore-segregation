@@ -51,10 +51,107 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="kt-simul-analysis">
-<h1><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.analysis</span></tt><a class="headerlink" href="#kt-simul-analysis" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-kt_simul.analysis">
+<span id="kt-simul-analysis"></span><h1><a class="reference internal" href="#module-kt_simul.analysis" title="kt_simul.analysis"><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.analysis</span></tt></a><a class="headerlink" href="#module-kt_simul.analysis" title="Permalink to this headline">¶</a></h1>
+<p>Data processing, analysis, batch scripts</p>
+<div class="section" id="module-kt_simul.analysis.processing">
+<span id="processing-py"></span><h2>processing.py<a class="headerlink" href="#module-kt_simul.analysis.processing" title="Permalink to this headline">¶</a></h2>
+<p>This module is used to lighten Metaphase class</p>
+<dl class="class">
+<dt id="kt_simul.analysis.processing.Processor">
+<em class="property">class </em><tt class="descclassname">kt_simul.analysis.processing.</tt><tt class="descname">Processor</tt><big>(</big><em>meta_instance</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processor class can performs various things with simulation results
+such as writing results in files, plotting graph, making movie (not yet),
+etc</p>
+<dl class="method">
+<dt id="kt_simul.analysis.processing.Processor.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>meta_instance</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>meta_instance</strong> (<em>Metaphase instance</em>) &#8211; Should have been already perform a simulation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.analysis.processing.Processor.evaluate">
+<tt class="descname">evaluate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes all the evaluations in eval_simul.py
+results are stored in the self.observations dictionnary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.analysis.processing.Processor.show_one">
+<tt class="descname">show_one</tt><big>(</big><em>n=0</em>, <em>fig=None</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor.show_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor.show_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows chromosome n trajectory and plug state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>string, optional</em>) &#8211; if fname is set plot won&#8217;t be shown but saved on your hard drive. Filetype is automatic according to the file extension (.png, .pdf, etc)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.analysis.processing.Processor.show_trajs">
+<tt class="descname">show_trajs</tt><big>(</big><em>axes=None</em>, <em>trajs_file=None</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor.show_trajs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor.show_trajs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the different trajectories</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>string, optional</em>) &#8211; if fname is set plot won&#8217;t be shown but saved on your hard drive. Filetype is automatic according to the file extension (.png, .pdf, etc)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.analysis.processing.Processor.write_results">
+<tt class="descname">write_results</tt><big>(</big><em>xmlfname='results.xml'</em>, <em>datafname='data.npy'</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/processing.html#Processor.write_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.processing.Processor.write_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the results of the simulation in two files
+with the parameters, measures and observations in one file
+and the trajectories in the other.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xmlfname</strong> (<em>string, optional</em>) &#8211; name of the xml file where parameters and observations will be written</li>
+<li><strong>datafname</strong> (<em>string, optional</em>) &#8211; <p>name of the file where the trajectories will be written
+file type is determined by the file suffix:</p>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt><a href="#id1"><span class="problematic" id="id2">*</span></a>.npy <span class="classifier-delimiter">:</span> <span class="classifier">data are stored in numpy&#8217;s binary format</span></dt>
+<dd>(less portable but quite efficient)</dd>
+</dl>
+</li>
+<li><a href="#id3"><span class="problematic" id="id4">*</span></a>.txt : simple text</li>
+<li><a href="#id5"><span class="problematic" id="id6">*</span></a>.txt.gz : text files compressed transparently</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Any other suffix will be saved as plain text. Column index for
+each trajectory is an attribute of the corresponding element
+in the xml file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-kt_simul.analysis.attachment_state">
-<span id="attachment-state"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">attachment_state</span></tt><a class="headerlink" href="#module-kt_simul.analysis.attachment_state" title="Permalink to this headline">¶</a></h2>
+<span id="attachment-state"></span><h2>attachment_state<a class="headerlink" href="#module-kt_simul.analysis.attachment_state" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="kt_simul.analysis.attachment_state.balance_histories">
 <tt class="descclassname">kt_simul.analysis.attachment_state.</tt><tt class="descname">balance_histories</tt><big>(</big><em>kd</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/attachment_state.html#balance_histories"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.attachment_state.balance_histories" title="Permalink to this definition">¶</a></dt>
@@ -141,7 +238,7 @@ OR</p>
 
 </div>
 <div class="section" id="module-kt_simul.analysis.batch_explore">
-<span id="batch-explore"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">batch_explore</span></tt><a class="headerlink" href="#module-kt_simul.analysis.batch_explore" title="Permalink to this headline">¶</a></h2>
+<span id="batch-explore-py"></span><h2>batch_explore.py<a class="headerlink" href="#module-kt_simul.analysis.batch_explore" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="kt_simul.analysis.batch_explore.explore_2D">
 <tt class="descclassname">kt_simul.analysis.batch_explore.</tt><tt class="descname">explore_2D</tt><big>(</big><em>pcs1s</em>, <em>auroras</em>, <em>num_steps</em>, <em>num_ech</em>, <em>plug</em>, <em>dt=1</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/batch_explore.html#explore_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.batch_explore.explore_2D" title="Permalink to this definition">¶</a></dt>
@@ -159,7 +256,7 @@ attachment state of the kinetochores.</p>
 
 </div>
 <div class="section" id="module-kt_simul.analysis.data_analysis">
-<span id="data-analysis"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">data_analysis</span></tt><a class="headerlink" href="#module-kt_simul.analysis.data_analysis" title="Permalink to this headline">¶</a></h2>
+<span id="data-analysis-py"></span><h2>data_analysis.py<a class="headerlink" href="#module-kt_simul.analysis.data_analysis" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="kt_simul.analysis.data_analysis.Explored">
 <em class="property">class </em><tt class="descclassname">kt_simul.analysis.data_analysis.</tt><tt class="descname">Explored</tt><big>(</big><em>num_steps</em>, <em>num_ech</em>, <em>base_name</em>, <em>default</em><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/data_analysis.html#Explored"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.data_analysis.Explored" title="Permalink to this definition">¶</a></dt>
@@ -259,28 +356,28 @@ number of samples, in which case the binomial distribution is used
 instead. For example, a sample of 15 people shows 4 who are left
 handed, and 11 who are right handed. Then p = 4/15 = 27%. 0.27*15 = 4,
 so the binomial distribution should be used in this case.</p>
-<table class="docutils footnote" frame="void" id="id1" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Dalgaard, Peter, &#8220;Introductory Statistics with R&#8221;,
 Springer-Verlag, 2002.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Glantz, Stanton A. &#8220;Primer of Biostatistics.&#8221;, McGraw-Hill,
 Fifth Edition, 2002.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id3" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Lentner, Marvin, &#8220;Elementary Applied Statistics&#8221;, Bogden
 and Quigley, 1972.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[4]</td><td>Weisstein, Eric W. &#8220;Binomial Distribution.&#8221; From MathWorld&#8211;A
@@ -288,7 +385,7 @@ Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/BinomialDistribution.html">http://mathworld.wolfram.com/BinomialDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
+<table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[5]</td><td>Wikipedia, &#8220;Binomial-distribution&#8221;,
@@ -373,11 +470,11 @@ x^{k/2 - 1} e^{-x/2},"/></p>
 </div><p>for <tt class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span></tt> and 0 elsewhere. <img class="math" src="_images/math/fdb63b9e51abe6bbb16acfb5d7b773ddbb5bf4a8.png" alt="\beta"/> is the scale parameter,
 which is the inverse of the rate parameter <img class="math" src="_images/math/da0da1a5c7b68416f8c0046468f8d84d496be340.png" alt="\lambda = 1/\beta"/>.
 The rate parameter is an alternative, widely used parameterization
-of the exponential distribution <a href="#id58"><span class="problematic" id="id59"><span id="id6"></span>[3]_</span></a>.</p>
+of the exponential distribution <a href="#id64"><span class="problematic" id="id65"><span id="id12"></span>[3]_</span></a>.</p>
 <p>The exponential distribution is a continuous analogue of the
 geometric distribution.  It describes many common situations, such as
-the size of raindrops measured over many rainstorms <a href="#id60"><span class="problematic" id="id61"><span id="id7"></span>[1]_</span></a>, or the time
-between page requests to Wikipedia <a href="#id62"><span class="problematic" id="id63"><span id="id8"></span>[2]_</span></a>.</p>
+the size of raindrops measured over many rainstorms <a href="#id66"><span class="problematic" id="id67"><span id="id13"></span>[1]_</span></a>, or the time
+between page requests to Wikipedia <a href="#id68"><span class="problematic" id="id69"><span id="id14"></span>[2]_</span></a>.</p>
 <dl class="docutils">
 <dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>The scale parameter, <img class="math" src="_images/math/d20490a45677e0c49d2e0bd5ef472efa88b6fd93.png" alt="\beta = 1/\lambda"/>.</dd>
@@ -385,21 +482,21 @@ between page requests to Wikipedia <a href="#id62"><span class="problematic" id=
 <dd>Number of samples to draw.  The output is shaped
 according to <cite>size</cite>.</dd>
 </dl>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Peyton Z. Peebles Jr., &#8220;Probability, Random Variables and
 Random Signal Principles&#8221;, 4th ed, 2001, p. 57.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>&#8220;Poisson Process&#8221;, Wikipedia,
 <a class="reference external" href="http://en.wikipedia.org/wiki/Poisson_process">http://en.wikipedia.org/wiki/Poisson_process</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>&#8220;Exponential Distribution, Wikipedia,
@@ -444,14 +541,14 @@ problem.  The variable <cite>dfnum</cite> is the number of samples minus one, th
 between-groups degrees of freedom, while <cite>dfden</cite> is the within-groups
 degrees of freedom, the sum of the number of samples in each group
 minus the number of groups.</p>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Glantz, Stanton A. &#8220;Primer of Biostatistics.&#8221;, McGraw-Hill,
 Fifth Edition, 2002.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;F-distribution&#8221;,
@@ -514,7 +611,7 @@ and <img class="math" src="_images/math/913e49ea63c6c130bb8d9d1c3556b052ecc404f8
 <p>The Gamma distribution is often used to model the times to failure of
 electronic components, and arises naturally in processes for which the
 waiting times between Poisson distributed events are relevant.</p>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Weisstein, Eric W. &#8220;Gamma Distribution.&#8221; From MathWorld&#8211;A
@@ -522,7 +619,7 @@ Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/GammaDistribution.html">http://mathworld.wolfram.com/GammaDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Gamma-distribution&#8221;,
@@ -742,14 +839,14 @@ distribution, except that in this case, samples are drawn without
 replacement, whereas in the Binomial case samples are drawn with
 replacement (or the sample space is infinite). As the sample space
 becomes large, this distribution approaches the Binomial.</p>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Lentner, Marvin, &#8220;Elementary Applied Statistics&#8221;, Bogden
 and Quigley, 1972.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Weisstein, Eric W. &#8220;Hypergeometric Distribution.&#8221; From
@@ -757,7 +854,7 @@ MathWorld&#8211;A Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/HypergeometricDistribution.html">http://mathworld.wolfram.com/HypergeometricDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Wikipedia, &#8220;Hypergeometric-distribution&#8221;,
@@ -806,7 +903,7 @@ can be expressed as an exponential function of the absolute magnitude of
 the error, which leads to the Laplace distribution. For many problems in
 Economics and Health sciences, this distribution seems to model the data
 better than the standard Gaussian distribution</p>
-<table class="docutils footnote" frame="void" id="id19" rules="none">
+<table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Abramowitz, M. and Stegun, I. A. (Eds.). Handbook of Mathematical
@@ -814,7 +911,7 @@ Functions with Formulas, Graphs, and Mathematical Tables, 9th
 printing.  New York: Dover, 1972.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id20" rules="none">
+<table class="docutils footnote" frame="void" id="id26" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>The Laplace distribution and generalizations
@@ -822,7 +919,7 @@ By Samuel Kotz, Tomasz J. Kozubowski, Krzysztof Podgorski,
 Birkhauser, 2001.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id21" rules="none">
+<table class="docutils footnote" frame="void" id="id27" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Weisstein, Eric W. &#8220;Laplace Distribution.&#8221;
@@ -830,7 +927,7 @@ From MathWorld&#8211;A Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/LaplaceDistribution.html">http://mathworld.wolfram.com/LaplaceDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id22" rules="none">
+<table class="docutils footnote" frame="void" id="id28" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[4]</td><td>Wikipedia, &#8220;Laplace distribution&#8221;,
@@ -889,7 +986,7 @@ can act as a mixture of Gumbel distributions, in Epidemiology, and by
 the World Chess Federation (FIDE) where it is used in the Elo ranking
 system, assuming the performance of each player is a logistically
 distributed random variable.</p>
-<table class="docutils footnote" frame="void" id="id23" rules="none">
+<table class="docutils footnote" frame="void" id="id29" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Reiss, R.-D. and Thomas M. (2001), Statistical Analysis of Extreme
@@ -897,7 +994,7 @@ Values, from Insurance, Finance, Hydrology and Other Fields,
 Birkhauser Verlag, Basel, pp 132-133.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id24" rules="none">
+<table class="docutils footnote" frame="void" id="id30" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Weisstein, Eric W. &#8220;Logistic Distribution.&#8221; From
@@ -905,7 +1002,7 @@ MathWorld&#8211;A Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/LogisticDistribution.html">http://mathworld.wolfram.com/LogisticDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id25" rules="none">
+<table class="docutils footnote" frame="void" id="id31" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Wikipedia, &#8220;Logistic-distribution&#8221;,
@@ -969,7 +1066,7 @@ most mechanical systems, the log-normal distribution has widespread
 application.</p>
 <p>It is also commonly used to model oil field sizes, species abundance, and
 latent periods of infectious diseases.</p>
-<table class="docutils footnote" frame="void" id="id26" rules="none">
+<table class="docutils footnote" frame="void" id="id32" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Eckhard Limpert, Werner A. Stahel, and Markus Abbt, &#8220;Log-normal
@@ -978,14 +1075,14 @@ Vol. 51 No. 5 BioScience
 <a class="reference external" href="http://stat.ethz.ch/~stahel/lognormal/bioscience.pdf">http://stat.ethz.ch/~stahel/lognormal/bioscience.pdf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id27" rules="none">
+<table class="docutils footnote" frame="void" id="id33" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Reiss, R.D., Thomas, M.(2001), Statistical Analysis of Extreme
 Values, Birkhauser Verlag, Basel, pp 31-32.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id28" rules="none">
+<table class="docutils footnote" frame="void" id="id34" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Wikipedia, &#8220;Lognormal distribution&#8221;,
@@ -1073,7 +1170,7 @@ parameter, p (probability, 0 &lt; p &lt; 1).</p>
 richness and occurrence, first proposed by Fisher, Corbet, and
 Williams in 1943 [2].  It may also be used to model the numbers of
 occupants seen in cars [3].</p>
-<table class="docutils footnote" frame="void" id="id29" rules="none">
+<table class="docutils footnote" frame="void" id="id35" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Buzas, Martin A.; Culver, Stephen J.,  Understanding regional
@@ -1082,7 +1179,7 @@ occurrences: BIODIVERSITY RESEARCH Diversity &amp; Distributions,
 Volume 5, Number 5, September 1999 , pp. 187-195(9).</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id30" rules="none">
+<table class="docutils footnote" frame="void" id="id36" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Fisher, R.A,, A.S. Corbet, and C.B. Williams. 1943. The
@@ -1091,14 +1188,14 @@ individuals in a random sample of an animal population.
 Journal of Animal Ecology, 12:42-58.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id31" rules="none">
+<table class="docutils footnote" frame="void" id="id37" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>D. J. Hand, F. Daly, D. Lunn, E. Ostrowski, A Handbook of Small
 Data Sets, CRC Press, 1994.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id32" rules="none">
+<table class="docutils footnote" frame="void" id="id38" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[4]</td><td>Wikipedia, &#8220;Logarithmic-distribution&#8221;,
@@ -1276,7 +1373,7 @@ and N failures in N+n-1 trials, and success on the (N+n)th trial.</p>
 <p>If one throws a die repeatedly until the third time a &#8220;1&#8221; appears, then the
 probability distribution of the number of non-&#8220;1&#8221;s that appear before the
 third &#8220;1&#8221; is a negative binomial distribution.</p>
-<table class="docutils footnote" frame="void" id="id33" rules="none">
+<table class="docutils footnote" frame="void" id="id39" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Weisstein, Eric W. &#8220;Negative Binomial Distribution.&#8221; From
@@ -1284,7 +1381,7 @@ MathWorld&#8211;A Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/NegativeBinomialDistribution.html">http://mathworld.wolfram.com/NegativeBinomialDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id34" rules="none">
+<table class="docutils footnote" frame="void" id="id40" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Negative binomial distribution&#8221;,
@@ -1328,7 +1425,7 @@ is</p>
 <p>In Delhi (2007), it is noted that the noncentral chi-square is useful in
 bombing and coverage problems, the probability of killing the point target
 given by the noncentral chi-squared distribution.</p>
-<table class="docutils footnote" frame="void" id="id35" rules="none">
+<table class="docutils footnote" frame="void" id="id41" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Delhi, M.S. Holla, &#8220;On a noncentral chi-square distribution in the
@@ -1336,7 +1433,7 @@ analysis of weapon systems effectiveness&#8221;, Metrika, Volume 15,
 Number 1 / December, 1970.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id36" rules="none">
+<table class="docutils footnote" frame="void" id="id42" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Noncentral chi-square distribution&#8221;
@@ -1428,12 +1525,12 @@ distributions for comparison.</p>
 <dd><p>Draw random samples from a normal (Gaussian) distribution.</p>
 <p>The probability density function of the normal distribution, first
 derived by De Moivre and 200 years later by both Gauss and Laplace
-independently <a href="#id64"><span class="problematic" id="id65"><span id="id37"></span>[2]_</span></a>, is often called the bell curve because of
+independently <a href="#id70"><span class="problematic" id="id71"><span id="id43"></span>[2]_</span></a>, is often called the bell curve because of
 its characteristic shape (see the example below).</p>
 <p>The normal distributions occurs often in nature.  For example, it
 describes the commonly occurring distribution of samples influenced
 by a large number of tiny, random disturbances, each with its own
-unique distribution <a href="#id66"><span class="problematic" id="id67"><span id="id38"></span>[2]_</span></a>.</p>
+unique distribution <a href="#id72"><span class="problematic" id="id73"><span id="id44"></span>[2]_</span></a>.</p>
 <dl class="docutils">
 <dt>loc <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
 <dd>Mean (&#8220;centre&#8221;) of the distribution.</dd>
@@ -1456,17 +1553,17 @@ The square of the standard deviation, <img class="math" src="_images/math/741fb9
 variance.</p>
 <p>The function has its peak at the mean, and its &#8220;spread&#8221; increases with
 the standard deviation (the function reaches 0.607 times its maximum at
-<img class="math" src="_images/math/a9fd20918e2b3b787262c8b1b8138e00cb34ba63.png" alt="x + \sigma"/> and <img class="math" src="_images/math/dc7fba0ae93ac170ceb9fdd84f8c0c7d0eeab71d.png" alt="x - \sigma"/> <a href="#id68"><span class="problematic" id="id69"><span id="id39"></span>[2]_</span></a>).  This implies that
+<img class="math" src="_images/math/a9fd20918e2b3b787262c8b1b8138e00cb34ba63.png" alt="x + \sigma"/> and <img class="math" src="_images/math/dc7fba0ae93ac170ceb9fdd84f8c0c7d0eeab71d.png" alt="x - \sigma"/> <a href="#id74"><span class="problematic" id="id75"><span id="id45"></span>[2]_</span></a>).  This implies that
 <cite>numpy.random.normal</cite> is more likely to return samples lying close to the
 mean, rather than those far away.</p>
-<table class="docutils footnote" frame="void" id="id40" rules="none">
+<table class="docutils footnote" frame="void" id="id46" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Wikipedia, &#8220;Normal distribution&#8221;,
 <a class="reference external" href="http://en.wikipedia.org/wiki/Normal_distribution">http://en.wikipedia.org/wiki/Normal_distribution</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id41" rules="none">
+<table class="docutils footnote" frame="void" id="id47" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>P. R. Peebles Jr., &#8220;Central Limit Theorem&#8221; in &#8220;Probability, Random
@@ -1541,27 +1638,27 @@ distribution of wealth in an economy.  It has also found use in insurance,
 web page access statistics, oil field sizes, and many other problems,
 including the download frequency for projects in Sourceforge [1].  It is
 one of the so-called &#8220;fat-tailed&#8221; distributions.</p>
-<table class="docutils footnote" frame="void" id="id42" rules="none">
+<table class="docutils footnote" frame="void" id="id48" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Francis Hunt and Paul Johnson, On the Pareto Distribution of
 Sourceforge projects.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id43" rules="none">
+<table class="docutils footnote" frame="void" id="id49" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Pareto, V. (1896). Course of Political Economy. Lausanne.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id44" rules="none">
+<table class="docutils footnote" frame="void" id="id50" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Reiss, R.D., Thomas, M.(2001), Statistical Analysis of Extreme
 Values, Birkhauser Verlag, Basel, pp 23-30.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id45" rules="none">
+<table class="docutils footnote" frame="void" id="id51" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[4]</td><td>Wikipedia, &#8220;Pareto distribution&#8221;,
@@ -1649,14 +1746,14 @@ distribution <img class="math" src="_images/math/dcc27ebed6df4d8960353035e64653d
 <p>Because the output is limited to the range of the C long type, a
 ValueError is raised when <cite>lam</cite> is within 10 sigma of the maximum
 representable value.</p>
-<table class="docutils footnote" frame="void" id="id46" rules="none">
+<table class="docutils footnote" frame="void" id="id52" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Weisstein, Eric W. &#8220;Poisson Distribution.&#8221; From MathWorld&#8211;A Wolfram
 Web Resource. <a class="reference external" href="http://mathworld.wolfram.com/PoissonDistribution.html">http://mathworld.wolfram.com/PoissonDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id47" rules="none">
+<table class="docutils footnote" frame="void" id="id53" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Poisson distribution&#8221;,
@@ -2030,7 +2127,7 @@ called again to re-seed the generator. For details, see <cite>RandomState</cite>
 <tt class="descclassname">kt_simul.analysis.data_analysis.</tt><tt class="descname">set_state</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#kt_simul.analysis.data_analysis.set_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the internal state of the generator from a tuple.</p>
 <p>For use if one has reason to manually (re-)set the internal state of the
-&#8220;Mersenne Twister&#8221;<a href="#id70"><span class="problematic" id="id71"><span id="id48"></span>[1]_</span></a> pseudo-random number generating algorithm.</p>
+&#8220;Mersenne Twister&#8221;<a href="#id76"><span class="problematic" id="id77"><span id="id54"></span>[1]_</span></a> pseudo-random number generating algorithm.</p>
 <dl class="docutils">
 <dt>state <span class="classifier-delimiter">:</span> <span class="classifier">tuple(str, ndarray of 624 uints, int, int, float)</span></dt>
 <dd><p class="first">The <cite>state</cite> tuple has the following items:</p>
@@ -2054,7 +2151,7 @@ the user should know exactly what he/she is doing.</p>
 <p>For backwards compatibility, the form (str, array of 624 uints, int) is
 also accepted although it is missing some information about the cached
 Gaussian value: <tt class="docutils literal"><span class="pre">state</span> <span class="pre">=</span> <span class="pre">('MT19937',</span> <span class="pre">keys,</span> <span class="pre">pos)</span></tt>.</p>
-<table class="docutils footnote" frame="void" id="id49" rules="none">
+<table class="docutils footnote" frame="void" id="id55" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>M. Matsumoto and T. Nishimura, &#8220;Mersenne Twister: A
@@ -2187,7 +2284,7 @@ and <img class="math" src="_images/math/913e49ea63c6c130bb8d9d1c3556b052ecc404f8
 <p>The Gamma distribution is often used to model the times to failure of
 electronic components, and arises naturally in processes for which the
 waiting times between Poisson distributed events are relevant.</p>
-<table class="docutils footnote" frame="void" id="id50" rules="none">
+<table class="docutils footnote" frame="void" id="id56" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Weisstein, Eric W. &#8220;Gamma Distribution.&#8221; From MathWorld&#8211;A
@@ -2195,7 +2292,7 @@ Wolfram Web Resource.
 <a class="reference external" href="http://mathworld.wolfram.com/GammaDistribution.html">http://mathworld.wolfram.com/GammaDistribution.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id51" rules="none">
+<table class="docutils footnote" frame="void" id="id57" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Gamma-distribution&#8221;,
@@ -2276,21 +2373,21 @@ mean.</p>
 Gisset while working for the Guinness Brewery in Dublin. Due to proprietary
 issues, he had to publish under a pseudonym, and so he used the name
 Student.</p>
-<table class="docutils footnote" frame="void" id="id52" rules="none">
+<table class="docutils footnote" frame="void" id="id58" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Dalgaard, Peter, &#8220;Introductory Statistics With R&#8221;,
 Springer, 2002.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id53" rules="none">
+<table class="docutils footnote" frame="void" id="id59" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Wikipedia, &#8220;Student&#8217;s t-distribution&#8221;
 <a class="reference external" href="http://en.wikipedia.org/wiki/Student's_t-distribution">http://en.wikipedia.org/wiki/Student&#8217;s_t-distribution</a></td></tr>
 </tbody>
 </table>
-<p>From Dalgaard page 83 <a href="#id72"><span class="problematic" id="id73"><span id="id54"></span>[1]_</span></a>, suppose the daily energy intake for 11
+<p>From Dalgaard page 83 <a href="#id78"><span class="problematic" id="id79"><span id="id60"></span>[1]_</span></a>, suppose the daily energy intake for 11
 women in Kj is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">intake</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5260.</span><span class="p">,</span> <span class="mi">5470</span><span class="p">,</span> <span class="mi">5640</span><span class="p">,</span> <span class="mi">6180</span><span class="p">,</span> <span class="mi">6390</span><span class="p">,</span> <span class="mi">6515</span><span class="p">,</span> <span class="mi">6805</span><span class="p">,</span> <span class="mi">7515</span><span class="p">,</span> \
 <span class="gp">... </span>                   <span class="mi">7515</span><span class="p">,</span> <span class="mi">8230</span><span class="p">,</span> <span class="mi">8770</span><span class="p">])</span>
@@ -2575,7 +2672,7 @@ value problems.  This class includes the Gumbel and Frechet distributions.</p>
 <img class="math" src="_images/math/37e4f1ab45330ab8b495dc10db1dd3e8b506b005.png" alt="\lambda(\frac{a-1}{a})^{1/a}"/>.</p>
 <p>When <tt class="docutils literal"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">1</span></tt>, the Weibull distribution reduces to the exponential
 distribution.</p>
-<table class="docutils footnote" frame="void" id="id55" rules="none">
+<table class="docutils footnote" frame="void" id="id61" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[1]</td><td>Waloddi Weibull, Professor, Royal Technical University, Stockholm,
@@ -2584,14 +2681,14 @@ Ingeniorsvetenskapsakademiens Handlingar Nr 151, 1939,
 Generalstabens Litografiska Anstalts Forlag, Stockholm.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id56" rules="none">
+<table class="docutils footnote" frame="void" id="id62" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[2]</td><td>Waloddi Weibull, 1951 &#8220;A Statistical Distribution Function of Wide
 Applicability&#8221;,  Journal Of Applied Mechanics ASME Paper.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id57" rules="none">
+<table class="docutils footnote" frame="void" id="id63" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label">[3]</td><td>Wikipedia, &#8220;Weibull distribution&#8221;,
@@ -2678,7 +2775,7 @@ the probability density function:</p>
 
 </div>
 <div class="section" id="module-kt_simul.analysis.eval_simul">
-<span id="eval-simul"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">eval_simul</span></tt><a class="headerlink" href="#module-kt_simul.analysis.eval_simul" title="Permalink to this headline">¶</a></h2>
+<span id="eval-simul-py"></span><h2>eval_simul.py<a class="headerlink" href="#module-kt_simul.analysis.eval_simul" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="kt_simul.analysis.eval_simul.evaluations">
 <tt class="descclassname">kt_simul.analysis.eval_simul.</tt><tt class="descname">evaluations</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/kt_simul/analysis/eval_simul.html#evaluations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.analysis.eval_simul.evaluations" title="Permalink to this definition">¶</a></dt>
@@ -2742,10 +2839,11 @@ Pitch detection algorithm</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.analysis</span></tt></a><ul>
-<li><a class="reference internal" href="#module-kt_simul.analysis.attachment_state"><tt class="docutils literal"><span class="pre">attachment_state</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.analysis.batch_explore"><tt class="docutils literal"><span class="pre">batch_explore</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.analysis.data_analysis"><tt class="docutils literal"><span class="pre">data_analysis</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.analysis.eval_simul"><tt class="docutils literal"><span class="pre">eval_simul</span></tt></a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.processing">processing.py</a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.attachment_state">attachment_state</a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.batch_explore">batch_explore.py</a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.data_analysis">data_analysis.py</a></li>
+<li><a class="reference internal" href="#module-kt_simul.analysis.eval_simul">eval_simul.py</a></li>
 </ul>
 </li>
 </ul>

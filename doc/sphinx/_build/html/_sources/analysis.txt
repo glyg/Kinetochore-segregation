@@ -2,32 +2,40 @@
 :mod:`kt_simul.analysis`
 ========================
 
-:mod:`attachment_state`
------------------------
+.. automodule:: kt_simul.analysis
+
+processing.py
+-------------
+
+.. automodule:: kt_simul.analysis.processing
+    :members:
+
+attachment_state
+----------------
 
 .. automodule:: kt_simul.analysis.attachment_state
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`batch_explore`
---------------------
+batch_explore.py
+----------------
 
 .. automodule:: kt_simul.analysis.batch_explore
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`data_analysis`
---------------------
+data_analysis.py
+----------------
 
 .. automodule:: kt_simul.analysis.data_analysis
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`eval_simul`
------------------
+eval_simul.py
+-------------
 
 .. automodule:: kt_simul.analysis.eval_simul
     :members:

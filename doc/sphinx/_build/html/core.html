@@ -55,10 +55,11 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="kt-simul-core">
-<h1><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.core</span></tt><a class="headerlink" href="#kt-simul-core" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-kt_simul.core">
+<span id="kt-simul-core"></span><h1><a class="reference internal" href="#module-kt_simul.core" title="kt_simul.core"><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.core</span></tt></a><a class="headerlink" href="#module-kt_simul.core" title="Permalink to this headline">¶</a></h1>
+<p>Core classes for the simulation</p>
 <div class="section" id="module-kt_simul.core.simul_spindle">
-<span id="simul-spindle"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">simul_spindle</span></tt><a class="headerlink" href="#module-kt_simul.core.simul_spindle" title="Permalink to this headline">¶</a></h2>
+<span id="simul-spindle-py"></span><h2>simul_spindle.py<a class="headerlink" href="#module-kt_simul.core.simul_spindle" title="Permalink to this headline">¶</a></h2>
 <p>This module provides the core simulation functionalities.</p>
 <p>See Gay et al. J. Cell Biol., 2012 <a class="reference external" href="http://dx.doi.org/10.1083/jcb.201107124">http://dx.doi.org/10.1083/jcb.201107124</a>
 The original framework was adapted from:
@@ -66,7 +67,7 @@ Civelekoglu-Scholey et al. Biophys. J. 90(11), 2006
 <a class="reference external" href="http://dx.doi.org/10.1529/biophysj.105.078691">http://dx.doi.org/10.1529/biophysj.105.078691</a></p>
 <dl class="class">
 <dt id="kt_simul.core.simul_spindle.Metaphase">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.simul_spindle.</tt><tt class="descname">Metaphase</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">kt_simul.core.simul_spindle.</tt><tt class="descname">Metaphase</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase" title="Permalink to this definition">¶</a></dt>
 <dd><p>An instance of the Metaphase class is a wrapper around
 the whole simulation.</p>
 <p><strong>Typical usage</strong></p>
@@ -86,13 +87,9 @@ the whole simulation.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m2</span><span class="o">.</span><span class="n">simul</span><span class="p">(</span><span class="n">ablat</span> <span class="o">=</span> <span class="mi">600</span><span class="p">)</span> <span class="c">#this time with spindle ablation</span>
 </pre></div>
 </div>
-<div class="admonition-see-also admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last">spindle_dynamics.KinetoDynamics and xml_handler.ParamTree</p>
-</div>
 <dl class="method">
 <dt id="kt_simul.core.simul_spindle.Metaphase.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Metaphase instanciation method</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -182,7 +179,7 @@ simulation are.</td>
 
 </div>
 <div class="section" id="module-kt_simul.core.spindle_dynamics">
-<span id="spindle-dynamics"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">spindle_dynamics</span></tt><a class="headerlink" href="#module-kt_simul.core.spindle_dynamics" title="Permalink to this headline">¶</a></h2>
+<span id="spindle-dynamics-pyx"></span><h2>spindle_dynamics.pyx<a class="headerlink" href="#module-kt_simul.core.spindle_dynamics" title="Permalink to this headline">¶</a></h2>
 <p>This module defines all the objects considered in the simulation,
 It uses cython used for the computer intensive bits</p>
 <ul class="simple">
@@ -198,45 +195,94 @@ and the system of equations.</li>
 <dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.__init__">
 <tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>KinetoDynamics instenciation method</p>
-<dl class="docutils">
-<dt>parameters: dict</dt>
-<dd>A dictionnary of parameters as obtained from a
-xml_handler.ParamTree instance</dd>
-<dt>initial_plug: string</dt>
-<dd><p class="first">Defines globally the initial attachment states.
-This argument can have the following values:
-<a href="#id1"><span class="problematic" id="id2">*</span></a>&#8216;null&#8217;: all kinetochores are detached
-<a href="#id3"><span class="problematic" id="id4">*</span></a>&#8216;amphitelic&#8217;: all chromosmes are amphitelic
-<a href="#id5"><span class="problematic" id="id6">*</span></a>&#8216;random&#8217;: all attachement site can be bound to</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parameters</strong> (<em>ParamTree instance</em>) &#8211; A dictionnary of parameters as obtained from a
+xml_handler.ParamTree instance</li>
+<li><strong>initial_plug</strong> (<em>string or None</em>) &#8211; <p>Defines globally the initial attachment states.
+This argument can have the following values:</p>
 <blockquote>
-<div>either pole or detached with equal prob.</div></blockquote>
-<dl class="docutils">
-<dt><a href="#id7"><span class="problematic" id="id8">*</span></a>&#8216;monotelic&#8217;: right kinetochores are attached</dt>
-<dd>to the same pole, left ones are detached</dd>
+<div><ul>
+<li>&#8216;null&#8217;: all kinetochores are detached</li>
+<li>&#8216;amphitelic&#8217;: all chromosmes are amphitelic</li>
+<li><dl class="first docutils">
+<dt>&#8216;random&#8217;: all attachement site can be bound to</dt>
+<dd>either pole or deteched with equal prob.</dd>
 </dl>
-<p class="last"><a href="#id9"><span class="problematic" id="id10">*</span></a>&#8216;syntelic&#8217; : all kinetochores are attached to the same pole</p>
-</dd>
+</li>
+<li><dl class="first docutils">
+<dt>&#8216;monotelic&#8217;: right kinetochores are attached to the same pole,</dt>
+<dd>left ones are detached</dd>
 </dl>
+</li>
+<li>&#8216;syntelic&#8217; : all kinetochores are attached to the same pole</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_A">
+<tt class="descname">calc_A</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_A" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_B">
 <tt class="descname">calc_B</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_B" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the matrix containing the linear terms
-of the equation set Adot{X} + BX + C = 0</p>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_C">
+<tt class="descname">calc_C</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_C" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.one_step">
 <tt class="descname">one_step</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.one_step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Elementary step</p>
+<dd><p>Elementary step :</p>
+<ol class="arabic simple">
+<li>Solving the equation for this time point (solve()).</li>
+<li>Updating position according to new speeds (position_update())</li>
+</ol>
 </dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-kt_simul.core.components">
-<span id="spindle-components"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">spindle_components</span></tt><a class="headerlink" href="#module-kt_simul.core.components" title="Permalink to this headline">¶</a></h2>
+<span id="components-pyd"></span><h2>components.pyd<a class="headerlink" href="#module-kt_simul.core.components" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="kt_simul.core.components.Spb">
 <em class="property">class </em><tt class="descclassname">kt_simul.core.components.</tt><tt class="descname">Spb</tt><a class="headerlink" href="#kt_simul.core.components.Spb" title="Permalink to this definition">¶</a></dt>
@@ -337,112 +383,21 @@ attachment error</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-kt_simul.core.processing">
-<span id="processing"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">processing</span></tt><a class="headerlink" href="#module-kt_simul.core.processing" title="Permalink to this headline">¶</a></h2>
-<p>This module is used to lighten Metaphase class</p>
-<dl class="class">
-<dt id="kt_simul.core.processing.Processor">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.processing.</tt><tt class="descname">Processor</tt><big>(</big><em>meta_instance</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Processor class can performs various things with simulation results
-such as writing results in files, plotting graph, making movie (not yet),
-etc</p>
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>meta_instance</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>meta_instance <span class="classifier-delimiter">:</span> <span class="classifier">Metaphase instance</span></dt>
-<dd>Should have been already perform a simulation</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.evaluate">
-<tt class="descname">evaluate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Passes all the evaluations in eval_simul.py
-results are stored in the self.observations dictionnary</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.show_one">
-<tt class="descname">show_one</tt><big>(</big><em>n=0</em>, <em>fig=None</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.show_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.show_one" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows chromosome n trajectory and plug state</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.show_trajs">
-<tt class="descname">show_trajs</tt><big>(</big><em>axes=None</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.show_trajs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.show_trajs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the different trajectories</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.write_asoctave">
-<tt class="descname">write_asoctave</tt><big>(</big><em>xmlfname='results.xml'</em>, <em>datafname='oct_data.txt'</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.write_asoctave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.write_asoctave" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save results in a file compatible with the tools developped
-to caracterize real life movies under octave.</p>
-<dl class="docutils">
-<dt>xmlfname <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>name of the xml file where the paramters and observations
-are stored, defaults to <tt class="docutils literal"><span class="pre">results.xml</span></tt></dd>
-<dt>datafname <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
-<dd>name of the xml file where the trajectories coordinates
-are stored, defaults to <tt class="docutils literal"><span class="pre">oct_data.txt</span></tt></dd>
-</dl>
-<p>Note that this will also call self.write_results(xmlfname).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.processing.Processor.write_results">
-<tt class="descname">write_results</tt><big>(</big><em>xmlfname='results.xml'</em>, <em>datafname='data.npy'</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/processing.html#Processor.write_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.processing.Processor.write_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the results of the simulation in two files
-with the parameters, measures and observations in one file
-and the trajectories in the other.</p>
-<dl class="docutils">
-<dt>xmlfname <span class="classifier-delimiter">:</span> <span class="classifier">string, optional</span></dt>
-<dd>name of the xml file where parameters and observations
-will be written</dd>
-<dt>datafname <span class="classifier-delimiter">:</span> <span class="classifier">string, optional</span></dt>
-<dd><p class="first">name of the file where the trajectories will be written
-file type is determined by the file suffix:</p>
-<blockquote class="last">
-<div><ul>
-<li><dl class="first docutils">
-<dt><a href="#id11"><span class="problematic" id="id12">*</span></a>.npy <span class="classifier-delimiter">:</span> <span class="classifier">data are stored in numpy&#8217;s binary format</span></dt>
-<dd><p class="first last">(less portable but quite efficient)</p>
-</dd>
-</dl>
-</li>
-<li><p class="first"><a href="#id13"><span class="problematic" id="id14">*</span></a>.txt : simple text</p>
-</li>
-<li><p class="first"><a href="#id15"><span class="problematic" id="id16">*</span></a>.txt.gz : text files compressed transparently</p>
-</li>
-</ul>
-</div></blockquote>
-</dd>
-</dl>
-<p>Any other suffix will be saved as plain text. Column index for
-each trajectory is an attribute of the corresponding element
-in the xml file.</p>
-<p>TODO : This function should be chopped off some how, it&#8217;s messy</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-kt_simul.core.parameters">
-<span id="parameters"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">parameters</span></tt><a class="headerlink" href="#module-kt_simul.core.parameters" title="Permalink to this headline">¶</a></h2>
+<span id="parameters-py"></span><h2>parameters.py<a class="headerlink" href="#module-kt_simul.core.parameters" title="Permalink to this headline">¶</a></h2>
 <p>Module dealing with simulation parameters</p>
 <dl class="function">
 <dt id="kt_simul.core.parameters.reduce_params">
 <tt class="descclassname">kt_simul.core.parameters.</tt><tt class="descname">reduce_params</tt><big>(</big><em>paramtree</em>, <em>measuretree</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/parameters.html#reduce_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.parameters.reduce_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>This functions changes the parameters so that
-the dynamical characteristics complies with the measures <a class="footnote-reference" href="#id18" id="id17">[1]</a>.</p>
+the dynamical characteristics complies with the measures <a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
 <p>paramtree : xml_handler.ParamTree instance
 measuretree : xml_handler.MeasureTree</p>
 <p>paramtree is modified in place</p>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id17">[1]</a></td><td>G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.
 J. Cell Biol 2012 <a class="reference external" href="http://dx.doi.org/10.1083/jcb.201107124">http://dx.doi.org/10.1083/jcb.201107124</a></td></tr>
 </tbody>
 </table>
@@ -450,7 +405,7 @@ J. Cell Biol 2012 <a class="reference external" href="http://dx.doi.org/10.1083/
 
 </div>
 <div class="section" id="module-kt_simul.core.xml_handler">
-<span id="xml-handler"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">xml_handler</span></tt><a class="headerlink" href="#module-kt_simul.core.xml_handler" title="Permalink to this headline">¶</a></h2>
+<span id="xml-handler-py"></span><h2>xml_handler.py<a class="headerlink" href="#module-kt_simul.core.xml_handler" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="kt_simul.core.xml_handler.ParamTree">
 <em class="property">class </em><tt class="descclassname">kt_simul.core.xml_handler.</tt><tt class="descname">ParamTree</tt><big>(</big><em>filename=None</em>, <em>root=None</em>, <em>adimentionalized=True</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#ParamTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.ParamTree" title="Permalink to this definition">¶</a></dt>
@@ -506,12 +461,11 @@ If write is True, re_writes the parameters files
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.core</span></tt></a><ul>
-<li><a class="reference internal" href="#module-kt_simul.core.simul_spindle"><tt class="docutils literal"><span class="pre">simul_spindle</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.spindle_dynamics"><tt class="docutils literal"><span class="pre">spindle_dynamics</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.components"><tt class="docutils literal"><span class="pre">spindle_components</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.processing"><tt class="docutils literal"><span class="pre">processing</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.parameters"><tt class="docutils literal"><span class="pre">parameters</span></tt></a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.xml_handler"><tt class="docutils literal"><span class="pre">xml_handler</span></tt></a></li>
+<li><a class="reference internal" href="#module-kt_simul.core.simul_spindle">simul_spindle.py</a></li>
+<li><a class="reference internal" href="#module-kt_simul.core.spindle_dynamics">spindle_dynamics.pyx</a></li>
+<li><a class="reference internal" href="#module-kt_simul.core.components">components.pyd</a></li>
+<li><a class="reference internal" href="#module-kt_simul.core.parameters">parameters.py</a></li>
+<li><a class="reference internal" href="#module-kt_simul.core.xml_handler">xml_handler.py</a></li>
 </ul>
 </li>
 </ul>
@@ -521,7 +475,7 @@ If write is True, re_writes the parameters files
                         title="previous chapter">Explore the API</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="analysis.html"
-                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">kt_simul.analysis</span></tt></a></p>
+                        title="next chapter"><tt class="docutils literal"><span class="pre">kt_simul.analysis</span></tt></a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/core.txt"
