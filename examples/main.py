@@ -1,11 +1,13 @@
 from kt_simul.core import simul_spindle as sim
-from kt_simul.analysis import processing
+from kt_simul.io import SimuIO
+from kt_simul.draw import Drawer
 
 meta = sim.Metaphase(verbose = True)
 meta.simul()
 
-proc = processing.Processor(meta)
-proc.show_trajs(fname = "trajs.pdf")
-proc.show_one(fname = "one.png")
+d = Drawer(meta)
+d.show_all(fname = "trajs.pdf")
+d.show_one(fname = "one.png")
 
-proc.write_results()
+io = SimuIO(meta)
+io.save("results.xml", "data.npy")

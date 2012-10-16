@@ -26,6 +26,7 @@ pyximport.install()
 # Local imports
 from kt_simul.core.spindle_dynamics import KinetoDynamics
 from kt_simul.core.xml_handler import ParamTree, indent, ResultTree
+from kt_simul.analysis.evaluate import evaluations
 import parameters
 import utils
 
@@ -156,6 +157,7 @@ class Metaphase(object):
         self.timelapse = np.arange(0, duration, dt)
         self.report = []
         self.delay = -1
+        self.observations = {}
 
         logging.info('Simulation initialized')
 
@@ -236,6 +238,20 @@ class Metaphase(object):
             ch.calc_erroneous_history()
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
+
+    def evaluate(self):
+        """
+        Passes all the evaluations in eval_simul.py
+        results are stored in the self.observations dictionnary
+        """
+        if not self.KD.simulation_done:
+            logging.info("No simulation was runned")
+            return False
+
+        for name, function in evaluations().iteritems():
+            self.observations[name] = function(self.KD)
+
+        return True
 
     def _anaphase_test(self, time_point):
         """
@@ -324,56 +340,3 @@ class Metaphase(object):
             if min(ktR, ktL) <= 0 and max(ktR, ktL) >= 0:
                 return True
         return True
-
-
-
-def get_fromfile(xmlfname = "results.xml"):
-    """
-    Creates a simul_spindle.Metaphase from a XML file.
-
-    :param xmlfname: The xml file where results from the existing
-                        simulation are.
-    :type xmlfname: string, optional
-    :return: a Metaphase instance
-
-    """
-    restree = ResultTree(xmlfname)
-    param_root = restree.root.find('parameters')
-    paramtree = ParamTree(root = param_root)
-    params = paramtree.relative_dic
-    measure_root = restree.root.find('measures')
-    measuretree = ParamTree(root = measure_root,
-                            adimentionalized = False)
-    metaphase = Metaphase(paramtree = paramtree,
-                          measuretree = measuretree)
-
-    traj_matrix = restree.get_all_trajs()
-    correct_matrix = restree.get_all_correct()
-    erroneous_matrix = restree.get_all_erroneous()
-    state_hist_matrix = restree.get_all_plug_state()
-    KD = KinetoDynamics(params)
-    KD.spbR.traj = traj_matrix[:, 0]
-    KD.spbL.traj = traj_matrix[:, 1]
-    Mk = int(params['Mk'])
-    col_num = 2
-    state_num = 0
-    for n, ch in enumerate(KD.chromosomes) :
-        ch.cen_A.traj = traj_matrix[:, col_num]
-        col_num += 1
-        ch.cen_B.traj = traj_matrix[:, col_num]
-        col_num += 1
-        ch.erroneous_history = (erroneous_matrix[:, n*2 : n*2 + 2])
-        ch.correct_history = (correct_matrix[:, n*2 : n*2 + 2])
-        for plugsite in ch.cen_A.plugsites:
-            plugsite.traj = traj_matrix[:, col_num]
-            col_num += 1
-            plugsite.state_hist = state_hist_matrix[:, state_num]
-            state_num += 1
-        for plugsite in ch.cen_B.plugsites:
-            plugsite.traj = traj_matrix[:, col_num]
-            col_num += 1
-            plugsite.state_hist = state_hist_matrix[:, state_num]
-            state_num += 1
-    metaphase.KD = KD
-
-    return metaphase

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<experiment datafile="data.npy" date="Tue Oct 16 15:18:04 2012">
+<experiment datafile="data.npy" date="Tue Oct 16 17:20:01 2012">
   <parameters>
     <param max="2000." min="0.1" name="span" step="10." value="900.0">
       <unit>s</unit>

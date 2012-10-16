@@ -6,3 +6,5 @@ Explore the API
 
    core
    analysis
+   io
+   draw

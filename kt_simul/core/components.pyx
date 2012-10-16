@@ -379,7 +379,8 @@ cdef class PlugSite(Organite):
         self.state_hist[time_point:] = state
 
     cdef float calc_ldep(self):
-        """Calculates the length dependency of the force applied
+        """
+        Calculates the length dependency of the force applied
         at the plugsite.
 
         Parameters:
