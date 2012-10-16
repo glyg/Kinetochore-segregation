@@ -30,9 +30,7 @@ from kt_simul.analysis import evaluations
 import parameters
 import utils
 
-
-__all__ = ["Metaphase", "PARAMFILE",
-           "MEASUREFILE", "get_fromfile"]
+__all__ = ["Metaphase", "PARAMFILE", "MEASUREFILE"]
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
@@ -40,7 +38,6 @@ PARAMFILE = os.path.join(ROOT_DIR, 'default', 'params.xml')
 MEASUREFILE = os.path.join(ROOT_DIR, 'default', 'measures.xml')
 MEASURETREE = ParamTree(MEASUREFILE, adimentionalized = False)
 MEASURES = MEASURETREE.absolute_dic
-
 
 class Metaphase(object):
     """
@@ -248,8 +245,12 @@ class Metaphase(object):
             logging.info("No simulation was runned")
             return False
 
+        logging.info("Starting evaluations")
         for evaluation in evaluations.find_evaluations():
+            logging.info("Running %s" % evaluation.name)
             self.observations[evaluation.name] = evaluation().run(self.KD)
+
+        logging.info("Evaluations done")
 
         return True
 

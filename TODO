@@ -1,2 +1,3 @@
-* fix bug : ValueError: Corresponding data file not specified in GUI
+* fix bug in gui : ValueError: Corresponding data file not specified in GUI
 * merge sphinx doc and pdf doc
+* in draw module add capability to "see" a simu with gui widgets
