@@ -12,16 +12,16 @@ cdef class Spindle(object) :
     def __init__(self, KD):
         self.KD = KD
         self.all_plugsites=[]
-        
+
     def get_all_plugsites(self):
         plugsites = []
         cdef Chromosome ch
         cdef PlugSite plugsite
         for ch in self.KD.chromosomes:
             for plugsite in ch.cen_A.plugsites:
-                plugsites.append(plugsite) 
+                plugsites.append(plugsite)
             for plugsite in ch.cen_B.plugsites:
-                plugsites.append(plugsite) 
+                plugsites.append(plugsite)
         return plugsites
 
 
@@ -39,7 +39,7 @@ cdef class Organite(object):
     KD : a :class:`~spindle_dynamics.KinetoDynamics` instance
     pos : float, the position
     traj : ndarrat, the trajectory
-    
+
     Methods
     -------
     set_pos(pos, time_point) : sets the position and updates the trajectory
@@ -52,7 +52,7 @@ cdef class Organite(object):
         self.traj = np.zeros(self.num_steps)
         self.pos = init_pos
         self.traj[0] = init_pos
-        
+
     cdef void set_pos(self, float pos, int time_point=-1):
         """sets the position. If `time_point` is provided, sets
         the corresponding value in `self.traj[time_point]`
@@ -60,15 +60,15 @@ cdef class Organite(object):
         self.pos = pos
         if pos > self.KD.spbR.pos:
             self.pos = self.KD.spbR.pos
-        elif self.pos < self.KD.spbL.pos: 
+        elif self.pos < self.KD.spbL.pos:
             self.pos = self.KD.spbL.pos
         if time_point >= 0:
             self.traj[time_point] = self.pos
 
     cdef float get_pos(self, int time_point=-1):
         """Returns the position.
-        
-        If `time_point` is -1 (default), returns the current position 
+
+        If `time_point` is -1 (default), returns the current position
         If `time_point` is not null, returns the position at time_point
         """
         if time_point == 0:
@@ -81,7 +81,7 @@ cdef class Spb(Organite):
 
     Attributes:
     ===========
-    
+
     side: 1 or -1
     1 corresponds to the right SPB, i.e. to the Spb with x > 0.
     The left SPB, with `side = -1` corresponds to the daggered
@@ -102,10 +102,10 @@ cdef class Chromosome(Organite):
     Parameters
     ----------
     spindle: a :class:`~Spindle` instance
-    
+
     """
     def __init__(self, spindle):
-        
+
         d0 = spindle.KD.params['d0']
         L0 = spindle.KD.params['L0']
         center_pos = random.gauss(0, 0.2 * (L0 - d0))
@@ -118,7 +118,8 @@ cdef class Chromosome(Organite):
         self.erroneous_history[0] = self.erroneous()
 
     cdef bool is_right_A(self):
-        """returns True if the majority of the attachments corresponds
+        """
+        Returns True if the majority of the attachments corresponds
         to centromere A bound to the right pole and centromere B bound
         to the left.
         """
@@ -134,14 +135,14 @@ cdef class Chromosome(Organite):
         of the cohesin restoring force needs to be changed
         """
         return 1 if self.cen_A.pos < self.cen_B.pos else -1
-        
+
     def correct(self):
-        """returns the number of *correctly* plugged MTs 
+        """returns the number of *correctly* plugged MTs
         """
         if self.is_right_A():
-            return self.cen_A.right_plugged(), self.cen_B.left_plugged() 
+            return self.cen_A.right_plugged(), self.cen_B.left_plugged()
         else:
-            return self.cen_A.left_plugged(), self.cen_B.right_plugged() 
+            return self.cen_A.left_plugged(), self.cen_B.right_plugged()
 
     def calc_erroneous_history(self):
 
@@ -152,7 +153,7 @@ cdef class Chromosome(Organite):
             erroneous = (rA, lB) if lA + rB > rA + lB else (lA, rB)
             erroneous_hist.append(erroneous)
         self.erroneous_history =  np.array(erroneous_hist)
-            
+
     def calc_correct_history(self):
 
         leftA, rightA = self.cen_A.calc_plug_history()
@@ -164,13 +165,14 @@ cdef class Chromosome(Organite):
         self.correct_history = np.array(correct_hist)
 
     def erroneous(self):
-        """returns the number of *erroneously* plugged MTs
+        """
+        Returns the number of *erroneously* plugged MTs
         """
         if self.is_right_A():
             return self.cen_A.left_plugged(), self.cen_B.right_plugged()
         else:
             return self.cen_A.right_plugged(), self.cen_B.left_plugged()
-        
+
     cdef float pair_dist(self):
         return abs(self.cen_A.pos - self.cen_B.pos)
 
@@ -189,12 +191,12 @@ cdef class Chromosome(Organite):
         if self.cen_A.at_rightpole(tol) or self.cen_B.at_rightpole(tol):
             return True
         return False
-    
+
     cdef bool at_leftpole(self, float tol) :
         if self.cen_A.at_leftpole(tol) or self.cen_B.at_leftpole(tol):
             return True
         return False
-        
+
     cdef bool at_pole(self, int side=0, float tol=0.01):
         if side == 1 and self.at_rightpole(tol):
             return True
@@ -205,14 +207,14 @@ cdef class Chromosome(Organite):
         else :
             return False
 
-        
+
 cdef class Centromere(Organite):
-    """ 
+    """
     The centromere is where the plugsites are bound to the
     chromosome and where the cohesin spring restoring force, as
     well as the friction coefficient, are applied.
     This is a subclass of :class:`Organite`
-    
+
     Parameters:
     ----------
     chromosome: a :class:`~Chromosome` instance
@@ -243,7 +245,7 @@ cdef class Centromere(Organite):
             ps = PlugSite(self)
             self.plugsites.append(ps)
         self.calc_plug_vector()
-        
+
     def is_attached(self):
         """
         Returns True if at least one plugsite is attached
@@ -271,7 +273,7 @@ cdef class Centromere(Organite):
         right_hist = np.array(state_hist > 0).sum(axis=0)
         left_hist = np.array(state_hist < 0).sum(axis=0)
         return left_hist, right_hist
-        
+
     cdef float P_attachleft(self):
         cdef float orientation
         orientation = self.KD.params['orientation']
@@ -292,7 +294,7 @@ cdef class Centromere(Organite):
         left_plugged = self.plug_vector * (self.plug_vector - 1) / 2
         lp = left_plugged.sum()
         return lp
-        
+
     cdef int right_plugged(self):
         cdef int rp
         cdef np.ndarray[ITYPE_t] right_plugged
@@ -306,7 +308,7 @@ cdef class Centromere(Organite):
         if abs(self.pos - rightpole_pos) < tol:
             return True
         return False
-    
+
     cdef bool at_leftpole(self, float tol=0.01):
         cdef float leftpole_pos = self.KD.spbR.pos
         if abs(self.pos - leftpole_pos) < tol:
@@ -314,6 +316,9 @@ cdef class Centromere(Organite):
         return False
 
     def calc_toa(self, float tol=0.01):
+        """
+        Calculate time of arrivals
+        """
         cdef np.ndarray dist_to_pole
         if self.KD.spbR.traj[-1] - self.traj[-1] < tol:
             dist_to_pole = self.KD.spbR.traj - self.traj
@@ -322,6 +327,7 @@ cdef class Centromere(Organite):
         else:
             self.toa = np.nan
             return False
+
         cdef int toa
         cdef float d
         toa = self.num_steps
@@ -330,7 +336,7 @@ cdef class Centromere(Organite):
             if d > tol:
                 self.toa = toa * self.KD.params['dt']
                 return True
-    
+
 
 cdef class PlugSite(Organite):
     """An attachment site object.
@@ -339,14 +345,14 @@ cdef class PlugSite(Organite):
     -----------
     centromere: a :class:`~Centromere` instance
     """
-    
+
     def __init__(self, centromere):
         init_pos = centromere.pos
         Organite.__init__(self, centromere, init_pos)
         initial_plug = self.KD.initial_plug
         self.centromere = centromere
         self.tag = self.centromere.tag
-        if initial_plug == None: 
+        if initial_plug == None:
             self.plug_state = random.randint(-1, 1)
         elif initial_plug == 'null':
             self.plug_state = 0
@@ -380,7 +386,7 @@ cdef class PlugSite(Organite):
         -----------
         plugsite_pos: float
             The position of the plugsite
-        pole_pose: float 
+        pole_pose: float
             The position of the attached spindle pole
 
         If the KD.param ld_slope is null, there is no length
@@ -439,7 +445,7 @@ cdef class PlugSite(Organite):
                 return True if self.plug_state == -1 else False
             else:
                 return True if self.plug_state == 1 else False
-                    
+
     cdef float P_det(self):
         cdef float d_alpha, k_d0
         d_alpha = self.KD.params['d_alpha']
@@ -452,4 +458,4 @@ cdef class PlugSite(Organite):
         if dist == 0: return 1.
         k_dc = k_d0  *  d_alpha / dist
         if k_dc > 1e4: return 1.
-        return 1 - np.exp(-k_dc) 
+        return 1 - np.exp(-k_dc)

@@ -12,9 +12,13 @@ modules provided:
 __all__ = ["core", "data_analysis", "gui"]
 
 
-from core import simul_spindle# Metaphase, get_fromfile
+# from core import simul_spindle# Metaphase, get_fromfile
 
+import logging
 
-#import gui
+# Setup logging
+logging.basicConfig( level = logging.DEBUG,
+                     format = '%(asctime)s:%(levelname)s: %(message)s',
+                     datefmt = '%Y/%m/%d-%H:%M:%S')
 
 

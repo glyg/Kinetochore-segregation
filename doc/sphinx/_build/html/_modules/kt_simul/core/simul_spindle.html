@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,7 +9,7 @@
     
     <title>kt_simul.core.simul_spindle &mdash; kt_simul 1.0 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -144,7 +143,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">paramtree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">measuretree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Metaphase.__init__"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">paramtree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">measuretree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">paramfile</span><span class="o">=</span><span class="n">PARAMFILE</span><span class="p">,</span> <span class="n">measurefile</span><span class="o">=</span><span class="n">MEASUREFILE</span><span class="p">,</span>
                  <span class="n">initial_plug</span><span class="o">=</span><span class="s">&#39;random&#39;</span><span class="p">,</span> <span class="n">reduce_p</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
 
@@ -226,8 +225,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">print</span> <span class="s">&quot;pppp&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="Metaphase.__str__"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Metaphase class&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -251,7 +250,7 @@
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Not yet evaluated&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-
+</div>
 <div class="viewcode-block" id="Metaphase.simul"><a class="viewcode-back" href="../../../core.html#kt_simul.core.simul_spindle.Metaphase.simul">[docs]</a>    <span class="k">def</span> <span class="nf">simul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ablat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ablat_pos</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; The simulation main loop.</span>
 

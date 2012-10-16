@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -10,7 +9,7 @@
     
     <title>kt_simul.analysis.data_analysis &mdash; kt_simul 1.0 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -94,7 +93,7 @@
 
 <div class="viewcode-block" id="Explored"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored">[docs]</a><span class="k">class</span> <span class="nc">Explored</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">base_name</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
+<div class="viewcode-block" id="Explored.__init__"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">base_name</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_pcs1s.npy&#39;</span> <span class="o">%</span><span class="n">base_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">_auroras.npy&#39;</span> <span class="o">%</span><span class="n">base_name</span><span class="p">)</span>
@@ -128,7 +127,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">trans_shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_ech</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">sub_tshape</span> <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pcs1s</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auroras</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Mk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> 
         <span class="c">#self.get_all()</span>
-
+</div>
 <div class="viewcode-block" id="Explored.get_all"><a class="viewcode-back" href="../../../analysis.html#kt_simul.analysis.data_analysis.Explored.get_all">[docs]</a>    <span class="k">def</span> <span class="nf">get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="n">defects</span> <span class="o">=</span> <span class="p">{}</span>
