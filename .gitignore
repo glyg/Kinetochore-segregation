@@ -11,3 +11,5 @@ dist/*
 *_region_*
 *details_defect*
 build/
+
+doc/*/_build/

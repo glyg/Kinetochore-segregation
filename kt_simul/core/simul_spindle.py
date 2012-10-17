@@ -21,8 +21,8 @@ pyximport.install()
 from kt_simul.core.spindle_dynamics import KinetoDynamics
 from kt_simul.core.xml_handler import ParamTree
 from kt_simul.analysis import evaluations
-import parameters
-import utils
+from kt_simul.core import parameters
+from kt_simul.core import utils
 
 __all__ = ["Metaphase", "PARAMFILE", "MEASUREFILE"]
 

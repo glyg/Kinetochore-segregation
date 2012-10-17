@@ -131,7 +131,7 @@ cdef class KinetoDynamics(object) :
         B = self.B_mat
         C = self.calc_C()
         pos_dep = np.dot(B,X) + C
-        self.speeds = linalg.solve(A, -pos_dep)
+        self.speeds = np.linalg.solve(A, -pos_dep)
 
     cdef np.ndarray get_state_vector(self):
         """
