@@ -56,8 +56,9 @@ class SimuIO():
         .. todo:: This function should be chopped off some how, it's messy
 
         """
-        if not hasattr(self, 'observations'):
-            self.evaluate()
+        if not self.observations:
+            self.meta.evaluate()
+            self.observations = self.meta.observations
 
         chromosomes = self.KD.chromosomes
         wavelist = []

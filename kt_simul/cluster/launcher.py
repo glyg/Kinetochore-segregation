@@ -3,9 +3,13 @@ Launcher can run several simulation with same parameters.
 It handle data storing.
 """
 
+import os
+import time
+import datetime
+import shutil
 import logging
 import multiprocessing
-from multiprocessing import Pool
+from multiprocessing import Pool, Queue
 
 from kt_simul.core.xml_handler import ParamTree
 from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
@@ -86,10 +90,29 @@ class Launcher:
         self.results_path = results_path
         self.nsimu = nsimu
         if not ncore:
-            self.ncore = multiprocessing.cpu_count() + 1
+            self.ncore = multiprocessing.cpu_count()
         else:
             self.ncore = ncore
         self.use_multi_process = use_multi_process
+
+        self.last_progress = 0
+
+        # Make result directory
+        if not os.path.exists(self.results_path):
+            os.makedirs(self.results_path)
+
+        # Results directory according to date and time
+        now = datetime.datetime.now()
+        dirname = now.strftime("%Y.%m.%d.%H.%M")
+        self.results_path = os.path.join(self.results_path, dirname)
+
+        # Remove existing directory of it exist
+        if os.path.exists(self.results_path):
+            shutil.rmtree(self.results_path)
+        os.makedirs(self.results_path)
+
+        self.raw_results_path = os.path.join(self.results_path, "raw")
+        os.makedirs(self.raw_results_path)
 
     def run(self):
         """
@@ -98,42 +121,95 @@ class Launcher:
         logging.info("Starting %i simulations on %i core" % \
             (self.nsimu, self.ncore))
 
-        logging.info("Building parameters set")
-        args = []
-        i = 0
-        for job in range(self.nsimu):
-            args.append({"verbose" : self.verbose,
-                    "paramtree" : self.paramtree,
-                    "measuretree" : self.measuretree,
-                    "process_number" : i,
-                    "total_process_number" : self.nsimu})
-            i += 1
+        params = [self.paramtree, self.measuretree, self.verbose]
+        all_params = []
+        for i in range(self.nsimu):
+            all_params.append([i, self.raw_results_path] + params)
 
-        logging.info("Launching simulations")
+        queue = Queue()
+        self.start_time = time.time()
+        p = Pool(self.ncore, run_init, [queue])
+        p.map_async(run_one, all_params, chunksize=1)
 
-        p = Pool(processes=self.ncore)
-        p.map(run_one, args)
-        p.close()
-        p.join()
+        # Monitoring simulations
+        done = False
+        simu_ids = range(self.nsimu)
+        while not done:
+            mess = queue.get()
+            if mess["state"] == "stop":
+                simu_ids.remove(mess["id"])
+                self.log_progress(len(simu_ids))
+
+            if not simu_ids:
+                done = True
 
         logging.info("Simulations are done")
 
-def run_one(*args):
+    def log_progress(self, simu_left, precision = 2):
+        """
+        Log the progression of the simulations
+
+        :param simu_left: Number of simulation remaining
+        :type simu_left: int
+
+        """
+        progress = 100.0 - ((simu_left * 100.0) / self.nsimu)
+        progress = round(progress, precision)
+        # Don't print the same progression !
+        if progress > self.last_progress:
+            time_remaining, spent_time = self.estimate_remaining_time(simu_left)
+            output = "Progression : %0.2f%% | " % progress
+            output += "ETA : %s | " % time_remaining
+            output += "Spent time : %s" % spent_time
+            logging.info(output)
+            self.last_progress = progress
+
+    def estimate_remaining_time(self, simu_left):
+        """
+        Estimate remaining time
+        """
+        delta_time = time.time() - self.start_time
+        delta_simu = self.nsimu - simu_left
+        estimate_time = (simu_left * delta_time) / delta_simu
+        estimate_time = time.strftime('%H:%M:%S', time.gmtime(estimate_time))
+        spent_time = time.strftime('%H:%M:%S', time.gmtime(delta_time))
+        return estimate_time, spent_time
+
+
+def run_one(args):
+    return _run_one(*args)
+
+
+def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
     """
     This function need to be outisde Launcher class to allow
     multiprocessing module to work
     """
+    queue = _run_one.q
 
-    # Retrieving parameters
-    for k, v in args[0].iteritems():
-        globals()[k]=v
-
-    logging.info("Launching simulation %i" % process_number)
-
-    meta = Metaphase(verbose=verbose,
+    queue.put({ "id" : simu_id, "state" : "start" })
+    meta = Metaphase(verbose=False,
         paramtree=paramtree,
         measuretree=measuretree)
     meta.simul()
 
-    logging.info("Simulation %i done" % process_number)
+    # Build filename
+    dir_path = os.path.join(result_path)
+    name = "simu_%i" % simu_id
+    xml_path = os.path.join(dir_path, name + ".xml")
+    npy_path = os.path.join(dir_path, name + ".npy")
 
+    # Write simulation result
+    io = SimuIO(meta)
+    io.save(xmlfname=xml_path, datafname=npy_path)
+
+    queue.put({ "id" : simu_id, "state" : "stop" })
+
+    return True
+
+
+def run_init(q):
+    """
+    Trick function to pass Queue in _run_one
+    """
+    _run_one.q = q
