@@ -4,32 +4,12 @@
 
 .. automodule:: kt_simul.core
 
-simul_spindle.py
-----------------
+.. autosummary::
+    :toctree: generated
+    :template: module.rst
 
-.. automodule:: kt_simul.core.simul_spindle
-    :members:
-
-spindle_dynamics.pyx
---------------------
-
-.. automodule:: kt_simul.core.spindle_dynamics
-    :members:
-
-components.pyd
---------------
-
-.. automodule:: kt_simul.core.components
-    :members:
-
-parameters.py
--------------
-
-.. automodule:: kt_simul.core.parameters
-    :members:
-
-xml_handler.py
---------------
-
-.. automodule:: kt_simul.core.xml_handler
-    :members:
+    kt_simul.core.simul_spindle
+    kt_simul.core.spindle_dynamics
+    kt_simul.core.components
+    kt_simul.core.parameters
+    kt_simul.core.xml_handler

@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="kt_simul 1.0 documentation" href="index.html" />
     <link rel="up" title="Explore the API" href="api.html" />
-    <link rel="next" title="kt_simul.analysis" href="analysis.html" />
+    <link rel="next" title="kt_simul.core.simul_spindle" href="generated/kt_simul.core.simul_spindle.html" />
     <link rel="prev" title="Explore the API" href="api.html" /> 
   </head>
   <body>
@@ -40,7 +40,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="analysis.html" title="kt_simul.analysis"
+          <a href="generated/kt_simul.core.simul_spindle.html" title="kt_simul.core.simul_spindle"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="api.html" title="Explore the API"
@@ -58,388 +58,29 @@
   <div class="section" id="module-kt_simul.core">
 <span id="kt-simul-core"></span><h1><a class="reference internal" href="#module-kt_simul.core" title="kt_simul.core"><tt class="xref py py-mod docutils literal"><span class="pre">kt_simul.core</span></tt></a><a class="headerlink" href="#module-kt_simul.core" title="Permalink to this headline">¶</a></h1>
 <p>Core classes for the simulation</p>
-<div class="section" id="simul-spindle-py">
-<h2>simul_spindle.py<a class="headerlink" href="#simul-spindle-py" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-kt_simul.core.simul_spindle"></span><p>This module provides the core simulation functionalities.</p>
-<p>See Gay et al. J. Cell Biol., 2012 <a class="reference external" href="http://dx.doi.org/10.1083/jcb.201107124">http://dx.doi.org/10.1083/jcb.201107124</a>
-The original framework was adapted from:
-Civelekoglu-Scholey et al. Biophys. J. 90(11), 2006
-<a class="reference external" href="http://dx.doi.org/10.1529/biophysj.105.078691">http://dx.doi.org/10.1529/biophysj.105.078691</a></p>
-<dl class="class">
-<dt id="kt_simul.core.simul_spindle.Metaphase">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.simul_spindle.</tt><tt class="descname">Metaphase</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase" title="Permalink to this definition">¶</a></dt>
-<dd><p>An instance of the Metaphase class is a wrapper around
-the whole simulation.</p>
-<p><strong>Typical usage</strong></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kt_simul.simul_spindle</span> <span class="kn">import</span> <span class="n">Metaphase</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">Metaphase</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">simul</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">show_trajs</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">write_results</span><span class="p">(</span><span class="s">&#39;examples/docstring_results.xml&#39;</span><span class="p">,</span>
-<span class="go">                    &#39;examples/docstring_data.npy&#39;)</span>
-</pre></div>
-</div>
-<p><strong>From an already runned simulation</strong></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">kt_simul.simul_spindle</span> <span class="kn">import</span> <span class="n">Metaphase</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m1</span> <span class="o">=</span> <span class="n">get_fromfile</span><span class="p">(</span><span class="s">&#39;examples/docstring_results.xml&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m1</span><span class="o">.</span><span class="n">show_one</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c">#This shows the trajactory of the chromosome 1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m2</span> <span class="o">=</span> <span class="n">Metaphase</span><span class="p">(</span><span class="n">m1</span><span class="o">.</span><span class="n">paramtree</span><span class="p">,</span> <span class="n">m1</span><span class="o">.</span><span class="n">measuretree</span><span class="p">)</span> <span class="c">#A new simulation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m2</span><span class="o">.</span><span class="n">simul</span><span class="p">(</span><span class="n">ablat</span> <span class="o">=</span> <span class="mi">600</span><span class="p">)</span> <span class="c">#this time with spindle ablation</span>
-</pre></div>
-</div>
-<dl class="method">
-<dt id="kt_simul.core.simul_spindle.Metaphase.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>paramtree=None</em>, <em>measuretree=None</em>, <em>paramfile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/params.xml'</em>, <em>measurefile='/home/hadim/.phd/dev/kt_simul/kt_simul/default/measures.xml'</em>, <em>initial_plug='random'</em>, <em>reduce_p=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Metaphase instanciation method</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>duration</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The duration of the mitosis in seconds (defaults to 900)</li>
-<li><strong>paramtree</strong> (<em>ParamTree instance or None</em>) &#8211; The paramtree contains the parameters for the simulation
-if paramtree is None, the parameters are read
-from the file paramfile. Defaults to None.</li>
-<li><strong>measuretree</strong> (<em>ParamTree instance or None</em>) &#8211; The measuretree contains the observed characteristics
-of the mitosis e.g. metaphase spindle elongation rate, etc.
-if measuretree is None, the measures are read from the file
-indicated by the measurefile argument. Defaults to None.</li>
-<li><strong>paramfile</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Path to a xml file to read the parameters from. Defaults to the
-file params.xml in the module&#8217;s default directory. Other parameter
-files can be produced by editing and changing the default one.
-If the paramtree argument is not None,  paramfile is ignored</li>
-<li><strong>measurefile</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Path to a xml file to read the measures from. Defaults to the
-file measures.xml in the module&#8217;s default directory.
-Other measure files can be produced by editing and changing
-the default one. If the measuretree argument is not None, measurefile
-is ignored</li>
-<li><strong>initial_plug</strong> (<em>string or None</em>) &#8211; <p>Defines globally the initial attachment states.
-This argument can have the following values:</p>
-<blockquote>
-<div><ul>
-<li>&#8216;null&#8217;: all kinetochores are detached</li>
-<li>&#8216;amphitelic&#8217;: all chromosmes are amphitelic</li>
-<li><dl class="first docutils">
-<dt>&#8216;random&#8217;: all attachement site can be bound to</dt>
-<dd>either pole or deteched with equal prob.</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>&#8216;monotelic&#8217;: right kinetochores are attached to the same pole,</dt>
-<dd>left ones are detached</dd>
-</dl>
-</li>
-<li>&#8216;syntelic&#8217; : all kinetochores are attached to the same pole</li>
-</ul>
-</div></blockquote>
-</li>
-<li><strong>reduce_p</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, changes the parameters according to the measures
-so that the simulation average behaviour complies with
-the data in the measures dictionary</li>
-</ul>
-</td>
+<tr class="row-odd"><td><a class="reference internal" href="generated/kt_simul.core.simul_spindle.html#module-kt_simul.core.simul_spindle" title="kt_simul.core.simul_spindle"><tt class="xref py py-obj docutils literal"><span class="pre">kt_simul.core.simul_spindle</span></tt></a></td>
+<td>This module provides the core simulation functionalities.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="generated/kt_simul.core.spindle_dynamics.html#module-kt_simul.core.spindle_dynamics" title="kt_simul.core.spindle_dynamics"><tt class="xref py py-obj docutils literal"><span class="pre">kt_simul.core.spindle_dynamics</span></tt></a></td>
+<td>This module defines all the objects considered in the simulation,</td>
+</tr>
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">kt_simul.core.components</span></tt></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="generated/kt_simul.core.parameters.html#module-kt_simul.core.parameters" title="kt_simul.core.parameters"><tt class="xref py py-obj docutils literal"><span class="pre">kt_simul.core.parameters</span></tt></a></td>
+<td>Module dealing with simulation parameters</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="generated/kt_simul.core.xml_handler.html#module-kt_simul.core.xml_handler" title="kt_simul.core.xml_handler"><tt class="xref py py-obj docutils literal"><span class="pre">kt_simul.core.xml_handler</span></tt></a></td>
+<td></td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.simul_spindle.Metaphase.evaluate">
-<tt class="descname">evaluate</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Passes all the evaluations in eval_simul.py
-results are stored in the self.observations dictionnary</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.simul_spindle.Metaphase.simul">
-<tt class="descname">simul</tt><big>(</big><em>ablat=None</em>, <em>ablat_pos=0.0</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/simul_spindle.html#Metaphase.simul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.simul_spindle.Metaphase.simul" title="Permalink to this definition">¶</a></dt>
-<dd><p>The simulation main loop.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ablat</strong> (<em>float, optional</em>) &#8211; Timepoint at which ablation takes place. If None (default)
-no ablation is performed.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-kt_simul.core.spindle_dynamics">
-<span id="spindle-dynamics-pyx"></span><h2>spindle_dynamics.pyx<a class="headerlink" href="#module-kt_simul.core.spindle_dynamics" title="Permalink to this headline">¶</a></h2>
-<p>This module defines all the objects considered in the simulation,
-It uses cython used for the computer intensive bits</p>
-<ul class="simple">
-<li>Chromosome, Spb, Spindle, PlugSite are the spindle components</li>
-<li>KinetoDynamics wraps all the simulation internals: forces, vectors,
-and the system of equations.</li>
-</ul>
-<dl class="class">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.spindle_dynamics.</tt><tt class="descname">KinetoDynamics</tt><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class wraps all the simulation internals.</p>
-<dl class="attribute">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.__init__">
-<tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>KinetoDynamics instenciation method</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>parameters</strong> (<em>ParamTree instance</em>) &#8211; A dictionnary of parameters as obtained from a
-xml_handler.ParamTree instance</li>
-<li><strong>initial_plug</strong> (<em>string or None</em>) &#8211; <p>Defines globally the initial attachment states.
-This argument can have the following values:</p>
-<blockquote>
-<div><ul>
-<li>&#8216;null&#8217;: all kinetochores are detached</li>
-<li>&#8216;amphitelic&#8217;: all chromosmes are amphitelic</li>
-<li><dl class="first docutils">
-<dt>&#8216;random&#8217;: all attachement site can be bound to</dt>
-<dd>either pole or deteched with equal prob.</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>&#8216;monotelic&#8217;: right kinetochores are attached to the same pole,</dt>
-<dd>left ones are detached</dd>
-</dl>
-</li>
-<li>&#8216;syntelic&#8217; : all kinetochores are attached to the same pole</li>
-</ul>
-</div></blockquote>
-</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_A">
-<tt class="descname">calc_A</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_A" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_B">
-<tt class="descname">calc_B</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_B" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.calc_C">
-<tt class="descname">calc_C</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.calc_C" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the matrix containing the linear terms of the equation set <img class="math" src="_images/math/2ed7a19798b997d3de41e2f5c28402b2cf830d87.png" alt="\mathbf{A}\dot{X} + \mathbf{B}X + C = 0"/></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.spindle_dynamics.KinetoDynamics.one_step">
-<tt class="descname">one_step</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.spindle_dynamics.KinetoDynamics.one_step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Elementary step :</p>
-<ol class="arabic simple">
-<li>Solving the equation for this time point (solve()).</li>
-<li>Updating position according to new speeds (position_update())</li>
-</ol>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-kt_simul.core.components">
-<span id="components-pyd"></span><h2>components.pyd<a class="headerlink" href="#module-kt_simul.core.components" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="kt_simul.core.components.Spb">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.components.</tt><tt class="descname">Spb</tt><a class="headerlink" href="#kt_simul.core.components.Spb" title="Permalink to this definition">¶</a></dt>
-<dd><p>A spindle pole object.</p>
-<p>side: 1 or -1
-1 corresponds to the right SPB, i.e. to the Spb with x &gt; 0.
-The left SPB, with <cite>side = -1</cite> corresponds to the daggered
-variable)</p>
-<dl class="attribute">
-<dt id="kt_simul.core.components.Spb.__init__">
-<tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.components.Spb.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>side = 1 : left
-side = -1 : right
-L0 : spindle length</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="kt_simul.core.components.Chromosome">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.components.</tt><tt class="descname">Chromosome</tt><a class="headerlink" href="#kt_simul.core.components.Chromosome" title="Permalink to this definition">¶</a></dt>
-<dd><p>The chromosome, containing two centromeres (&#8216;A&#8217; and &#8216;B&#8217;)</p>
-<p>spindle: a <tt class="xref py py-class docutils literal"><span class="pre">Spindle</span></tt> instance</p>
-<dl class="attribute">
-<dt id="kt_simul.core.components.Chromosome.__init__">
-<tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.components.Chromosome.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.components.Chromosome.correct">
-<tt class="descname">correct</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.components.Chromosome.correct" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns the number of <em>correctly</em> plugged MTs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.components.Chromosome.erroneous">
-<tt class="descname">erroneous</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.components.Chromosome.erroneous" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the number of <em>erroneously</em> plugged MTs</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="kt_simul.core.components.Centromere">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.components.</tt><tt class="descname">Centromere</tt><a class="headerlink" href="#kt_simul.core.components.Centromere" title="Permalink to this definition">¶</a></dt>
-<dd><p>The centromere is where the plugsites are bound to the
-chromosome and where the cohesin spring restoring force, as
-well as the friction coefficient, are applied.
-This is a subclass of <tt class="xref py py-class docutils literal"><span class="pre">Organite</span></tt></p>
-<dl class="docutils">
-<dt>chromosome: a <a class="reference internal" href="#kt_simul.core.components.Chromosome" title="kt_simul.core.components.Chromosome"><tt class="xref py py-class docutils literal"><span class="pre">Chromosome</span></tt></a> instance</dt>
-<dd>the parent chromosome</dd>
-<dt>tag: {&#8216;A&#8217;, &#8216;B&#8217;}</dt>
-<dd>Side of the centromere. Note that the centromere
-side and the SPB side are not necesseraly related</dd>
-</dl>
-<dl class="attribute">
-<dt id="kt_simul.core.components.Centromere.__init__">
-<tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.components.Centromere.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.components.Centromere.calc_toa">
-<tt class="descname">calc_toa</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.components.Centromere.calc_toa" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate time of arrivals</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.components.Centromere.is_attached">
-<tt class="descname">is_attached</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.components.Centromere.is_attached" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if at least one plugsite is attached
-to at least one SPB</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="kt_simul.core.components.PlugSite">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.components.</tt><tt class="descname">PlugSite</tt><a class="headerlink" href="#kt_simul.core.components.PlugSite" title="Permalink to this definition">¶</a></dt>
-<dd><p>An attachment site object.</p>
-<p>centromere: a <a class="reference internal" href="#kt_simul.core.components.Centromere" title="kt_simul.core.components.Centromere"><tt class="xref py py-class docutils literal"><span class="pre">Centromere</span></tt></a> instance</p>
-<dl class="attribute">
-<dt id="kt_simul.core.components.PlugSite.__init__">
-<tt class="descname">__init__</tt><a class="headerlink" href="#kt_simul.core.components.PlugSite.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.components.PlugSite.is_correct">
-<tt class="descname">is_correct</tt><big>(</big><big>)</big><a class="headerlink" href="#kt_simul.core.components.PlugSite.is_correct" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if the plugsite is plugged
-correctly, i.e. doesn&#8217;t contribute to an
-attachment error</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-kt_simul.core.parameters">
-<span id="parameters-py"></span><h2>parameters.py<a class="headerlink" href="#module-kt_simul.core.parameters" title="Permalink to this headline">¶</a></h2>
-<p>Module dealing with simulation parameters</p>
-<dl class="function">
-<dt id="kt_simul.core.parameters.reduce_params">
-<tt class="descclassname">kt_simul.core.parameters.</tt><tt class="descname">reduce_params</tt><big>(</big><em>paramtree</em>, <em>measuretree</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/parameters.html#reduce_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.parameters.reduce_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>This functions changes the parameters so that
-the dynamical characteristics complies with the measures <a class="footnote-reference" href="#id2" id="id1">[1]</a>.</p>
-<p>paramtree : xml_handler.ParamTree instance
-measuretree : xml_handler.MeasureTree</p>
-<p>paramtree is modified in place</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.
-J. Cell Biol 2012 <a class="reference external" href="http://dx.doi.org/10.1083/jcb.201107124">http://dx.doi.org/10.1083/jcb.201107124</a></td></tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="module-kt_simul.core.xml_handler">
-<span id="xml-handler-py"></span><h2>xml_handler.py<a class="headerlink" href="#module-kt_simul.core.xml_handler" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="kt_simul.core.xml_handler.ParamTree">
-<em class="property">class </em><tt class="descclassname">kt_simul.core.xml_handler.</tt><tt class="descname">ParamTree</tt><big>(</big><em>filename=None</em>, <em>root=None</em>, <em>adimentionalized=True</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#ParamTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.ParamTree" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class defines the container for the simulation parameters.
-It wraps an ElementTree instance whose elements contains the
-name, value (as a string), description and unit of each parameter and a
-dictionnary that is used during the simulation.</p>
-<p>The <cite>value</cite> attribute of the tree is not modified by adimentionalization,
-whereas the value in the dictionnary is changed.</p>
-<dl class="method">
-<dt id="kt_simul.core.xml_handler.ParamTree.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>filename=None</em>, <em>root=None</em>, <em>adimentionalized=True</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#ParamTree.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.ParamTree.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.xml_handler.ParamTree.adimentionalize">
-<tt class="descname">adimentionalize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#ParamTree.adimentionalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.ParamTree.adimentionalize" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function scales everything taking dt as unit time, Vk as
-unit speed, and Fk as unit force. It relies on a correct
-definition of the units of the elements of the param tree,
-thus a correct spelling in the xml file, so please beware</p>
-<p>Note that the &#8220;value&#8221; attribute of the ElementTree instance are
-NOT modified. Also, applying this function on an already
-adimentionalized  dictionnary won&#8221;t change any thing</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="kt_simul.core.xml_handler.ParamTree.change_dic">
-<tt class="descname">change_dic</tt><big>(</big><em>key</em>, <em>new_value</em>, <em>write=True</em>, <em>back_up=False</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#ParamTree.change_dic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.ParamTree.change_dic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Changes the Element tree and re-creates the associated dictionnary.
-If write is True, re_writes the parameters files
-(older version is backed up if back_up is True)</p>
-<p>new_value is absolute - it has units</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="kt_simul.core.xml_handler.indent">
-<tt class="descclassname">kt_simul.core.xml_handler.</tt><tt class="descname">indent</tt><big>(</big><em>elem</em>, <em>level=0</em><big>)</big><a class="reference internal" href="_modules/kt_simul/core/xml_handler.html#indent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kt_simul.core.xml_handler.indent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Utility to have a nice printing of the xml tree</p>
-</dd></dl>
-
-</div>
 </div>
 
 
@@ -448,24 +89,12 @@ If write is True, re_writes the parameters files
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">kt_simul.core</span></tt></a><ul>
-<li><a class="reference internal" href="#simul-spindle-py">simul_spindle.py</a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.spindle_dynamics">spindle_dynamics.pyx</a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.components">components.pyd</a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.parameters">parameters.py</a></li>
-<li><a class="reference internal" href="#module-kt_simul.core.xml_handler">xml_handler.py</a></li>
-</ul>
-</li>
-</ul>
-
   <h4>Previous topic</h4>
   <p class="topless"><a href="api.html"
                         title="previous chapter">Explore the API</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="analysis.html"
-                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">kt_simul.analysis</span></tt></a></p>
+  <p class="topless"><a href="generated/kt_simul.core.simul_spindle.html"
+                        title="next chapter">kt_simul.core.simul_spindle</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/core.txt"
@@ -498,7 +127,7 @@ If write is True, re_writes the parameters files
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="analysis.html" title="kt_simul.analysis"
+          <a href="generated/kt_simul.core.simul_spindle.html" title="kt_simul.core.simul_spindle"
              >next</a> |</li>
         <li class="right" >
           <a href="api.html" title="Explore the API"

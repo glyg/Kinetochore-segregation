@@ -1,0 +1,23 @@
+kt_simul.analysis.evaluations.anaphase_rate
+===========================================
+
+.. automodule:: kt_simul.analysis.evaluations.anaphase_rate
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AnaphaseRate
+      Evaluation
+   
+   
+
+   
+   
+   

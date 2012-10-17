@@ -3,8 +3,8 @@
 
 .. automodule:: kt_simul.draw
 
-drawer.py
----------
+.. autosummary::
+    :toctree: generated
+    :template: module.rst
 
-.. automodule:: kt_simul.draw.drawer
-    :members:
+    kt_simul.draw.drawer

@@ -3,8 +3,8 @@
 
 .. automodule:: kt_simul.io
 
-simuio.py
----------
+.. autosummary::
+    :toctree: generated
+    :template: module.rst
 
-.. automodule:: kt_simul.io.simuio
-    :members:
+    kt_simul.io.simuio

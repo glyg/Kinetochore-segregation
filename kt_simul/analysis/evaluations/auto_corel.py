@@ -3,6 +3,9 @@ from  kt_simul.analysis.evaluations import Evaluation
 import numpy as np
 
 class AutoCorel(Evaluation):
+    """
+    Calculates the "pitch" of chromosomes"trajectory (kind of a Pitch detection algorithm
+    """
 
     name = "AutoCorel"
     description = 'Calculates the "pitch" of chromosomes"trajectory (kind of a Pitch detection algorithm'

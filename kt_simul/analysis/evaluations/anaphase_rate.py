@@ -3,6 +3,9 @@ from  kt_simul.analysis.evaluations import Evaluation
 import numpy as np
 
 class AnaphaseRate(Evaluation):
+    """
+    Calculates anaphase B elongation rate.
+    """
 
     name = "Anaphase rate"
     description = "Calculates anaphase B elongation rate."

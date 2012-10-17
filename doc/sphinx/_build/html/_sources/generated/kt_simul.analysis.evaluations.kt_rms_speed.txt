@@ -1,0 +1,23 @@
+kt_simul.analysis.evaluations.kt_rms_speed
+==========================================
+
+.. automodule:: kt_simul.analysis.evaluations.kt_rms_speed
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Evaluation
+      KtRmsSpeed
+   
+   
+
+   
+   
+   

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Data processing, analysis, batch scripts
+Evaluations are small plugin that can be automatically launch after a simulation.
 """
 
 import sys
@@ -10,10 +10,9 @@ EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
 def find_evaluations():
     """
-    Source: http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
+    This function return a list of Evaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
-    Find all subclass of cls in py files located below path
-    (does look in sub directories)
+    .. note:: Source from http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
 
     .. todo:: add selector and filter
 
@@ -32,7 +31,10 @@ def find_evaluations():
         # walk the dictionaries to get to the last one
         d=module.__dict__
         for m in modulename.split('.')[1:]:
-            d=d[m].__dict__
+            try:
+                d=d[m].__dict__
+            except:
+                pass
 
         #look through this dictionary for things
         #that are subclass of Job
@@ -65,6 +67,24 @@ def find_evaluations():
 
     return evaluations
 
+class RunFunctionNotImplemented(Exception):
+    pass
+
 class Evaluation(object):
+    """
+    Abstract class. All evaluation plugin need to write a class that inherit from Evaluation.
+
+    .. warning:: run() method need to be implemented.
+    """
+
     def __init__(self,):
         pass
+
+    def run(self, *args):
+        raise RunFunctionNotImplemented("run() method need to be implemented in your Evaluation plugin.")
+
+__all__ = []
+for ev in find_evaluations():
+    __all__.append(ev)
+
+__all__ += ['find_evaluations', 'Evaluation', 'RunFunctionNotImplemented']

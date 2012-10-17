@@ -3,6 +3,9 @@ from  kt_simul.analysis.evaluations import Evaluation
 import numpy as np
 
 class KtRmsSpeed(Evaluation):
+    """
+    KtRmsSpeed
+    """
 
     name = "KtRmsSpeed"
     description = "KtRmsSpeed"
