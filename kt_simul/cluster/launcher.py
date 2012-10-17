@@ -6,6 +6,7 @@ It handle data storing.
 import os
 import time
 import datetime
+import json
 import shutil
 import logging
 import multiprocessing
@@ -14,6 +15,8 @@ from multiprocessing import Pool, Queue
 from kt_simul.core.xml_handler import ParamTree
 from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
 from kt_simul.core import parameters
+
+from kt_simul.utils.size import get_folder_size
 
 from kt_simul.io import SimuIO
 from kt_simul.draw import Drawer
@@ -128,7 +131,7 @@ class Launcher:
 
         queue = Queue()
         self.start_time = time.time()
-        p = Pool(self.ncore, run_init, [queue])
+        p = Pool(self.ncore, run_init, [queue], maxtasksperchild=4)
         p.map_async(run_one, all_params, chunksize=1)
 
         # Monitoring simulations
@@ -142,8 +145,13 @@ class Launcher:
 
             if not simu_ids:
                 done = True
+        self.total_time = time.time() - self.start_time
 
+        results_size = get_folder_size(self.results_path)
         logging.info("Simulations are done")
+        logging.info("Results are stored in %s (%s MB)" % (self.results_path, results_size))
+
+        self.create_log()
 
     def log_progress(self, simu_left, precision = 2):
         """
@@ -175,6 +183,19 @@ class Launcher:
         spent_time = time.strftime('%H:%M:%S', time.gmtime(delta_time))
         return estimate_time, spent_time
 
+    def create_log(self):
+        """
+        Create logfile in results folder
+        """
+
+        log = {}
+        log["number_of_simulations"] = self.nsimu
+        log["spent_time"] = time.strftime('%H:%M:%S', time.gmtime(self.total_time))
+        log["results_folder_size_in_MB"] = get_folder_size(self.results_path)
+
+        f = open(os.path.join(self.results_path, "simu.log"), 'w')
+        f.write(json.dumps(log, sort_keys=True, indent=4))
+        f.close()
 
 def run_one(args):
     return _run_one(*args)
@@ -195,7 +216,7 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
 
     # Build filename
     dir_path = os.path.join(result_path)
-    name = "simu_%i" % simu_id
+    name = "simu_%06d" % simu_id
     xml_path = os.path.join(dir_path, name + ".xml")
     npy_path = os.path.join(dir_path, name + ".npy")
 
@@ -205,6 +226,8 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
 
     queue.put({ "id" : simu_id, "state" : "stop" })
 
+    del meta
+    del io
     return True
 
 

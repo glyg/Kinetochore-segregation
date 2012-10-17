@@ -242,7 +242,11 @@ class Metaphase(object):
         logging.info("Starting evaluations")
         for evaluation in evaluations.find_evaluations():
             logging.info("Running %s" % evaluation.name)
-            self.observations[evaluation.name] = evaluation().run(self.KD)
+            try:
+                result = evaluation().run(self.KD)
+            except:
+                result = "NaN"
+            self.observations[evaluation.name] = result
 
         logging.info("Evaluations done")
 

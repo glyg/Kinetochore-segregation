@@ -1,5 +1,5 @@
 from kt_simul.core import simul_spindle as sim
-from kt_simul.draw import Animator
+from kt_simul.draw.animate import Animator
 
 PARAMFILE = "params.xml"
 meta = sim.Metaphase(verbose=True)
