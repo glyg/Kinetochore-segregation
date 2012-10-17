@@ -2,12 +2,9 @@
 """
 """
 
-import time
-import logging
-import os
-
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 class Drawer():
     """
@@ -24,7 +21,7 @@ class Drawer():
         self.timelapse = self.meta.timelapse
         self.num_steps = self.meta.num_steps
 
-    def show_all(self, axes = None, fname = None):
+    def show_all(self, axes=None, fname=None):
         """
         Plot the different trajectories
 
@@ -51,15 +48,15 @@ class Drawer():
             if n == 0:
                 line1[0].set_alpha(1.)
                 line2[0].set_alpha(1.)
-        axes.set_xlabel('Time (seconds)', fontsize = 'small')
-        axes.set_ylabel(u'Distance from center (um)', fontsize = 'small')
+        axes.set_xlabel('Time (seconds)', fontsize='small')
+        axes.set_ylabel(u'Distance from center (um)', fontsize='small')
 
         if fname:
             plt.savefig(fname)
         else:
             plt.show()
 
-    def show_one(self, n = 0, fig = None, fname = None):
+    def show_one(self, n=0, fig=None, fname=None):
         """
         Shows chromosome n trajectory and plug state
 
@@ -74,8 +71,8 @@ class Drawer():
         fig.clear()
 
         #fig.add_subplot(312)
-        gridspec = plt.GridSpec(5,1)
-        subplotspec = gridspec.new_subplotspec((1,0), rowspan=3)
+        gridspec = plt.GridSpec(5, 1)
+        subplotspec = gridspec.new_subplotspec((1, 0), rowspan=3)
         traj_ax = fig.add_subplot(subplotspec)
         traj_ax.plot(self.timelapse, ch.cen_A.traj, 'g', lw=2, alpha=0.5)
         traj_ax.plot(self.timelapse, ch.cen_B.traj, 'purple', lw=2, alpha=0.5)
@@ -90,22 +87,22 @@ class Drawer():
         erroneous_hist = ch.erroneous_history
         correct_hist = ch.correct_history
 
-        subplotspec = gridspec.new_subplotspec((0,0), rowspan=1)
+        subplotspec = gridspec.new_subplotspec((0, 0), rowspan=1)
         ax = fig.add_subplot(subplotspec, sharex=traj_ax)
         ax.plot(self.timelapse, erroneous_hist[:, 0], 'r',
                 label='number of erroneoustellic MTs')
         ax.plot(self.timelapse, correct_hist[:, 0], 'g',
                 label='number of correct MTs')
-        ax.axis((0, self.num_steps*dt, -0.5, 4.5))
+        ax.axis((0, self.num_steps * dt, -0.5, 4.5))
         ax.set_xticks([], '')
 
-        subplotspec = gridspec.new_subplotspec((4,0), rowspan=1)
+        subplotspec = gridspec.new_subplotspec((4, 0), rowspan=1)
         ax = fig.add_subplot(subplotspec, sharex=traj_ax)
         ax.plot(self.timelapse, erroneous_hist[:, 1], 'r',
                 label='number of erroneous MTs')
         ax.plot(self.timelapse, correct_hist[:, 1], 'purple',
                 label='number of correct MTs')
-        ax.axis((0, self.num_steps*dt, -0.5, 4.5))
+        ax.axis((0, self.num_steps * dt, -0.5, 4.5))
 
         if fname:
             plt.savefig(fname)

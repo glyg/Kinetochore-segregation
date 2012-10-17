@@ -1,35 +1,34 @@
 #!/usr/bin/env python -*- coding: utf-8 -*-
 
-## Title: 
-## Description: 
+## Title:
+## Description:
 ## Author:uillaume Gay<elagachado AT  gmail DOT com>
 ## Commentary:
 
 from PySide import QtCore, QtGui
 
 import math
-import sys, os
+import sys
+import os
 
-FRAME_RATE = 25 #image/seconds        
+FRAME_RATE = 25  # image/seconds
 
+SITE_OFFSET = 0.2  # Vertical distance between attachment sites
+CH_OFFSET = 0.4  # Vertical distance between chromosomes
 
-SITE_OFFSET = 0.2 #Vertical distance between attachment sites
-CH_OFFSET = 0.4 # Vertical distance between chromosomes
+SPB_COLOR = QtGui.QColor(255, 0, 0)
+CH_COLOR = QtGui.QColor(0, 100, 100, alpha=200)
+ACTIVE_SAC_COLOR = QtGui.QColor(100, 10, 100, alpha=200)
 
-SPB_COLOR = QtGui.QColor(255,0,0)
-CH_COLOR = QtGui.QColor(0,100,100, alpha = 200)
-ACTIVE_SAC_COLOR = QtGui.QColor(100,10,100, alpha = 200)
-
-GOOD_PLUGSITE_COLOR = QtGui.QColor(0,250,20, alpha = 200)
-BAD_PLUGSITE_COLOR = QtGui.QColor(255,0,0, alpha = 255)
-UNPLUGED_COLOR = QtGui.QColor(0,20,250, alpha = 200)
-       
+GOOD_PLUGSITE_COLOR = QtGui.QColor(0, 250, 20, alpha=200)
+BAD_PLUGSITE_COLOR = QtGui.QColor(255, 0, 0, alpha=255)
+UNPLUGED_COLOR = QtGui.QColor(0, 20, 250, alpha=200)
 
 
 class GraphCell(QtGui.QGraphicsItem):
-    '''
+    """
     This is the parent item containing all the objects within the cell
-    '''
+    """
     def __init__(self, mt, parent = None):
         QtGui.QGraphicsItem.__init__(self, parent = parent)
 
@@ -41,13 +40,13 @@ class GraphCell(QtGui.QGraphicsItem):
         self.items.append(self.spbR)
         self.spbL = GraphSPB(-1, parent = self)
         self.items.append(self.spbL)
-       
+
         for n in range(N):
             left_kineto = GraphCentromere(n, -1, parent = self)
             self.items.append(left_kineto)
             right_kineto = GraphCentromere(n, 0, parent = self)
-            self.items.append(right_kineto)            
-        
+            self.items.append(right_kineto)
+
         self.time_point = 0
         for item in self.items:
             item.setPos(item.getSimPos(0))
@@ -71,7 +70,7 @@ class GraphCell(QtGui.QGraphicsItem):
                     plugsite.setPos(newPos)
                     if plugsite.newPlug != plugsite.sim.state_hist[self.time_point]:
                         plugsite.newPlug = plugsite.sim.state_hist[self.time_point]
-                        if plugsite.newPlug == 0: 
+                        if plugsite.newPlug == 0:
                             brush = QtGui.QBrush(UNPLUGED_COLOR)
                         elif plugsite.sim.is_correct(self.time_point):
                             brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
@@ -117,14 +116,14 @@ class GraphCentromere(QtGui.QGraphicsItem):
             x = self.ch.cen_B.pos
             self.traj = self.ch.cen_B.traj
         self.y = ( n - (N - 1) / 2. ) * 0.4 #* ( Mk * SITE_OFFSET + CH_OFFSET)
-        self.width = 0.2 
+        self.width = 0.2
         self.height = 0.1* Mk #Mk * SITE_OFFSET + CH_OFFSET
         self.newPos = QtCore.QPointF(x, self.y)
         self.plugsites = []
         self.setZValue(n)
         for m in range(Mk):
             self.plugsites.append(GraphPlugSite(m, self, parent))
-        
+
     def getSimPos(self, time_point):
         try:
             x = self.traj[time_point]
@@ -146,7 +145,7 @@ class GraphCentromere(QtGui.QGraphicsItem):
         self.path.addEllipse(self.width, self.height,
                              2*self.width, 2*self.height)
         return self.path
-    
+
     def paint(self, painter, option, widget):
         if self.ch.cen_A.is_attached() and self.ch.cen_B.is_attached():
             brush = QtGui.QBrush(CH_COLOR)
@@ -174,19 +173,19 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         side = self.kineto.side
         if side == 0:
             self.sim = self.kineto.ch.cen_A.plugsites[m]
-        else:    
+        else:
             self.sim = self.kineto.ch.cen_B.plugsites[m]
-        
+
         self.width = 0.1
-        self.height = self.kineto.height/Mk 
+        self.height = self.kineto.height/Mk
 
         self.y = self.kineto.y + ( m - (Mk -1 )/2.) * 0.1
-        x = self.sim.pos 
+        x = self.sim.pos
         self.newPos = QtCore.QPointF(x, self.y)
         self.newPlug = self.sim.plug_state
         self.setZValue(self.kineto.n * (1 + m))
 
-        if self.sim.plug_state == 0: 
+        if self.sim.plug_state == 0:
             brush = QtGui.QBrush(UNPLUGED_COLOR)
         elif self.sim.is_correct(0):
             brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
@@ -215,7 +214,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
         self.path.addEllipse(-self.width/2., -self.height/2,
                              self.width, self.height)
         return self.path
-        
+
     def paint(self, painter, option, widget):
         brush = self.color
         painter.setBrush(brush)
@@ -226,14 +225,13 @@ class GraphPlugSite(QtGui.QGraphicsItem):
     def boundingRect(self):
         adjust = 1.
         return QtCore.QRectF(-self.width - adjust, -self.height - adjust,
-                             2*self.width  + adjust, 2* self.height + adjust)
-        
+                             2 * self.width + adjust, 2* self.height + adjust)
+
 
 class GraphSPB(QtGui.QGraphicsItem):
 
-
-    def __init__(self, side, parent = None):
-        QtGui.QGraphicsItem.__init__(self, parent = parent)
+    def __init__(self, side, parent=None):
+        QtGui.QGraphicsItem.__init__(self, parent=parent)
         self.graphcell = parent
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         if side == 0:
@@ -241,14 +239,14 @@ class GraphSPB(QtGui.QGraphicsItem):
         else:
             self.sim = self.graphcell.mt.KD.spbL
         self.newPos = QtCore.QPointF(self.sim.pos, 0.)
-    
+
     def getSimPos(self, time_point):
         try:
             x = self.sim.traj[time_point]
         except IndexError:
             x = self.sim.traj[-1]
         y = 0.
-        return  QtCore.QPointF(x, y)
+        return QtCore.QPointF(x, y)
 
     def advance(self):
         if self.newPos == self.pos():
@@ -260,7 +258,7 @@ class GraphSPB(QtGui.QGraphicsItem):
         self.path = QtGui.QPainterPath()
         self.path.addEllipse(-0.1, -0.3, 0.2, 0.6)
         return self.path
-        
+
     def paint(self, painter, option, widget):
         brush = QtGui.QBrush(SPB_COLOR)
         painter.setBrush(brush)
@@ -272,8 +270,7 @@ class GraphSPB(QtGui.QGraphicsItem):
         adjust = 5.
         return QtCore.QRectF(-0.2 - adjust, -0.6  - adjust,
                              0.4  + adjust, 1.2 + adjust)
-    
-        
+
 class NakedWidget(QtGui.QGraphicsView):
 
     def __init__(self, mt):
@@ -302,9 +299,9 @@ class NakedWidget(QtGui.QGraphicsView):
         bottomShadow = QtCore.QRectF(sceneRect.left() + 0.1, sceneRect.bottom(),
                 sceneRect.width(), 0.1)
         if rightShadow.intersects(rect) or rightShadow.contains(rect):
-	        painter.fillRect(rightShadow, QtCore.Qt.darkGray)
+            painter.fillRect(rightShadow, QtCore.Qt.darkGray)
         if bottomShadow.intersects(rect) or bottomShadow.contains(rect):
-	        painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
+            painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
 
         # Fill.
         gradient = QtGui.QLinearGradient(sceneRect.topLeft(),
@@ -335,13 +332,16 @@ class NakedWidget(QtGui.QGraphicsView):
             self.killTimer(self.timerId)
             self.timerId = 0
 
-        
-class InteractiveCellWidget(QtGui.QGraphicsView):
 
+class InteractiveCellWidget(QtGui.QWidget):
+    """
+    """
 
     def __init__(self, mt):
+        """
+        """
         super(InteractiveCellWidget, self).__init__()
-        vbox = QtGui.QVBoxLayout()
+
         self.timerId = 0
         self.view = ViewCellWidget(mt)
         self.ccw = ControlCellWidget(mt)
@@ -350,6 +350,8 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
         self.connect(self.ccw.pauseButton, QtCore.SIGNAL('clicked()'),
                      self.pause)
         self.ccw.slider.valueChanged.connect(self.gotoTime)
+
+        vbox = QtGui.QVBoxLayout()
         vbox.setSpacing(5)
         vbox.addWidget(self.view)
         vbox.addWidget(self.ccw)
@@ -389,11 +391,10 @@ class InteractiveCellWidget(QtGui.QGraphicsView):
         if not itemsMoved:
             self.killTimer(self.timerId)
             self.timerId = 0
-            
 
-class ControlCellWidget(QtGui.QWidget):    
 
-    
+class ControlCellWidget(QtGui.QWidget):
+
     def __init__(self, mt, parent = None):
         super(ControlCellWidget, self).__init__(parent)
         numsteps = int(mt.KD.params['span'] / mt.KD.params['dt'])
@@ -404,7 +405,7 @@ class ControlCellWidget(QtGui.QWidget):
         self.slider.setTickPosition(QtGui.QSlider.TicksBothSides)
         self.slider.setTickInterval(10)
         self.slider.setSingleStep(1)
-    
+
         self.slider.setMinimum(0)
         self.slider.setMaximum(numsteps)
         self.slider.setValue(0)
@@ -425,13 +426,15 @@ class ControlCellWidget(QtGui.QWidget):
         hbox.addWidget(self.pauseButton)
         hbox.addWidget(self.slider)
         self.setLayout(hbox)
-        
+
 
 class ViewCellWidget(QtGui.QGraphicsView):
 
-
     def __init__(self, mt):
         super(ViewCellWidget, self).__init__()
+
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+
         self.timerId = 0
         self.cell = GraphCell(mt)
         scene = QtGui.QGraphicsScene(self)
@@ -458,9 +461,9 @@ class ViewCellWidget(QtGui.QGraphicsView):
         bottomShadow = QtCore.QRectF(sceneRect.left() + 0.1, sceneRect.bottom(),
                 sceneRect.width(), 0.1)
         if rightShadow.intersects(rect) or rightShadow.contains(rect):
-	        painter.fillRect(rightShadow, QtCore.Qt.darkGray)
+            painter.fillRect(rightShadow, QtCore.Qt.darkGray)
         if bottomShadow.intersects(rect) or bottomShadow.contains(rect):
-	        painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
+            painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
 
         # Fill.
         gradient = QtGui.QLinearGradient(sceneRect.topLeft(),
@@ -477,19 +480,3 @@ class ViewCellWidget(QtGui.QGraphicsView):
         if factor < 0.1 or factor > 200:
             return
         self.scale(scaleFactor, scaleFactor)
-
-
-if __name__ == '__main__':
-
-    from kineto_simulation import SigMetaphase
-
-    app = QtGui.QApplication(sys.argv)
-    QtCore.qsrand(QtCore.QTime(0,0,0).secsTo(QtCore.QTime.currentTime()))
-
-    mt = SigMetaphase()
-    mt.simul()
-    widget = InteractiveCellWidget(mt)
-    widget.setRenderHint(QtGui.QPainter.Antialiasing)
-    widget.show()
-    
-    sys.exit(app.exec_())

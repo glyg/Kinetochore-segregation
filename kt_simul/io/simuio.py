@@ -31,8 +31,8 @@ class SimuIO():
             self.measuretree = self.meta.measuretree
             self.observations = self.meta.observations
 
-    def save(self, xmlfname = "results.xml",
-                datafname = "data.npy"):
+    def save(self, xmlfname="results.xml",
+                datafname="data.npy"):
         """
         Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
@@ -64,19 +64,20 @@ class SimuIO():
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
         today = time.asctime()
-        experiment = Element("experiment", date=today, datafile=datafname)
+        experiment = Element("experiment", date=today,
+                            datafile=datafname)
         experiment.append(self.paramtree.root)
         experiment.append(self.measuretree.root)
 
         #right SPB
-        spbR = SubElement(experiment, "trajectory", name = "rightspb",
+        spbR = SubElement(experiment, "trajectory", name="rightspb",
                           column='0', units='mu m')
         SubElement(spbR, "description").text="right spb trajectory"
         spbRtraj = np.array(self.KD.spbR.traj)
         wavelist.append(spbRtraj)
 
         #left SPB
-        spbL = SubElement(experiment, "trajectory", name = "leftspb",
+        spbL = SubElement(experiment, "trajectory", name="leftspb",
                           column='1', units='mu m')
         SubElement(spbL, "description").text="left spb trajectory"
         spbLtraj = np.array(self.KD.spbL.traj)
@@ -85,9 +86,12 @@ class SimuIO():
         col_num = 2
         #chromosomes
         for n, ch in enumerate(chromosomes):
-            rch = SubElement(experiment, "trajectory", name="centromereA",
-                             index = str(n), column=str(col_num), units='mu m')
-            text = "chromosome %i centromere A trajectory" % n
+            rch = SubElement(experiment, "trajectory",
+                            name="centromereA",
+                            index = str(n),
+                            column=str(col_num),
+                            units='mu m')
+            text="chromosome %i centromere A trajectory" % n
             SubElement(rch, "description").text = text
             wavelist.append(ch.cen_A.traj)
             col_num += 1
@@ -97,7 +101,7 @@ class SimuIO():
             wavelist.append(ch.correct_history[:, 0])
             col_num += 1
             SubElement(experiment, "numbererroneous",
-                       name="centromereA", index = str(n),
+                       name="centromereA", index=str(n),
                        column=str(col_num))
             wavelist.append(ch.erroneous_history[:, 0])
             col_num += 1
@@ -168,7 +172,7 @@ class SimuIO():
         logging.info("Simulation saved to file %s and %s "
             % (xmlfname, datafname))
 
-    def read(self, xmlfname = "results.xml"):
+    def read(self, xmlfname="results.xml"):
         """
         Creates a simul_spindle.Metaphase from a XML file.
 

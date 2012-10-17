@@ -1,21 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Title: 
-## Description: 
-## Author:Guillaume Gay<elagachado AT  gmail DOT com>
-## Commentary:
-
-
-'''
+"""
 QtWidgets to set the values of the parameters and the measures
 used in the simulation
-'''
+"""
 
 import sys
-from PySide import QtGui, QtCore
-from kt_simul.core.xml_handler import *
 from numpy import log10, floor
+
+from PySide import QtGui, QtCore
+
+from kt_simul.core.xml_handler import *
 
 __all__ = ['SetParameters', 'SetMeasures']
 
@@ -32,7 +27,7 @@ class DoubleParamBox(QtGui.QDoubleSpinBox):
     def __init__(self, param, parent = None):
         QtGui.QDoubleSpinBox.__init__(self, parent)
         self.param = param
-        
+
     def my_emiter(self, val):
         self.emit(QtCore.SIGNAL('doubleparamValueChanged'), self.param, val)
 
@@ -46,7 +41,7 @@ class SetParameters(QtGui.QWidget):
         self.isModified = False
 
         hbox = QtGui.QHBoxLayout()
-        
+
         vbox1 = QtGui.QVBoxLayout()
         vbox2 = QtGui.QVBoxLayout()
         k = 0
@@ -57,10 +52,10 @@ class SetParameters(QtGui.QWidget):
         for param in params:
             description = param.find("description").text
             p_step = param.get("step")
-            # If step is 0, the parameter is not displayed 
+            # If step is 0, the parameter is not displayed
             # (it is set from the measures, via reduce_params)
             if p_step == '0':
-                continue 
+                continue
             unit = param.find('unit').text
 
             value = param.get("value")
@@ -83,7 +78,7 @@ class SetParameters(QtGui.QWidget):
                              self.set_new_val)
                 self.connect(spinbox, QtCore.SIGNAL('valueChanged(int)'),
                              self.setModified)
-                
+
             else:
                 value = float(value)
                 p_min = float(p_min)
@@ -92,7 +87,7 @@ class SetParameters(QtGui.QWidget):
 
                 if value != 0 :
                     dec =  - int(floor(log10(abs(value)))) + 2
-                else : 
+                else :
                     dec = 2
                 spinbox = DoubleParamBox(param, self)
                 spinbox.setDecimals(dec)
@@ -136,11 +131,9 @@ class SetParameters(QtGui.QWidget):
 class SetMeasures(SetParameters):
 
     def __init__(self, measuretree, parent = None):
-        
+
         SetParameters.__init__(self, measuretree, parent)
         self.setWindowTitle('Measures')
-
-
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)

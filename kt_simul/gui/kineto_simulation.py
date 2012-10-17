@@ -1,139 +1,54 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''
+"""
 Graphical User Interface for the kinetochore dynamics simulation
+"""
 
-'''
+import sys
+import os
+import time
 
-import sys, os, random, time
+from numpy import mod
+
 from PySide import QtCore, QtGui
-from numpy import  linalg, mod
-from matplotlib.figure import Figure
 
 import matplotlib
 matplotlib.use('Qt4Agg')
-matplotlib.rcParams['backend.qt4']='PySide'
+matplotlib.rcParams['backend.qt4'] = 'PySide'
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 
-import pyximport
-pyximport.install()
-
-from kt_simul.core.simul_spindle import Metaphase, get_fromfile
 from kt_simul.core.simul_spindle import MEASUREFILE, PARAMFILE
-from kt_simul.analysis.eval_simul import metaph_kineto_dist
 from kt_simul.core.xml_handler import ParamTree
-from param_seter import SetParameters, SetMeasures
-from game import InteractiveCellWidget
 
+from kt_simul.gui.param_seter import SetParameters, SetMeasures
+from kt_simul.gui.game import InteractiveCellWidget
+from kt_simul.gui.canvas import MyMplCanvas
+from kt_simul.gui.sig_metaphase import SigMetaphase
 
 __all__ = ['MainWindow']
 
-class MyMplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-    def __init__(self, span = 800., parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure( figsize=(width, height), dpi=dpi)
-        self.axes = self.fig.add_subplot(111)
-        # We want the axes cleared every time plot() is called
-        self.axes.hold(False)
-        
-        self.compute_initial_figure(span)
-
-        #
-        FigureCanvas.__init__(self, self.fig)
-        self.setParent(parent)
-
-        FigureCanvas.setSizePolicy(self,
-                                   QtGui.QSizePolicy.Expanding,
-                                   QtGui.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-
-    def compute_initial_figure(self, span):
-        self.axes.axis([0, span , -10, 10 ])
-
-        self.axes.set_xlabel('Time (seconds)', fontsize = 12)
-        self.axes.set_ylabel(u'Distance from center (µm)', fontsize = 12)
-        
-    def update_figure(self, mt, n = None):
-
-        ''' Plot the different trajectories
-        '''
-        
-        self.axes.clear()
-        self.axes.hold(True)
-        if n == None:
-            mt.show_trajs(self.axes)
-        else:
-            mt.show_one(n = n, fig = self.fig)
-
-        self.draw()
-
-
-class SigMetaphase(QtGui.QWidget, Metaphase):
-
-    '''
-    The aim of this hybrid is to retrieve signals from the
-    simulation while it"s running.
-
-    overrides _one_step method of the Metaphase class
-
-    '''
-    
-    def __init__(self, paramtree, measuretree,
-                 initial_plug=None, parent=None):
-
-        Metaphase.__init__(self, paramtree, measuretree,
-                           initial_plug=initial_plug)
-        QtGui.QWidget.__init__(self, parent)
-                           
-        self.date = 0
-        
-    def _one_step(self):
-            
-        if not self.KD.anaphase:
-            self.emit(QtCore.SIGNAL('inMetaphase'))
-            
-        self.KD.one_step(self.date)
-        
-        nb_mero = self._mero_checkpoint()
-        if nb_mero > 0:
-            self.emit(QtCore.SIGNAL('meroCheckPoint'), nb_mero)
-
-        self.emit(QtCore.SIGNAL('plugCheckPoint'), self._plug_checkpoint())
-        self.date += 1
-        self.emit(QtCore.SIGNAL('stepDone'), self.date)
-        self.emit(QtCore.SIGNAL('stepDone_nop'))
-        
-    def sig_simul(self):
-        
-        self.simul()
-        self.emit(QtCore.SIGNAL('simulDone(bool)'),self.report)
-        self.simulDone = True
 
 class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, parent=None):
 
-
         self.paramtree = ParamTree(PARAMFILE)
-        self.measuretree = ParamTree(MEASUREFILE, adimentionalized = False)
+        self.measuretree = ParamTree(MEASUREFILE, adimentionalized=False)
         self.measures = self.measuretree.absolute_dic
 
         self.mt = None
-       
+
         QtGui.QMainWindow.__init__(self, parent)
         self.centralwidget = QtGui.QWidget()
-        
+
         self.setCentralWidget(self.centralwidget)
         self.create_docks()
         self.create_tabs()
         self.create_buttons()
-        
+
         #self.prepare_simulation()
-        
-        
+
     def create_docks(self):
 
         #Parameter Setting in a Dock Widget
@@ -142,7 +57,7 @@ class MainWindow(QtGui.QMainWindow):
         scrollArea = QtGui.QScrollArea()
         scrollArea.setWidget(self.setParameters)
         self.paramdock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock);
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.paramdock)
 
         #Measures Setting in another Dock Widget
         self.measuredock = QtGui.QDockWidget('Measures Setting')
@@ -150,7 +65,7 @@ class MainWindow(QtGui.QMainWindow):
         scrollArea = QtGui.QScrollArea()
         scrollArea.setWidget(self.setMeasures)
         self.measuredock.setWidget(scrollArea)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock);
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.measuredock)
 
     def create_tabs(self):
         #Text Area
@@ -185,7 +100,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tabWidget.setTabsClosable(True)
         self.tabWidget.addTab(self.simLog, "Log")
         #self.tabWidget.tabCloseRequested.connect(self.tabWidget.removeTab)
-        
+
         self.connect(self.tabWidget, QtCore.SIGNAL('tabCloseRequested(int)'),
                      self.closeTab)
         #              self.closeTab)
@@ -194,7 +109,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeTab(self, idx):
         self.tabWidget.removeTab(idx)
-        
+
     def create_buttons(self):
         #Buttons
         #self.buttonGroup = QtGui.QButtonGroup()
@@ -206,11 +121,11 @@ class MainWindow(QtGui.QMainWindow):
 
         showTrajButton = QtGui.QPushButton('Show trajectories')
         self.connect(showTrajButton, QtCore.SIGNAL('clicked()'), self.show_trajs)
-       
+
         self.traj_num = 0
         showOneButton = QtGui.QPushButton('Show one trajectory')
         self.connect(showOneButton, QtCore.SIGNAL('clicked()'), self.show_one)
-        
+
         self.interactiveButton = QtGui.QRadioButton('Interactive Simulation')
         self.interactiveButton.setChecked(True)
         #self.buttonGroup.addButton(runButton)
@@ -227,28 +142,28 @@ class MainWindow(QtGui.QMainWindow):
 
         vbox = QtGui.QVBoxLayout()
         vbox.setSpacing(5)
-        vbox.addLayout(hbox)#self.buttonGroup)
+        vbox.addLayout(hbox)  #self.buttonGroup)
         vbox.addWidget(self.tabWidget)
 
         self.centralwidget.setLayout(vbox)
 
         self.createActions()
         self.createMenus()
-        
+
         self.createToolBars()
         self.createStatusBar()
         currentDirName = os.path.abspath(os.path.curdir)
-        
+
         currentFileName = '_'.join(time.asctime().split()[:-1])
-        currentFileName = 'simul_'+'_'.join(currentFileName.split(':'))+'.xml'
-        currentFileName = os.path.join(currentDirName, currentFileName)        
-        
+        currentFileName = 'simul_' + \
+                            '_'.join(currentFileName.split(':')) + \
+                            '.xml'
+        currentFileName = os.path.join(currentDirName, currentFileName)
+
         self.setCurrentFile(currentFileName)
         self.setWindowTitle(self.tr("Kinetochore Dynamics Simulation"))
-        self.setMinimumSize(160,160)
-        self.resize(1000,600)
-        
-
+        self.setMinimumSize(160, 160)
+        self.resize(1000, 600)
 
     def prepare_simulation(self):
 
@@ -259,7 +174,7 @@ class MainWindow(QtGui.QMainWindow):
                                initial_plug=initial_plug)
 
         self.progressBar.setMaximum(int(self.paramtree.absolute_dic['span']))
-        
+
         self.progressBar.setMinimum(0)
         self.connect(self.mt, QtCore.SIGNAL('plugCheckPoint'),
                      self.active_checkpoint)
@@ -272,17 +187,16 @@ class MainWindow(QtGui.QMainWindow):
 
         if run_interactively:
             self.iw = InteractiveCellWidget(self.mt)
-            self.iw.setRenderHint(QtGui.QPainter.Antialiasing)
 
-            idx = self.tabWidget.currentIndex()+1
+            idx = self.tabWidget.currentIndex() + 1
             self.tabWidget.insertTab(idx, self.iw, "Interactive Simulation")
             self.tabWidget.setCurrentIndex(idx)
 
             self.connect(self.mt,  QtCore.SIGNAL('simulDone'),
                          self.iw.startAnim)
-    
+
     def run_simulation(self):
-        
+
         self.prepare_simulation()
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.mt.sig_simul()
@@ -291,9 +205,8 @@ class MainWindow(QtGui.QMainWindow):
     def show_trajs(self):
 
         self.plotarea1.update_figure(self.mt)
-        self.tabWidget.insertTab(1,self.w1, "All trajectories")
+        self.tabWidget.insertTab(1, self.w1, "All trajectories")
         self.tabWidget.setCurrentIndex(1)
-
 
     def show_one(self):
 
@@ -303,11 +216,10 @@ class MainWindow(QtGui.QMainWindow):
         self.traj_num += 1
         self.tabWidget.insertTab(2, self.w2, "Trajectory of chromosome # %i" %(t_num + 1) )
         self.tabWidget.setCurrentIndex(2)
-        
+
     def update_progressBar(self, val):
         self.progressBar.setValue(val)
 
-    
     def print_report(self, report):
         self.simLog.append("Simulation's done!")
         for l in report:
@@ -315,14 +227,13 @@ class MainWindow(QtGui.QMainWindow):
             self.simLog.append(ls)
 
         self.progressBar.setValue(0)
-            
+
     def active_checkpoint(self, cp):
         if cp:
             self.statusBar().showMessage(self.tr("Active Plug/unplug checkpoint"), 2000)
         else:
             self.statusBar().showMessage(self.tr(" "), 2000)
 
-        
     def closeEvent(self, event):
         if self.maybeSave():
             event.accept()
@@ -336,13 +247,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def open(self):
         if self.maybeSave():
-            fileName, selectedFilter = QtGui.QFileDialog.getOpenFileName(self,
-                                                         filter = "XML files (*.xml);;All Files (*.*)")
+            fileName, selectedFilter = QtGui.QFileDialog.getOpenFileName(self, filter="XML files (*.xml);;All Files (*.*)")
             self.loadFile(fileName)
-            
+
         self.setCurrentFile(fileName)
 
-        
     def save(self):
         # if not os.path.isfile(self.curFile):
         #     self.curFile = default_filename
@@ -362,10 +271,9 @@ class MainWindow(QtGui.QMainWindow):
     #     print filename
     #     if fileName.isEmpty():
     #         fileName = "default.xml"
-        
+
     #     self.saveFile(fileName)
     #     del saveDiag
-
 
     def about(self):
         QtGui.QMessageBox.about(self, self.tr("About Application"),
@@ -409,16 +317,13 @@ class MainWindow(QtGui.QMainWindow):
         self.aboutQtAct.setStatusTip(self.tr("Show the Qt library's About box"))
         self.connect(self.aboutQtAct, QtCore.SIGNAL("triggered()"), QtGui.qApp, QtCore.SLOT("aboutQt()"))
 
-
-
     def createMenus(self):
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.fileMenu.addAction(self.openAct)
         self.fileMenu.addAction(self.saveAct)
         # self.fileMenu.addAction(self.saveAsAct)
-        self.fileMenu.addSeparator();
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.exitAct)
-
 
         self.menuBar().addSeparator()
 
@@ -432,16 +337,16 @@ class MainWindow(QtGui.QMainWindow):
         self.fileToolBar.addAction(self.saveAct)
 
         self.attachCombo = QtGui.QComboBox()
-        self.attachCombo.addItem("No attachment") #0
+        self.attachCombo.addItem("No attachment")  #0
         self.attachCombo.addItem("Amphitelic attachment") #1
-        self.attachCombo.addItem("Merotelic attachment") #2
-        self.attachCombo.addItem("Syntelic attachment") #3
-        self.attachCombo.addItem("Monotelic attachment") #4
-        self.attachCombo.addItem("Random attachment") #5
+        self.attachCombo.addItem("Merotelic attachment")  #2
+        self.attachCombo.addItem("Syntelic attachment")  #3
+        self.attachCombo.addItem("Monotelic attachment")  #4
+        self.attachCombo.addItem("Random attachment")  #5
 
         self.configToolBar = self.addToolBar(self.tr("config"))
         self.configToolBar.addWidget(self.attachCombo)
-        
+
         self.attachment_list = ['null',
                                 'amphitelic',
                                 'merotelic',
@@ -449,11 +354,9 @@ class MainWindow(QtGui.QMainWindow):
                                 'monotelic',
                                 'random']
         self.attachCombo.setCurrentIndex(5)
-        
 
     def createStatusBar(self):
         self.statusBar().showMessage(self.tr("Ready"))
-
 
     def maybeSave(self):
         if self.setParameters.isModified:
@@ -470,7 +373,7 @@ class MainWindow(QtGui.QMainWindow):
         return True
 
     def loadFile(self, fileName):
-        
+
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.prepare_simulation()
         tmp_m = get_fromfile(str(fileName))
@@ -515,17 +418,12 @@ class MainWindow(QtGui.QMainWindow):
         self.setParameters.setModified(False)
         self.setWindowModified(False)
 
-
     def strippedName(self, fullFileName):
         return QtCore.QFileInfo(fullFileName).fileName()
 
-
-
-
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
-    
+
     mainwindow = MainWindow()
     mainwindow.show()
     sys.exit(app.exec_())
-    

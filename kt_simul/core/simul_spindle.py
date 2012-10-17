@@ -10,22 +10,16 @@ http://dx.doi.org/10.1529/biophysj.105.078691
 
 """
 
-import time
 import os
-import sys
 import logging
 import numpy as np
-import matplotlib.pyplot as plt
-from numpy.random import normal
-from xml.etree.ElementTree import Element, SubElement, tostring
-from Image import fromarray as image_fromarray
 
 import pyximport
 pyximport.install()
 
 # Local imports
 from kt_simul.core.spindle_dynamics import KinetoDynamics
-from kt_simul.core.xml_handler import ParamTree, indent, ResultTree
+from kt_simul.core.xml_handler import ParamTree
 from kt_simul.analysis import evaluations
 import parameters
 import utils
@@ -36,8 +30,9 @@ CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
 PARAMFILE = os.path.join(ROOT_DIR, 'default', 'params.xml')
 MEASUREFILE = os.path.join(ROOT_DIR, 'default', 'measures.xml')
-MEASURETREE = ParamTree(MEASUREFILE, adimentionalized = False)
+MEASURETREE = ParamTree(MEASUREFILE, adimentionalized=False)
 MEASURES = MEASURETREE.absolute_dic
+
 
 class Metaphase(object):
     """
@@ -62,7 +57,6 @@ class Metaphase(object):
     >>> m2.simul(ablat = 600) #this time with spindle ablation
 
     """
-
 
     def __init__(self,  paramtree=None, measuretree=None,
                  paramfile=PARAMFILE, measurefile=MEASUREFILE,
