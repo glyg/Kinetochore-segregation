@@ -2,6 +2,7 @@
 """
 """
 
+import os
 import time
 import logging
 
@@ -65,8 +66,9 @@ class SimuIO():
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
         today = time.asctime()
+        relpath = os.path.relpath(xmlfname, os.path.dirname(datafname))
         experiment = Element("experiment", date=today,
-                            datafile=datafname)
+                            datafile=relpath)
         experiment.append(self.paramtree.root)
         experiment.append(self.measuretree.root)
 
