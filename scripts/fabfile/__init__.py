@@ -31,7 +31,7 @@ def push():
     """
     print red("Push kt_simul to loki")
     with lcd(project):
-        local("rsync --progress -a * %s:%s" % (host, rproject))
+        local("rsync --progress -a --delete ../kt_simul/ %s:%s" % (host, rproject))
 
 
 @task
