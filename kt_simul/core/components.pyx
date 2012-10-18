@@ -26,7 +26,8 @@ cdef class Spindle(object) :
 
 
 cdef class Organite(object):
-    """Base class for all the physical elements of the spindle
+    """
+    Base class for all the physical elements of the spindle
 
     Parameters
     ----------
@@ -45,6 +46,7 @@ cdef class Organite(object):
     set_pos(pos, time_point) : sets the position and updates the trajectory
     get_pos(time_point): returns the position at `time_point`
     """
+
     def __init__(self, parent, init_pos):
         self.parent = parent
         self.KD = parent.KD
@@ -157,7 +159,6 @@ cdef class Chromosome(Organite):
         self.erroneous_history =  np.array(erroneous_hist)
 
     def calc_correct_history(self):
-
         leftA, rightA = self.cen_A.calc_plug_history()
         leftB, rightB = self.cen_B.calc_plug_history()
         correct_hist = []
@@ -187,7 +188,7 @@ cdef class Chromosome(Organite):
     cdef np.ndarray center_traj(self):
         return (self.cen_A.traj + self.cen_B.traj) / 2
 
-    cdef bool at_rightpole(self, float tol) :
+    cdef bool at_rightpole(self, float tol):
         """
         tol : tolerance distance
         """
@@ -195,7 +196,7 @@ cdef class Chromosome(Organite):
             return True
         return False
 
-    cdef bool at_leftpole(self, float tol) :
+    cdef bool at_leftpole(self, float tol):
         if self.cen_A.at_leftpole(tol) or self.cen_B.at_leftpole(tol):
             return True
         return False
@@ -207,7 +208,7 @@ cdef class Chromosome(Organite):
             return True
         elif self.at_rightpole(tol) and self.at_leftpole(tol):
                 return True
-        else :
+        else:
             return False
 
 
@@ -240,8 +241,8 @@ cdef class Centromere(Organite):
             raise ValueError("the `tag` attribute must be 'A' or 'B'.")
         Organite.__init__(self, chromosome, init_pos)
         Mk = int(self.KD.params['Mk'])
-        self.toa = 0 #time of arrival at pole
-        self.plug_vector = np.zeros(Mk, dtype = np.int)
+        self.toa = 0  # time of arrival at pole
+        self.plug_vector = np.zeros(Mk, dtype=np.int)
         self.plugsites = []
         cdef PlugSite ps
         for m in range(Mk):
@@ -268,11 +269,10 @@ cdef class Centromere(Organite):
         self.plug_vector = state
 
     def calc_plug_history(self):
-        cdef np.ndarray[ITYPE_t, ndim=2] state_hist
+        cdef np.ndarray[ITYPE_t, ndim = 2] state_hist
         cdef np.ndarray[ITYPE_t] right_hist, left_hist
         cdef PlugSite plugsite
-        state_hist = np.array([plugsite.state_hist for plugsite
-                               in self.plugsites])
+        state_hist = np.array([plugsite.state_hist for plugsite in self.plugsites])
         right_hist = np.array(state_hist > 0).sum(axis=0)
         left_hist = np.array(state_hist < 0).sum(axis=0)
         return left_hist, right_hist
@@ -280,7 +280,8 @@ cdef class Centromere(Organite):
     cdef float P_attachleft(self):
         cdef float orientation
         orientation = self.KD.params['orientation']
-        if orientation == 0: return 0.5
+        if orientation == 0:
+            return 0.5
         cdef int lp, rp
         self.calc_plug_vector()
         lp = self.left_plugged()

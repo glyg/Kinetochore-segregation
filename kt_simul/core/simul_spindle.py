@@ -139,7 +139,7 @@ class Metaphase(object):
         self.KD = KinetoDynamics(params, initial_plug=initial_plug)
         dt = self.paramtree.absolute_dic['dt']
         duration = self.paramtree.absolute_dic['span']
-        self.num_steps = int(duration/dt)
+        self.num_steps = int(duration / dt)
         self.KD.anaphase = False
         self.timelapse = np.arange(0, duration, dt)
         self.report = []
@@ -158,7 +158,7 @@ class Metaphase(object):
         except AttributeError:
             pass
         try:
-            lines.append('Measures:' )
+            lines.append('Measures:')
             for line in str(self.measuretree.absolute_dic).split(','):
                 lines.append(line)
         except AttributeError:
@@ -226,7 +226,7 @@ class Metaphase(object):
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
 
-    def evaluate(self, groups = []):
+    def evaluate(self, groups=[]):
         """
         Passes all the evaluations in eval_simul.py
         results are stored in the self.observations dictionnary
@@ -236,7 +236,7 @@ class Metaphase(object):
             return False
 
         logging.info("Starting evaluations")
-        evalutions = evaluations.find_evaluations(groups = groups)
+        evalutions = evaluations.find_evaluations(groups=groups)
         for evaluation in evalutions:
             logging.info("Running %s" % evaluation.name)
             try:

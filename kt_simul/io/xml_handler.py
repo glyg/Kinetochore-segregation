@@ -108,24 +108,25 @@ class ParamTree(object):
             if self.has_unit(param, SPRING_UNIT):
                 val /= Fk
             elif self.has_unit(param, DRAG_UNIT):
-                val *= Vk/Fk
+                val *= Vk / Fk
             elif self.has_unit(param, SPEED_UNIT):
-                val /=  Vk
+                val /= Vk
             elif self.has_unit(param, FREQ_UNIT):
                 val *= dt
             elif self.has_unit(param, FORCE_UNIT):
                 val /= Fk
             self.relative_dic[key] = val
 
-    def change_dic(self, key, new_value, write = True,
-                   back_up = False, verbose = True):
-        '''
+    def change_dic(self, key, new_value, write=True,
+                   back_up=False, verbose=True):
+        """
         Changes the Element tree and re-creates the associated dictionnary.
         If write is True, re_writes the parameters files
         (older version is backed up if back_up is True)
 
         new_value is absolute - it has units
-        '''
+        """
+
         if self.absolute_dic is None:
             self.create_dic()
         a = self.root.findall('param')
@@ -135,7 +136,7 @@ class ParamTree(object):
                 try:
                     self.absolute_dic[key] = new_value
                 except KeyError:
-                    print "Couldn't find the parameter %s" %key
+                    print "Couldn't find the parameter %s" % key
                     return 0
                 break
         try:
@@ -151,29 +152,30 @@ class ParamTree(object):
             indent(self.root)
             xf = open(self.filename, 'w+')
             if back_up:
-                bck = self.filename+'.bck'
-                xfb = open(bck,'w+')
+                bck = self.filename + '.bck'
+                xfb = open(bck, 'w+')
                 for line in xf:
                     xfb.write
                 xfb.close()
                 xf.seek(0)
-                print "Backed up old parameter file as %s" %bck
-            else :
-                print "Warning : %s changed without back up" %self.filename
+                print "Backed up old parameter file as %s" % bck
+            else:
+                print "Warning : %s changed without back up" % self.filename
             xf.write(tostring(self))
             xf.close
-            print "Changed  %s to %03f in file %s" %(key,
+            print "Changed  %s to %03f in file %s" % (key,
                                                      new_value,
                                                      self.filename)
         elif verbose:
-            print "Warning: parameter %s changed but not written!" %key
+            print "Warning: parameter %s changed but not written!" % key
+
 
 class ResultTree(ParamTree):
 
-    def __init__(self, xmlfname = "resuts.xml"):
+    def __init__(self, xmlfname="resuts.xml"):
 
         xmlfname = os.path.abspath(xmlfname)
-        ParamTree.__init__(self, xmlfname, adimentionalized = False)
+        ParamTree.__init__(self, xmlfname, adimentionalized=False)
         datafname = self.root.get("datafile")
         if not os.path.isabs(datafname):
             if '/' not in datafname:
@@ -184,14 +186,13 @@ class ResultTree(ParamTree):
                                               datafname.split('/')[-1])
         else:
             self.datafname = datafname
-        print self.datafname
+
         if self.datafname is None or not os.path.isfile(self.datafname):
-            raise ValueError, "Corresponding data file not specified"
+            raise ValueError("Corresponding data file not specified")
         if self.datafname.endswith('.npy'):
             self.data = np.load(self.datafname)
         else:
-            self.data = np.loadtxt(self.datafname, delimiter=' ',
-                                comments = '#')
+            self.data = np.loadtxt(self.datafname, delimiter=' ', comments='#')
 
     def get_spb_trajs(self):
         Rcol = None
@@ -203,7 +204,7 @@ class ResultTree(ParamTree):
                 Lcol = traj.get("column")
             if Rcol is not None and Lcol is not None:
                 break
-        spb_trajs = self.data.take((Rcol, Lcol), axis = 1)
+        spb_trajs = self.data.take((Rcol, Lcol), axis=1)
         return spb_trajs
 
     def get_centromere_trajs(self):

@@ -23,7 +23,7 @@ cdef class Spindle
 cdef class Spindle(object) :
     cdef public object KD
     cdef public object all_plugsites
-    
+
 cdef class Organite(object):
     cdef public int num_steps
     cdef public np.ndarray traj
@@ -31,7 +31,7 @@ cdef class Organite(object):
     cdef public object parent, KD
     cdef void set_pos(Organite, float, int time_point=*)
     cdef float get_pos(Organite, int time_point=*)
-    
+
 
 cdef class Spb(Organite):
     cdef public int side
@@ -49,7 +49,7 @@ cdef class Chromosome(Organite):
     cdef bool at_leftpole(Chromosome, float)
     cdef bool at_pole(Chromosome, int side=*, float tol=*)
 
-    
+
 cdef class Centromere(Organite):
     cdef public str tag
     cdef public Chromosome chromosome

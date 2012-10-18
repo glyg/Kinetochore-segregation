@@ -8,9 +8,7 @@ class SigMetaphase(QtGui.QWidget, Metaphase):
     """
     The aim of this hybrid is to retrieve signals from the
     simulation while it's running.
-
     overrides _one_step method of the Metaphase class
-
     """
 
     def __init__(self, paramtree, measuretree,

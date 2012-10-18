@@ -22,8 +22,6 @@ class Animator:
         """
         """
 
-        self._run()
-
         logging.info("Playing animation")
 
         app = QtGui.QApplication([])
@@ -33,9 +31,3 @@ class Animator:
         widget.show()
 
         sys.exit(app.exec_())
-
-    def _run(self):
-        """
-        """
-        logging.info("Running the simulation")
-        self.meta.simul()

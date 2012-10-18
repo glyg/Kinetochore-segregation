@@ -15,11 +15,11 @@ from PySide import QtCore, QtGui
 import matplotlib
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4'] = 'PySide'
+from kt_simul.io.xml_handler import ParamTree
 
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 
 from kt_simul.core.simul_spindle import MEASUREFILE, PARAMFILE
-from kt_simul.io.xml_handler import ParamTree
 
 from kt_simul.gui.param_seter import SetParameters, SetMeasures
 from kt_simul.gui.game import InteractiveCellWidget

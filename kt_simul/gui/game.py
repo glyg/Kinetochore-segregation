@@ -29,27 +29,33 @@ class GraphCell(QtGui.QGraphicsItem):
     """
     This is the parent item containing all the objects within the cell
     """
-    def __init__(self, mt, parent = None):
-        QtGui.QGraphicsItem.__init__(self, parent = parent)
+    def __init__(self, mt, parent=None):
+        QtGui.QGraphicsItem.__init__(self, parent=parent)
 
-        N = int(mt.KD.params['N'])
-        Mk = int(mt.KD.params['Mk'])
-        self.mt = mt # A SimMetaphase instance
+        self.N = int(mt.KD.params['N'])
+        self.Mk = int(mt.KD.params['Mk'])
+        self.mt = mt  # Metaphase instance
         self.items = []
-        self.spbR = GraphSPB(0, parent = self)
+        self.spbR = GraphSPB(0, parent=self)
         self.items.append(self.spbR)
-        self.spbL = GraphSPB(-1, parent = self)
+        self.spbL = GraphSPB(-1, parent=self)
         self.items.append(self.spbL)
 
-        for n in range(N):
-            left_kineto = GraphCentromere(n, -1, parent = self)
+        for n in range(self.N):
+            left_kineto = GraphCentromere(n, -1, parent=self)
             self.items.append(left_kineto)
-            right_kineto = GraphCentromere(n, 0, parent = self)
+            right_kineto = GraphCentromere(n, 0, parent=self)
             self.items.append(right_kineto)
 
         self.time_point = 0
         for item in self.items:
-            item.setPos(item.getSimPos(0))
+            item.setPos(item.get_pos(0))
+
+        print self.mt.KD.spbR.traj[0]
+        print self.spbR.get_pos(0)
+
+        print self.mt.KD.spbL.traj[0]
+        print self.spbL.get_pos(0)
 
     def advance(self):
         self.time_point += 1
@@ -60,13 +66,13 @@ class GraphCell(QtGui.QGraphicsItem):
             return False
         self.time_point = time_point
         for item in self.items:
-            newPos = item.getSimPos(self.time_point)
+            newPos = item.get_pos(self.time_point)
             if newPos == item.pos():
                 return False
             item.setPos(newPos)
             if isinstance(item, GraphCentromere):
                 for plugsite in item.plugsites:
-                    newPos = plugsite.getSimPos(self.time_point)
+                    newPos = plugsite.get_pos(self.time_point)
                     plugsite.setPos(newPos)
                     if plugsite.newPlug != plugsite.sim.state_hist[self.time_point]:
                         plugsite.newPlug = plugsite.sim.state_hist[self.time_point]
@@ -79,15 +85,14 @@ class GraphCell(QtGui.QGraphicsItem):
                         plugsite.color = brush
         return True
 
-
     def boundingRect(self):
-        '''
+        """
         As this is not easily changed (or not supposed to, we give a
         large box
-        '''
-        height = 5.#N * ( Mk * SITE_OFFSET + CH_OFFSET)
-        width = 14. # microns, shall be enough
-        return QtCore.QRectF(-width/2, -height/2, width, height)
+        """
+        height = 5.  # self.N * ( self.Mk * SITE_OFFSET + CH_OFFSET)
+        width = 14.  # microns, shall be enough
+        return QtCore.QRectF(-width / 2, - height / 2, width, height)
 
     def paint(self, painter, option, widget):
         painter.setBrush(QtCore.Qt.white)
@@ -97,9 +102,9 @@ class GraphCell(QtGui.QGraphicsItem):
 
 class GraphCentromere(QtGui.QGraphicsItem):
 
-    def __init__(self, n, side, parent = None):
+    def __init__(self, n, side, parent=None):
 
-        QtGui.QGraphicsItem.__init__(self, parent = parent)
+        QtGui.QGraphicsItem.__init__(self, parent=parent)
         self.graphcell = parent
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
 
@@ -115,26 +120,26 @@ class GraphCentromere(QtGui.QGraphicsItem):
         else:
             x = self.ch.cen_B.pos
             self.traj = self.ch.cen_B.traj
-        self.y = ( n - (N - 1) / 2. ) * 0.4 #* ( Mk * SITE_OFFSET + CH_OFFSET)
+        self.y = (n - (N - 1) / 2.) * 0.4  # * ( Mk * SITE_OFFSET + CH_OFFSET)
         self.width = 0.2
-        self.height = 0.1* Mk #Mk * SITE_OFFSET + CH_OFFSET
+        self.height = 0.1 * Mk  # Mk * SITE_OFFSET + CH_OFFSET
         self.newPos = QtCore.QPointF(x, self.y)
         self.plugsites = []
         self.setZValue(n)
         for m in range(Mk):
             self.plugsites.append(GraphPlugSite(m, self, parent))
 
-    def getSimPos(self, time_point):
+    def get_pos(self, time_point):
         try:
             x = self.traj[time_point]
         except IndexError:
             x = self.traj[-1]
-        return  QtCore.QPointF(x, self.y)
+        return QtCore.QPointF(x, self.y)
 
     def advance(self):
         self.time_point += 1
         for item in self.items:
-            newPos = item.getSimPos(self.time_point)
+            newPos = item.get_pos(self.time_point)
             if newPos == item.pos():
                 return False
             item.setPos(newPos)
@@ -143,7 +148,7 @@ class GraphCentromere(QtGui.QGraphicsItem):
     def shape(self):
         self.path = QtGui.QPainterPath()
         self.path.addEllipse(self.width, self.height,
-                             2*self.width, 2*self.height)
+                             2 * self.width, 2 * self.height)
         return self.path
 
     def paint(self, painter, option, widget):
@@ -158,14 +163,15 @@ class GraphCentromere(QtGui.QGraphicsItem):
 
     def boundingRect(self):
         adjust = 1.
-        return QtCore.QRectF(-self.width - adjust, -self.height - adjust,
-                             2*self.width  + adjust, 2* self.height + adjust)
+        return QtCore.QRectF(-self.width - adjust, - self.height - adjust,
+                             2 * self.width + adjust, 2 * self.height + adjust)
+
 
 class GraphPlugSite(QtGui.QGraphicsItem):
 
-    def __init__(self, m, kineto, parent = None):
+    def __init__(self, m, kineto, parent=None):
 
-        QtGui.QGraphicsItem.__init__(self, parent = parent)
+        QtGui.QGraphicsItem.__init__(self, parent=parent)
         self.kineto = kineto
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         Mk = int(self.kineto.graphcell.mt.KD.params['Mk'])
@@ -193,7 +199,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
             brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
         self.color = brush
 
-    def getSimPos(self, time_point):
+    def get_pos(self, time_point):
         try:
             x = self.sim.traj[time_point]
         except IndexError:
@@ -203,7 +209,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
     def advance(self):
         self.time_point += 1
         for item in self.items:
-            newPos = item.getSimPos(self.time_point)
+            newPos = item.get_pos(self.time_point)
             if newPos == item.pos():
                 return False
             item.setPos(newPos)
@@ -211,7 +217,7 @@ class GraphPlugSite(QtGui.QGraphicsItem):
 
     def shape(self):
         self.path = QtGui.QPainterPath()
-        self.path.addEllipse(-self.width/2., -self.height/2,
+        self.path.addEllipse(-self.width / 2., - self.height / 2,
                              self.width, self.height)
         return self.path
 
@@ -224,8 +230,8 @@ class GraphPlugSite(QtGui.QGraphicsItem):
 
     def boundingRect(self):
         adjust = 1.
-        return QtCore.QRectF(-self.width - adjust, -self.height - adjust,
-                             2 * self.width + adjust, 2* self.height + adjust)
+        return QtCore.QRectF(-self.width - adjust, - self.height - adjust,
+                             2 * self.width + adjust, 2 * self.height + adjust)
 
 
 class GraphSPB(QtGui.QGraphicsItem):
@@ -240,7 +246,7 @@ class GraphSPB(QtGui.QGraphicsItem):
             self.sim = self.graphcell.mt.KD.spbL
         self.newPos = QtCore.QPointF(self.sim.pos, 0.)
 
-    def getSimPos(self, time_point):
+    def get_pos(self, time_point):
         try:
             x = self.sim.traj[time_point]
         except IndexError:
@@ -373,7 +379,7 @@ class InteractiveCellWidget(QtGui.QWidget):
             #self.timerId = 0
 
     def play(self):
-        ### I'll re-implement this when user can move things in graphcell
+        # I'll re-implement this when user can move things in graphcell
         if not self.timerId:
             self.timerId = self.startTimer(1000 / FRAME_RATE)
 
@@ -465,7 +471,7 @@ class ViewCellWidget(QtGui.QGraphicsView):
         if bottomShadow.intersects(rect) or bottomShadow.contains(rect):
             painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
 
-        # Fill.
+        # Fill
         gradient = QtGui.QLinearGradient(sceneRect.topLeft(),
                 sceneRect.bottomRight())
         gradient.setColorAt(0, QtCore.Qt.white)

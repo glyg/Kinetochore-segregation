@@ -10,6 +10,8 @@ import numpy as np
 
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+from kt_simul.core.spindle_dynamics import KinetoDynamics
+from kt_simul.core.simul_spindle import Metaphase
 from kt_simul.io.xml_handler import ParamTree, indent, ResultTree
 
 
@@ -66,7 +68,7 @@ class SimuIO():
         out = file(xmlfname, 'w+')
         out.write('<?xml version="1.0"?>\n')
         today = time.asctime()
-        relpath = os.path.relpath(xmlfname, os.path.dirname(datafname))
+        relpath = os.path.relpath(datafname, os.path.dirname(xmlfname))
         experiment = Element("experiment", date=today,
                             datafile=relpath)
         experiment.append(self.paramtree.root)
@@ -75,14 +77,14 @@ class SimuIO():
         #right SPB
         spbR = SubElement(experiment, "trajectory", name="rightspb",
                           column='0', units='mu m')
-        SubElement(spbR, "description").text="right spb trajectory"
+        SubElement(spbR, "description").text = "right spb trajectory"
         spbRtraj = np.array(self.KD.spbR.traj)
         wavelist.append(spbRtraj)
 
         #left SPB
         spbL = SubElement(experiment, "trajectory", name="leftspb",
                           column='1', units='mu m')
-        SubElement(spbL, "description").text="left spb trajectory"
+        SubElement(spbL, "description").text = "left spb trajectory"
         spbLtraj = np.array(self.KD.spbL.traj)
         wavelist.append(spbLtraj)
 
@@ -91,10 +93,10 @@ class SimuIO():
         for n, ch in enumerate(chromosomes):
             rch = SubElement(experiment, "trajectory",
                             name="centromereA",
-                            index = str(n),
+                            index=str(n),
                             column=str(col_num),
                             units='mu m')
-            text="chromosome %i centromere A trajectory" % n
+            text = "chromosome %i centromere A trajectory" % n
             SubElement(rch, "description").text = text
             wavelist.append(ch.cen_A.traj)
             col_num += 1
@@ -142,25 +144,25 @@ class SimuIO():
             for m, plugsite in enumerate(ch.cen_B.plugsites):
 
                 SubElement(experiment, "trajectory", name="plugsite",
-                           index = str((n, m)), cen_tag='B',
+                           index=str((n, m)), cen_tag='B',
                            column=str(col_num), units='mu m')
                 wavelist.append(plugsite.traj)
                 col_num += 1
 
                 SubElement(experiment, "state", name="plugsite",
-                           index = str((n, m)), cen_tag='B',
+                           index=str((n, m)), cen_tag='B',
                            column=str(col_num), units='')
                 wavelist.append(plugsite.state_hist)
                 col_num += 1
 
-        #Observations
+        # Observations
         obs_elem = SubElement(experiment, "observations")
         if not hasattr(self, 'observations'):
             self.evaluate()
         for key, val in self.observations.items():
             SubElement(obs_elem, key).text = str(val)
 
-        #Now we write down the whole experiment XML element
+        # Now we write down the whole experiment XML element
         indent(experiment)
         out.write(tostring(experiment))
         out.close()
@@ -170,7 +172,7 @@ class SimuIO():
         if datafname.endswith('.npy'):
             np.save(dataout, data)
         else:
-            dataout.write("# desciptor: "+xmlfname+"\n")
+            dataout.write("# desciptor: " + xmlfname + "\n")
             np.savetxt(dataout, data, delimiter=' ')
         logging.info("Simulation saved to file %s and %s "
             % (xmlfname, datafname))
@@ -187,13 +189,13 @@ class SimuIO():
 
         restree = ResultTree(xmlfname)
         param_root = restree.root.find('parameters')
-        paramtree = ParamTree(root = param_root)
+        paramtree = ParamTree(root=param_root)
         params = paramtree.relative_dic
         measure_root = restree.root.find('measures')
-        measuretree = ParamTree(root = measure_root,
-                                adimentionalized = False)
-        metaphase = Metaphase(paramtree = paramtree,
-                              measuretree = measuretree)
+        measuretree = ParamTree(root=measure_root,
+                                adimentionalized=False)
+        metaphase = Metaphase(paramtree=paramtree,
+                              measuretree=measuretree)
 
         traj_matrix = restree.get_all_trajs()
         correct_matrix = restree.get_all_correct()
@@ -205,22 +207,24 @@ class SimuIO():
         Mk = int(params['Mk'])
         col_num = 2
         state_num = 0
-        for n, ch in enumerate(KD.chromosomes) :
+        for n, ch in enumerate(KD.chromosomes):
             ch.cen_A.traj = traj_matrix[:, col_num]
             col_num += 1
             ch.cen_B.traj = traj_matrix[:, col_num]
             col_num += 1
-            ch.erroneous_history = (erroneous_matrix[:, n*2 : n*2 + 2])
-            ch.correct_history = (correct_matrix[:, n*2 : n*2 + 2])
+            ch.erroneous_history = (erroneous_matrix[:, n * 2 : n * 2 + 2])
+            ch.correct_history = (correct_matrix[:, n * 2 : n * 2 + 2])
             for plugsite in ch.cen_A.plugsites:
                 plugsite.traj = traj_matrix[:, col_num]
                 col_num += 1
                 plugsite.state_hist = state_hist_matrix[:, state_num]
+                plugsite.plug_state = plugsite.state_hist[-1]
                 state_num += 1
             for plugsite in ch.cen_B.plugsites:
                 plugsite.traj = traj_matrix[:, col_num]
                 col_num += 1
                 plugsite.state_hist = state_hist_matrix[:, state_num]
+                plugsite.plug_state = plugsite.state_hist[-1]
                 state_num += 1
         metaphase.KD = KD
 
