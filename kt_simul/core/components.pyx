@@ -162,7 +162,6 @@ cdef class Chromosome(Organite):
         leftB, rightB = self.cen_B.calc_plug_history()
         correct_hist = []
         for lA, rA, lB, rB in zip(leftA, rightA, leftB, rightB):
-            print lA
             correct = (lA, rB) if lA + rB > rA + lB else (rA, lB)
             correct_hist.append(correct)
         self.correct_history = np.array(correct_hist)

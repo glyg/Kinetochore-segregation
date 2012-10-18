@@ -6,15 +6,20 @@ Evaluations are small plugin that can be automatically launch after a simulation
 import sys
 import os
 
+from kt_simul.utils.filesystem import tree
+
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
-def find_evaluations():
+def find_evaluations(groups = []):
     """
     This function return a list of Evaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
     .. note:: Source from http://www.luckydonkey.com/2008/01/02/python-style-plugins-made-easy/
 
     .. todo:: add selector and filter
+
+    :param groups: Select plugins from these groups
+    :type groups: str
 
     :rtype: list
     :return: a list if classes that are subclasses of cls
@@ -42,7 +47,6 @@ def find_evaluations():
         for key, entry in d.items():
             if key == cls.__name__:
                 continue
-
             try:
                 if issubclass(entry, cls):
                     subclasses.append(entry)
@@ -54,16 +58,26 @@ def find_evaluations():
 
     sys.path.insert(0, path)
 
-    plugin_files = [x[:-3] for x in os.listdir(path) if x.endswith(".py")]
+    plugin_files = []
+    for x in tree(path):
+        if x.endswith(".py"):
+            mod = x[:-3].replace(os.sep, ".")
+            plugin_files.append(mod)
+
     sys.path.insert(0, path)
 
     for plugin in plugin_files:
         look_for_subclass("kt_simul.analysis.evaluations." + plugin)
 
+    # Filter plugin here
     evaluations = []
     for cls in subclasses:
         if cls.enable:
-            evaluations.append(cls)
+            if not groups and cls.group == None:
+                evaluations.append(cls)
+            else:
+                if cls.group in groups:
+                    evaluations.append(cls)
 
     return evaluations
 

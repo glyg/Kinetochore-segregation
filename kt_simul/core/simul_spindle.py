@@ -227,7 +227,7 @@ class Metaphase(object):
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
 
-    def evaluate(self):
+    def evaluate(self, groups = []):
         """
         Passes all the evaluations in eval_simul.py
         results are stored in the self.observations dictionnary
@@ -237,13 +237,16 @@ class Metaphase(object):
             return False
 
         logging.info("Starting evaluations")
-        for evaluation in evaluations.find_evaluations():
+        evalutions = evaluations.find_evaluations(groups = groups)
+        for evaluation in evalutions:
             logging.info("Running %s" % evaluation.name)
+            result = evaluation().run(self.KD)
             try:
                 result = evaluation().run(self.KD)
             except:
-                result = "NaN"
-            self.observations[evaluation.name] = result
+                result = np.nan
+            name = evaluation.name.replace(" ", "_")
+            self.observations[name] = result
 
         logging.info("Evaluations done")
 

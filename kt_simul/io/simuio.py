@@ -181,8 +181,8 @@ class SimuIO():
                             simulation are.
         :type xmlfname: string, optional
         :return: a Metaphase instance
-
         """
+
         restree = ResultTree(xmlfname)
         param_root = restree.root.find('parameters')
         paramtree = ParamTree(root = param_root)
