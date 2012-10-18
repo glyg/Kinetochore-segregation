@@ -29,9 +29,11 @@ class Launcher:
     def __init__(self, results_path,
                  nsimu,
                  ncore=None,
-                 paramtree=None, measuretree=None,
-                 paramfile=PARAMFILE, measurefile=MEASUREFILE,
-                 verbose=True, use_multi_process=True):
+                 paramtree=None,
+                 measuretree=None,
+                 paramfile=PARAMFILE,
+                 measurefile=MEASUREFILE,
+                 verbose=True):
         """
 
         :results_path: The path where simulation results are stored
@@ -96,7 +98,6 @@ class Launcher:
             self.ncore = multiprocessing.cpu_count()
         else:
             self.ncore = ncore
-        self.use_multi_process = use_multi_process
 
         self.last_progress = 0
 
@@ -116,6 +117,12 @@ class Launcher:
 
         self.raw_results_path = os.path.join(self.results_path, "raw")
         os.makedirs(self.raw_results_path)
+
+        # Redirect log to run.log
+        #logging.getLogger().handlers = []
+        logfile = os.path.join(self.results_path, "run.log")
+        handler = logging.FileHandler(logfile)
+        logging.getLogger().addHandler(handler)
 
     def run(self):
         """

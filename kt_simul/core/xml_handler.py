@@ -17,7 +17,6 @@ FREQ_UNIT = u'Hz'
 FORCE_UNIT = u'pN'
 SPEED_UNIT = u'µm/s'
 
-
 __all__ = ["ParamTree", "indent", "ResultTree"]
 
 def indent(elem, level=0):
