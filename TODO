@@ -1,3 +1,15 @@
-* fix bug in gui : ValueError: Corresponding data file not specified in GUI
 * merge sphinx doc and pdf doc
-* in draw module add capability to "see" a simu with gui widgets
+
+BUGS
+----
+
+* when animation end in gui:
+
+	Traceback (most recent call last):
+	  File "/home/hadim/.phd/dev/kt_simul/kt_simul/gui/game.py", line 378, in gotoTime
+	    self.view.cell.gotoTime(time)
+	  File "/home/hadim/.phd/dev/kt_simul/kt_simul/gui/game.py", line 77, in gotoTime
+	    if plugsite.newPlug != plugsite.sim.state_hist[self.time_point]:
+	IndexError: index out of bounds
+
+* animation are different when launch after simul() or from results.xml
