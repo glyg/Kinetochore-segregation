@@ -1,25 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-## Title: attachment_state
-## Description: Here are several calculi of the attachment state evolution
-## and the various errors
-## Author:uillaume Gay<elagachado AT  gmail DOT com>
-## Commentary:
+"""
+Title: attachment_state
+Description: Here are several calculi of the attachment state evolution and the various errors
+Author:uillaume Gay<elagachado AT  gmail DOT com>
+"""
 
+import sys
 from numpy import *
 
-def get_history(kd):
-    """
-    """
-    meros = hstack([array(ch.mero_history) for ch in kd.chromosomes.values()])
-    plugs = hstack([array(ch.pluged_history) for ch in kd.chromosomes.values()])
-    return plugs, meros
-
-
 def balance_histories(kd):
-
-    '''
+    """
     input: a kt_simul.spindle_dynamics.KinetochoreDynamics()
     after a simulation instance.
 
@@ -28,16 +20,16 @@ def balance_histories(kd):
     This is  stored in an 2D array for which each line gives the
     number of kt in each of the possible cases
     (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point.
+    """
 
-
-    '''
     Mk = int(kd.params['Mk'])
     num_steps = len(kd.spbR.traj)
 
-    #The number of cases is (Mk-1) * 2 + 1
+    # The number of cases is (Mk-1) * 2 + 1
 
     balance = vsplit(zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
     num_cuts = zeros(num_steps)
+    print balance
 
     merotelic_types = {'corrected':zeros(num_steps),
                        'cut':zeros(num_steps),
@@ -46,13 +38,13 @@ def balance_histories(kd):
 
     for ch in kd.chromosomes:
 
-        mh = array(ch.mero_history)
-        ph = array(ch.pluged_history)
+        mh = array(ch.erroneous_history)
+        ph = array(ch.correct_history)
 
         rbalance = zeros(num_steps)
         lbalance = zeros(num_steps)
         for j, (m, p) in enumerate(zip(mh, ph)):
-            if m[0] * p[0] == 0 : #So the kt is not merotelic
+            if m[0] * p[0] == 0 : #  So the kt is not merotelic
                 rbalance[j] =  nan
             else:
                 rbalance[j] = p[0] - m[0]
@@ -73,13 +65,13 @@ def balance_histories(kd):
                     else:
                         merotelic_types['monotelic'][j] += 1
 
-                if (p[1] - m[1]) * (p[0] - m[0]) < 0: #They are pulled the same way
+                # They are pulled the same way
+                if (p[1] - m[1]) * (p[0] - m[0]) < 0:
                     merotelic_types['syntelic'][j] += 1
 
-                if (p[1] - m[1]) * (p[0] - m[0]) > 0: #they are pulled appart
+                # they are pulled appart
+                if (p[1] - m[1]) * (p[0] - m[0]) > 0:
                     merotelic_types['corrected'][j] += 1
-
-
 
         for i, bal in enumerate(balance):
             bal += array([rbalance == i - Mk + 2]).flatten().astype(int)
@@ -87,7 +79,10 @@ def balance_histories(kd):
 
     return vstack(balance), merotelic_types
 
+
 def transition_matrix(kd):
+    """
+    """
 
     def_tags = {'merotelic':3, 'syntelic':4, 'amphitelic':2,
                     'monotelic':1, 'unattached':0}
@@ -130,15 +125,15 @@ def defect_histories(kd):
     Mk = int(kd.params['Mk'])
     N = int(kd.params['N'])
 
-    meros = [array(ch.mero_history) for ch in kd.chromosomes.values()]
-    plugs = [array(ch.pluged_history) for ch in kd.chromosomes.values()]
+    meros = [array(ch.mero_history) for ch in kd.chromosomes]
+    plugs = [array(ch.pluged_history) for ch in kd.chromosomes]
 
     meros = hstack(meros)
     plugs = hstack(plugs)
     mh_b = meros.astype(bool)
     ph_b = plugs.astype(bool)
 
-    #Put all this in a dictionary
+    # Put all this in a dictionary
     were_defects = {'amphitelic':were_plug(mh_b, ph_b),
                    'merotelic':were_mero(mh_b, ph_b),
                    'monotelic':were_mono(mh_b, ph_b),
@@ -176,13 +171,13 @@ def were_plug(mh_b, ph_b):
 
 
 def were_synt(mh_b, ph_b):
-
+    """
     #The number of syntelic chromosomes
     #        Correct  Merotelic OR  Correct  Merotelic
     #------------------------------------------------
     # Left  |  True     False        False    True
     # Right | False     True         True     False
-
+    """
     xor_l = mh_b[:,::2] ^ ph_b[:,::2]   #left
     xor_r = mh_b[:,1::2] ^ ph_b[:,1::2] #right
     xor_x =  ph_b[:,::2] ^ ph_b[:,1::2] #crossed
@@ -191,18 +186,19 @@ def were_synt(mh_b, ph_b):
 
 
 def were_mero(mh_b, ph_b):
-
-    #The number of merotelic chromosomes
+    """
+    The number of merotelic chromosomes
+    """
     and_r = mh_b[:,::2] & ph_b[:,::2]   #          Correct  Merotelic
     and_l = mh_b[:,1::2] & ph_b[:,1::2] #     Left   True     True
     or_x = and_r | and_l                # OR  Right  True     True
     return or_x
 
-#On a phenotype point of view, one should futher distinguish between merotelic chromosomes :
-###  * The ones that are amphitelic - merotelic (i.e kts tend to segregate correctly)
-###  * The ones that are syntelic - merotelic (both kts go to the same poles)
-###  * The ones that are monotelic - merotelic (one kt is merotelic and the other is unattached)
-###  * The ones that are cut (one or both kts are equaly attached to both poles)
+# On a phenotype point of view, one should futher distinguish between merotelic chromosomes :
+# The ones that are amphitelic - merotelic (i.e kts tend to segregate correctly)
+# The ones that are syntelic - merotelic (both kts go to the same poles)
+# The ones that are monotelic - merotelic (one kt is merotelic and the other is unattached)
+# The ones that are cut (one or both kts are equaly attached to both poles)
 
 
 #So let's go

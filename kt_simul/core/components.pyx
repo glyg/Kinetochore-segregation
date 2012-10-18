@@ -131,13 +131,15 @@ cdef class Chromosome(Organite):
         return False
 
     cdef int delta(self):
-        """In case the centromeres swap (exchange side), the direction
+        """
+        In case the centromeres swap (exchange side), the direction
         of the cohesin restoring force needs to be changed
         """
         return 1 if self.cen_A.pos < self.cen_B.pos else -1
 
     def correct(self):
-        """returns the number of *correctly* plugged MTs
+        """
+        returns the number of *correctly* plugged MTs
         """
         if self.is_right_A():
             return self.cen_A.right_plugged(), self.cen_B.left_plugged()
@@ -160,6 +162,7 @@ cdef class Chromosome(Organite):
         leftB, rightB = self.cen_B.calc_plug_history()
         correct_hist = []
         for lA, rA, lB, rB in zip(leftA, rightA, leftB, rightB):
+            print lA
             correct = (lA, rB) if lA + rB > rA + lB else (rA, lB)
             correct_hist.append(correct)
         self.correct_history = np.array(correct_hist)
@@ -180,13 +183,14 @@ cdef class Chromosome(Organite):
         return abs(self.center() - plugpos)
 
     cdef float center(self):
-        return (self.cen_A.pos + self.cen_B.pos)/2
+        return (self.cen_A.pos + self.cen_B.pos) / 2
 
     cdef np.ndarray center_traj(self):
-        return (self.cen_A.traj + self.cen_B.traj)/2
+        return (self.cen_A.traj + self.cen_B.traj) / 2
 
     cdef bool at_rightpole(self, float tol) :
-        """tol : tolerance distance
+        """
+        tol : tolerance distance
         """
         if self.cen_A.at_rightpole(tol) or self.cen_B.at_rightpole(tol):
             return True
@@ -430,7 +434,8 @@ cdef class PlugSite(Organite):
             self.set_plug_state(0, time_point)
 
     def is_correct(self, int time_point):
-        """Returns True if the plugsite is plugged
+        """
+        Returns True if the plugsite is plugged
         correctly, i.e. doesn't contribute to an
         attachment error
         """
