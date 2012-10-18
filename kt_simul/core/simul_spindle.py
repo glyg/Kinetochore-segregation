@@ -240,11 +240,12 @@ class Metaphase(object):
         evalutions = evaluations.find_evaluations(groups = groups)
         for evaluation in evalutions:
             logging.info("Running %s" % evaluation.name)
-            result = evaluation().run(self.KD)
             try:
                 result = evaluation().run(self.KD)
+                logging.info("Evaluation done successfully")
             except:
                 result = np.nan
+                logging.info("Evaluation done with errors")
             name = evaluation.name.replace(" ", "_")
             self.observations[name] = result
 
