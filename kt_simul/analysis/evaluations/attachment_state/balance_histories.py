@@ -1,21 +1,21 @@
-from  kt_simul.analysis.evaluations import Evaluation
+from kt_simul.analysis.evaluations import Evaluation
 
 import numpy as np
+
 
 class BalanceHistories(Evaluation):
     """
     input: a kt_simul.spindle_dynamics.KinetochoreDynamics()
     after a simulation instance.
 
-    Returns the difference between the number of correctly
-    and erroneously attached plug sites when those two are != 0.
-    This is  stored in an 2D array for which each line gives the
-    number of kt in each of the possible cases
-    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point.
-    """
+    Returns the difference between the number of correctly and erroneously
+    attached plug sites when those two are != 0. This is  stored in an 2D array
+    for which each line gives the number of kt in each of the possible cases
+    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point. """
 
     name = "Balance Histories"
-    description = "Returns the difference between the number of correctly and erroneously attached plug sites when those two are != 0."
+    description = """Returns the difference between the number of correctly and
+                    erroneously attached plug sites when those two are != 0."""
     group = "attachement_state"
     enable = True
 
@@ -32,12 +32,11 @@ class BalanceHistories(Evaluation):
         # The number of cases is (Mk-1) * 2 + 1
 
         balance = np.vsplit(np.zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
-        num_cuts = np.zeros(num_steps)
 
-        merotelic_types = {'corrected':np.zeros(num_steps),
-                           'cut':np.zeros(num_steps),
-                           'monotelic':np.zeros(num_steps),
-                           'syntelic':np.zeros(num_steps)}
+        merotelic_types = {'corrected': np.zeros(num_steps),
+                           'cut': np.zeros(num_steps),
+                           'monotelic': np.zeros(num_steps),
+                           'syntelic': np.zeros(num_steps)}
 
         for ch in KD.chromosomes:
 
@@ -47,11 +46,11 @@ class BalanceHistories(Evaluation):
             rbalance = np.zeros(num_steps)
             lbalance = np.zeros(num_steps)
             for j, (m, p) in enumerate(zip(mh, ph)):
-                if m[0] * p[0] == 0 : #  So the kt is not merotelic
-                    rbalance[j] =  np.nan
+                if m[0] * p[0] == 0:  # So the kt is not merotelic
+                    rbalance[j] = np.nan
                 else:
                     rbalance[j] = p[0] - m[0]
-                if m[1] * p[1] == 0 :
+                if m[1] * p[1] == 0:
                     lbalance[j] = np.nan
                 else:
                     lbalance[j] = p[1] - m[1]
