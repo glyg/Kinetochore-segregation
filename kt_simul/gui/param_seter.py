@@ -10,7 +10,7 @@ from numpy import log10, floor
 
 from PySide import QtGui, QtCore
 
-from kt_simul.core.xml_handler import *
+from kt_simul.io.xml_handler import *
 
 __all__ = ['SetParameters', 'SetMeasures']
 

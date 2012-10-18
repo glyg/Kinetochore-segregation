@@ -16,7 +16,7 @@ import numpy as np
 
 # Local imports
 from kt_simul.core.spindle_dynamics import KinetoDynamics
-from kt_simul.core.xml_handler import ParamTree
+from kt_simul.io.xml_handler import ParamTree
 from kt_simul.analysis import evaluations
 from kt_simul.core import parameters
 from kt_simul.core import utils

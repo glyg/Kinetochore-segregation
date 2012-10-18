@@ -3,14 +3,13 @@
 
 # Handler for the parameters xml files -- to allow phase space exploration
 
-import sys, os
+import os
 import numpy as np
 
-from xml.etree.ElementTree import Element
 from xml.etree.ElementTree import parse, tostring
 
-#Those strings should be respected in the xml file
-SPRING_UNIT=u'pN/µm'
+# Those strings should be respected in the xml file
+SPRING_UNIT = u'pN/µm'
 DRAG_UNIT = u'pN.s/µm'
 LENGTH_UNIT = u'µm'
 FREQ_UNIT = u'Hz'
@@ -19,21 +18,23 @@ SPEED_UNIT = u'µm/s'
 
 __all__ = ["ParamTree", "indent", "ResultTree"]
 
+
 def indent(elem, level=0):
     """
     Utility to have a nice printing of the xml tree
     """
-    i = "\n" + level*"  "
+    i = "\n" + level * "  "
     if len(elem):
         if not elem.text or not elem.text.strip():
             elem.text = i + "  "
         for elem in elem:
-            indent(elem, level+1)
+            indent(elem, level + 1)
         if not elem.tail or not elem.tail.strip():
             elem.tail = i
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = i
+
 
 class ParamTree(object):
     """
@@ -41,7 +42,6 @@ class ParamTree(object):
     It wraps an ElementTree instance whose elements contains the
     name, value (as a string), description and unit of each parameter and a
     dictionnary that is used during the simulation.
-
 
     The `value` attribute of the tree is not modified by adimentionalization,
     whereas the value in the dictionnary is changed.

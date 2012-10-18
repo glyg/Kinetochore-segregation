@@ -12,7 +12,7 @@ import logging
 import multiprocessing
 from multiprocessing import Pool, Queue
 
-from kt_simul.core.xml_handler import ParamTree
+from kt_simul.io.xml_handler import ParamTree
 from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
 from kt_simul.core import parameters
 

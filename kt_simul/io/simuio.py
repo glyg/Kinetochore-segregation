@@ -4,19 +4,19 @@
 
 import time
 import logging
-import os
 
 import numpy as np
 
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from kt_simul.core.xml_handler import ParamTree, indent, ResultTree
+from kt_simul.io.xml_handler import ParamTree, indent, ResultTree
+
 
 class SimuIO():
     """
     """
 
-    def __init__(self, meta_instance = None):
+    def __init__(self, meta_instance=None):
         """
         :param meta_instance: Should have been already perform a simulation
         :type meta_instance: Metaphase instance
