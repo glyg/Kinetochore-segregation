@@ -3,7 +3,7 @@ from kt_simul.analysis.evaluations import Evaluation
 import numpy as np
 
 
-class BalanceHistories(Evaluation):
+class AttachmentRate(Evaluation):
     """
     input: a kt_simul.spindle_dynamics.KinetochoreDynamics()
     after a simulation instance.
@@ -13,10 +13,10 @@ class BalanceHistories(Evaluation):
     for which each line gives the number of kt in each of the possible cases
     (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point. """
 
-    name = "Balance Histories"
+    name = "Attachment Rate"
     description = """Returns the difference between the number of correctly and
                     erroneously attached plug sites when those two are != 0."""
-    group = "attachement_state"
+    group = "attachment_state"
     enable = True
 
     def __init__(self,):

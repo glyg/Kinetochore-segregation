@@ -183,7 +183,11 @@ class Metaphase(object):
 
         """
 
-        #dt = self.KD.params['dt']
+        # Check is simulation has already be done
+        if self.KD.simulation_done:
+            raise SimulationAlreadyDone("""A simulation is already done on this
+instance. Please create another Metaphase instance to launch a new simulation.""")
+
         kappa_c = self.KD.params['kappa_c']
 
         logging.info('Running simulation')
@@ -237,19 +241,24 @@ class Metaphase(object):
             return False
 
         logging.info("Starting evaluations")
-        evalutions = evaluations.find_evaluations(groups=groups)
-        for evaluation in evalutions:
+        all_evaluations = evaluations.find_evaluations(groups=groups)
+
+        if not all_evaluations:
+            logging.info("No evaluations found")
+            return False
+
+        for evaluation in all_evaluations:
             logging.info("Running %s" % evaluation.name)
             try:
                 result = evaluation().run(self.KD)
-                logging.info("Evaluation done successfully")
-            except:
+                logging.info("%s done" % evaluation.name)
+            except Exception as e:
                 result = np.nan
-                logging.info("Evaluation done with errors")
+                logging.info("%s returns errors : %s" % (evaluation.name, e))
             name = evaluation.name.replace(" ", "_")
             self.observations[name] = result
 
-        logging.info("Evaluations done")
+        logging.info("All evaluations processed")
 
         return True
 
@@ -340,3 +349,6 @@ class Metaphase(object):
             if min(ktR, ktL) <= 0 and max(ktR, ktL) >= 0:
                 return True
         return True
+
+class SimulationAlreadyDone(Exception):
+    pass

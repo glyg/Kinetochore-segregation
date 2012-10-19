@@ -171,13 +171,17 @@ class SimuIO():
 
         logging.info("Simulation saved to file %s " % simufname)
 
-    def read(self, simufname="results.zip"):
+    def read(self, simufname="results.zip", verbose=False):
         """
         Creates a simul_spindle.Metaphase from a results.zip file.
 
         :param simufname: The .zip file where results from the existing
                           simulation are (zip which contains xml and npy)
         :type simufname: string, optional
+
+        :param verbose: Set Metaphase verbose
+        :type verbose: bool
+
         :return: a Metaphase instance
         """
 
@@ -197,7 +201,8 @@ class SimuIO():
                                 adimentionalized=False)
 
         metaphase = Metaphase(paramtree=paramtree,
-                              measuretree=measuretree)
+                              measuretree=measuretree,
+                              verbose=verbose)
 
         traj_matrix = restree.get_all_trajs()
         correct_matrix = restree.get_all_correct()
@@ -227,6 +232,9 @@ class SimuIO():
                 plugsite.state_hist = state_hist_matrix[:, state_num]
                 plugsite.plug_state = plugsite.state_hist[-1]
                 state_num += 1
+
         metaphase.KD = KD
+
+        metaphase.KD.simulation_done = True
 
         return metaphase

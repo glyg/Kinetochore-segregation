@@ -67,6 +67,7 @@ cdef class KinetoDynamics(object) :
                 * 'syntelic' : all kinetochores are attached to the same pole
         :type initial_plug: string or None
         """
+
         self.params = parameters
         L0 = self.params['L0']
         N = int(self.params['N'])
