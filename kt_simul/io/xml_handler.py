@@ -47,7 +47,7 @@ class ParamTree(object):
     whereas the value in the dictionnary is changed.
     """
 
-    def __init__(self, filename = None, root = None, adimentionalized = True):
+    def __init__(self, filename=None, root=None, adimentionalized=True):
 
         if filename is not None:
             self.filename = filename
@@ -60,7 +60,7 @@ class ParamTree(object):
         else:
             print 'A etree root or a filename should be provided'
 
-        list=[]
+        list = []
         a = self.root.findall("param")
         for i in a:
             n = i.get("name")
@@ -72,7 +72,7 @@ class ParamTree(object):
             list.append((n, v))
         self.absolute_dic = dict(list)
         self.relative_dic = dict(list)
-        if adimentionalized :
+        if adimentionalized:
             self.adimentionalize()
 
     def has_unit(self, param, UNIT):
@@ -80,7 +80,7 @@ class ParamTree(object):
         unit_str = param.find("unit").text
         if unit_str == UNIT:
             return True
-        else :
+        else:
             return False
 
     def adimentionalize(self):
@@ -177,22 +177,17 @@ class ResultTree(ParamTree):
         xmlfname = os.path.abspath(xmlfname)
         ParamTree.__init__(self, xmlfname, adimentionalized=False)
         datafname = self.root.get("datafile")
-        if not os.path.isabs(datafname):
-            if '/' not in datafname:
-                self.datafname = os.path.join(os.path.dirname(xmlfname),
-                                              datafname)
-            else:
-                self.datafname = os.path.join(os.path.dirname(xmlfname),
-                                              datafname.split('/')[-1])
-        else:
-            self.datafname = datafname
+
+        # datafname is relative to xmlfname
+        self.datafname = os.path.join(os.path.dirname(xmlfname), datafname)
 
         if self.datafname is None or not os.path.isfile(self.datafname):
             raise ValueError("Corresponding data file not specified")
         if self.datafname.endswith('.npy'):
             self.data = np.load(self.datafname)
         else:
-            self.data = np.loadtxt(self.datafname, delimiter=' ', comments='#')
+            self.data = np.loadtxt(self.datafname,
+                delimiter=' ', comments='#')
 
     def get_spb_trajs(self):
         Rcol = None
@@ -217,7 +212,7 @@ class ResultTree(ParamTree):
             if len(cols) == N * 2:
                 break
         cols = tuple(cols)
-        kineto_trajs = self.data.take(cols, axis = 1)
+        kineto_trajs = self.data.take(cols, axis=1)
         return kineto_trajs
 
     def get_all_trajs(self):
@@ -228,7 +223,7 @@ class ResultTree(ParamTree):
             col = int(traj.get("column"))
             cols.append(col)
         cols = tuple(cols)
-        return self.data.take(cols, axis = 1)
+        return self.data.take(cols, axis=1)
 
     def get_all_correct(self):
 

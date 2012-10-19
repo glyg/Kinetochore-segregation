@@ -30,4 +30,4 @@ class Animator:
         widget = InteractiveCellWidget(self.meta)
         widget.show()
 
-        sys.exit(app.exec_())
+        app.exec_()

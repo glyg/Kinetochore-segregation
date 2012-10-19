@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<experiment datafile="data.npy" date="Thu Oct 18 19:43:24 2012">
+<experiment datafile="data.npy" date="Fri Oct 19 10:20:47 2012">
   <parameters>
     <param max="2000." min="0.1" name="span" step="10." value="900.0">
       <unit>s</unit>
@@ -212,13 +212,13 @@
   <trajectory cen_tag="B" column="66" index="(2, 3)" name="plugsite" units="mu m" />
   <state cen_tag="B" column="67" index="(2, 3)" name="plugsite" units="" />
   <observations>
-    <Metaphase_rate>0.00169227214781</Metaphase_rate>
-    <Poleward_Speed>(-0.016683842692527106, 0.025399518509593381)</Poleward_Speed>
-    <MaxFreqs>[0.0027777777777777779, 0.0069444444444444449, 0.019444444444444445]</MaxFreqs>
-    <Anaphase_rate>0.0139745487611</Anaphase_rate>
-    <PlugedStats>(3.6037037037037041, 0.45370370370370372)</PlugedStats>
-    <Metaphase_Kineto_Distance>(-0.28785948160880009, 0.15559200294978273)</Metaphase_Kineto_Distance>
-    <KtRmsSpeed>(0.0024926437513406977, 0.00038364057982607998)</KtRmsSpeed>
-    <TimeOfArrival>[ 17.5   4.5   0.   16.    0.5   3.5]</TimeOfArrival>
+    <Metaphase_rate>0.00259378837512</Metaphase_rate>
+    <Poleward_Speed>(0.0023050170825398134, 0.025849547351970221)</Poleward_Speed>
+    <MaxFreqs>[0.019444444444444445, 0.0027777777777777779, 0.016666666666666666]</MaxFreqs>
+    <Anaphase_rate>0.0138494707232</Anaphase_rate>
+    <PlugedStats>(3.5527777777777776, 0.57500000000000007)</PlugedStats>
+    <Metaphase_Kineto_Distance>(0.25866680612834303, 0.17509642788061944)</Metaphase_Kineto_Distance>
+    <KtRmsSpeed>(0.0028217491690925105, 0.00041233384844685734)</KtRmsSpeed>
+    <TimeOfArrival>[ 68.5   2.   45.5   0.   34.   15.5]</TimeOfArrival>
   </observations>
 </experiment>

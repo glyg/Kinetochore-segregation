@@ -8,7 +8,6 @@
 from PySide import QtCore, QtGui
 
 import math
-import sys
 import os
 
 FRAME_RATE = 25  # image/seconds
@@ -16,13 +15,13 @@ FRAME_RATE = 25  # image/seconds
 SITE_OFFSET = 0.2  # Vertical distance between attachment sites
 CH_OFFSET = 0.4  # Vertical distance between chromosomes
 
-SPB_COLOR = QtGui.QColor(255, 0, 0)
+SPB_COLOR = QtGui.QColor(255, 0, 0)  # Red
 CH_COLOR = QtGui.QColor(0, 100, 100, alpha=200)
 ACTIVE_SAC_COLOR = QtGui.QColor(100, 10, 100, alpha=200)
 
-GOOD_PLUGSITE_COLOR = QtGui.QColor(0, 250, 20, alpha=200)
-BAD_PLUGSITE_COLOR = QtGui.QColor(255, 0, 0, alpha=255)
-UNPLUGED_COLOR = QtGui.QColor(0, 20, 250, alpha=200)
+GOOD_PLUGSITE_COLOR = QtGui.QColor(0, 250, 20, alpha=200)  # Green
+BAD_PLUGSITE_COLOR = QtGui.QColor(255, 0, 0, alpha=255)  # Red
+UNPLUGED_COLOR = QtGui.QColor(0, 20, 250, alpha=200)  # Blue
 
 
 class GraphCell(QtGui.QGraphicsItem):

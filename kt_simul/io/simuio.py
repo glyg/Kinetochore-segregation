@@ -74,14 +74,14 @@ class SimuIO():
         experiment.append(self.paramtree.root)
         experiment.append(self.measuretree.root)
 
-        #right SPB
+        # right SPB
         spbR = SubElement(experiment, "trajectory", name="rightspb",
                           column='0', units='mu m')
         SubElement(spbR, "description").text = "right spb trajectory"
         spbRtraj = np.array(self.KD.spbR.traj)
         wavelist.append(spbRtraj)
 
-        #left SPB
+        # left SPB
         spbL = SubElement(experiment, "trajectory", name="leftspb",
                           column='1', units='mu m')
         SubElement(spbL, "description").text = "left spb trajectory"
@@ -89,7 +89,7 @@ class SimuIO():
         wavelist.append(spbLtraj)
 
         col_num = 2
-        #chromosomes
+        # chromosomes
         for n, ch in enumerate(chromosomes):
             rch = SubElement(experiment, "trajectory",
                             name="centromereA",

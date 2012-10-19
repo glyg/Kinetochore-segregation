@@ -22,7 +22,7 @@ rpythonpath = "/home/hadim/dev/kt_simul"
 
 env.hosts = [host, ]
 
-NSIMU = 100000
+NSIMU = 10000
 
 @task
 def push():
@@ -35,14 +35,16 @@ def push():
 
 
 @task
-def launch():
+def launch(simu = None):
     """
     Launch simulations
     """
+    if not simu:
+        simu = NSIMU
     push()
     with cd(os.path.join(rproject, "scripts")):
         run("workon ktsimu")
-        cmd = rpython + "cluster.py --path %s --nsimu %s" % (rresults, str(NSIMU))
+        cmd = rpython + "cluster.py --path %s --nsimu %s" % (rresults, str(simu))
         # Allow to run in background
         run("screen -dmS ktsimu " + cmd)
 
