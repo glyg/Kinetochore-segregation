@@ -3,11 +3,11 @@ Run and play simulation animation in 2D (need PySide)
 """
 
 import logging
-import sys
 
 from PySide import QtGui, QtCore
 
 from kt_simul.gui.game import InteractiveCellWidget
+
 
 class Animator:
     """

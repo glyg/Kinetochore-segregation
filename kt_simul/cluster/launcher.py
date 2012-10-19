@@ -17,7 +17,6 @@ from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
 from kt_simul.core import parameters
 from kt_simul.utils.size import get_folder_size
 from kt_simul.io.simuio import SimuIO
-from kt_simul.draw import Drawer
 
 
 class Launcher:
@@ -202,6 +201,7 @@ class Launcher:
         f.write(json.dumps(log, sort_keys=True, indent=4))
         f.close()
 
+
 def run_one(args):
     return _run_one(*args)
 
@@ -213,15 +213,15 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
     """
     queue = _run_one.q
 
-    queue.put({ "id" : simu_id, "state" : "start" })
-    meta = Metaphase(verbose=True,
+    queue.put({"id": simu_id, "state": "start"})
+    meta = Metaphase(verbose=False,
                 paramtree=paramtree,
                 measuretree=measuretree)
     meta.simul()
+    meta.evaluate()
 
     # Build filename
-    simu_path = os.path.join(result_path, "simu_%06d.kt" % simu_id)
-    print simu_path
+    simu_path = os.path.join(result_path, "simu_%06d.zip" % simu_id)
 
     # Write simulation result
     io = SimuIO(meta)

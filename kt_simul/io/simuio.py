@@ -35,7 +35,7 @@ class SimuIO():
             self.measuretree = self.meta.measuretree
             self.observations = self.meta.observations
 
-    def save(self, simufname="results.kt"):
+    def save(self, simufname="results.zip"):
         """
         Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
@@ -171,11 +171,11 @@ class SimuIO():
 
         logging.info("Simulation saved to file %s " % simufname)
 
-    def read(self, simufname="results.kt"):
+    def read(self, simufname="results.zip"):
         """
-        Creates a simul_spindle.Metaphase from a results.kt file.
+        Creates a simul_spindle.Metaphase from a results.zip file.
 
-        :param simufname: The .kt file where results from the existing
+        :param simufname: The .zip file where results from the existing
                           simulation are (zip which contains xml and npy)
         :type simufname: string, optional
         :return: a Metaphase instance
