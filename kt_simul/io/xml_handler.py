@@ -1,12 +1,12 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""
+Handler for the parameters xml files -- to allow phase space exploration
+"""
 
-# Handler for the parameters xml files -- to allow phase space exploration
-
-import os
 import numpy as np
+import StringIO
 
-from xml.etree.ElementTree import parse, tostring
+from xml.etree.ElementTree import parse
 
 # Those strings should be respected in the xml file
 SPRING_UNIT = u'pN/µm'
@@ -22,6 +22,7 @@ __all__ = ["ParamTree", "indent", "ResultTree"]
 def indent(elem, level=0):
     """
     Utility to have a nice printing of the xml tree
+    Source : http://effbot.org/zone/element-lib.htm#prettyprint
     """
     i = "\n" + level * "  "
     if len(elem):
@@ -47,18 +48,24 @@ class ParamTree(object):
     whereas the value in the dictionnary is changed.
     """
 
-    def __init__(self, filename=None, root=None, adimentionalized=True):
+    def __init__(self, xmlfile=None, root=None, adimentionalized=True):
 
-        if filename is not None:
-            self.filename = filename
-            source = file(filename, "r")
-            self.tree = parse(source)
+        if xmlfile is not None:
+
+            if isinstance(xmlfile, file) or \
+                isinstance(xmlfile, StringIO.StringIO):
+                self.tree = parse(xmlfile)
+            elif isinstance(xmlfile, str):
+                source = file(xmlfile, "r")
+                self.tree = parse(source)
+                source.close()
+
             self.root = self.tree.getroot()
-            source.close()
+
         elif root is not None:
             self.root = root
         else:
-            print 'A etree root or a filename should be provided'
+            print 'A etree root or a xmlfile should be provided'
 
         list = []
         a = self.root.findall("param")
@@ -84,8 +91,7 @@ class ParamTree(object):
             return False
 
     def adimentionalize(self):
-
-        '''
+        """
         This function scales everything taking dt as unit time, Vk as
         unit speed, and Fk as unit force. It relies on a correct
         definition of the units of the elements of the param tree,
@@ -94,7 +100,7 @@ class ParamTree(object):
         Note that the "value" attribute of the ElementTree instance are
         NOT modified. Also, applying this function on an already
         adimentionalized  dictionnary won"t change any thing
-        '''
+        """
 
         Vk = self.absolute_dic["Vk"]
         Fk = self.absolute_dic["Fk"]
@@ -117,8 +123,7 @@ class ParamTree(object):
                 val /= Fk
             self.relative_dic[key] = val
 
-    def change_dic(self, key, new_value, write=True,
-                   back_up=False, verbose=True):
+    def change_dic(self, key, new_value, verbose=True):
         """
         Changes the Element tree and re-creates the associated dictionnary.
         If write is True, re_writes the parameters files
@@ -148,46 +153,14 @@ class ParamTree(object):
                 print 'Oooups'
                 raise()
 
-        if write:
-            indent(self.root)
-            xf = open(self.filename, 'w+')
-            if back_up:
-                bck = self.filename + '.bck'
-                xfb = open(bck, 'w+')
-                for line in xf:
-                    xfb.write
-                xfb.close()
-                xf.seek(0)
-                print "Backed up old parameter file as %s" % bck
-            else:
-                print "Warning : %s changed without back up" % self.filename
-            xf.write(tostring(self))
-            xf.close
-            print "Changed  %s to %03f in file %s" % (key,
-                                                     new_value,
-                                                     self.filename)
-        elif verbose:
-            print "Warning: parameter %s changed but not written!" % key
-
 
 class ResultTree(ParamTree):
 
-    def __init__(self, xmlfname="resuts.xml"):
+    def __init__(self, xmlfile, datafile):
 
-        xmlfname = os.path.abspath(xmlfname)
-        ParamTree.__init__(self, xmlfname, adimentionalized=False)
-        datafname = self.root.get("datafile")
-
-        # datafname is relative to xmlfname
-        self.datafname = os.path.join(os.path.dirname(xmlfname), datafname)
-
-        if self.datafname is None or not os.path.isfile(self.datafname):
-            raise ValueError("Corresponding data file not specified")
-        if self.datafname.endswith('.npy'):
-            self.data = np.load(self.datafname)
-        else:
-            self.data = np.loadtxt(self.datafname,
-                delimiter=' ', comments='#')
+        ParamTree.__init__(self, xmlfile=xmlfile,
+            adimentionalized=False)
+        self.data = np.load(datafile)
 
     def get_spb_trajs(self):
         Rcol = None
@@ -208,7 +181,7 @@ class ResultTree(ParamTree):
         for traj in self.tree.getiterator("trajectory"):
             if 'centromere' in traj.get("name"):
                 col = traj.get("column")
-                cols.append(rcol)
+                cols.append(col)
             if len(cols) == N * 2:
                 break
         cols = tuple(cols)
@@ -216,8 +189,6 @@ class ResultTree(ParamTree):
         return kineto_trajs
 
     def get_all_trajs(self):
-        f = file(self.datafname)
-        header = f.readline()
         cols = []
         for traj in self.tree.getiterator("trajectory"):
             col = int(traj.get("column"))

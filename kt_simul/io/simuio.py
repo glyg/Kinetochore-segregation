@@ -5,6 +5,9 @@
 import os
 import time
 import logging
+import StringIO
+import zipfile
+import tempfile
 
 import numpy as np
 
@@ -34,43 +37,31 @@ class SimuIO():
             self.measuretree = self.meta.measuretree
             self.observations = self.meta.observations
 
-    def save(self, xmlfname="results.xml",
-                datafname="data.npy"):
+    def save(self, simufname = "results.kt"):
         """
         Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
         and the trajectories in the other.
 
-        :param xmlfname: name of the xml file where parameters and observations will be written
-        :type xmlfname: string, optional
+        :param simufname: A ZIP file which contains results.xml and data.npy
+        :type simfname: string
 
-        :param datafname: name of the file where the trajectories will be written
-            file type is determined by the file suffix:
-                 - *.npy : data are stored in numpy's binary format
-                           (less portable but quite efficient)
-                 - *.txt : simple text
-                 - *.txt.gz : text files compressed transparently
-        :type datafname: string, optional
+            * results.xml : name of the xml file where parameters and
+                            observations will be written
 
-        Any other suffix will be saved as plain text. Column index for
-        each trajectory is an attribute of the corresponding element
-        in the xml file.
-
-        .. todo:: This function should be chopped off some how, it's messy
+            * data.npy : data are stored in numpy's binary format
 
         """
-        if not self.observations:
-            self.meta.evaluate()
-            self.observations = self.meta.observations
 
         chromosomes = self.KD.chromosomes
+
+        # Store matrices insisde wavelist
         wavelist = []
-        out = file(xmlfname, 'w+')
-        out.write('<?xml version="1.0"?>\n')
+
+        xmlout = ""
+        xmlout += '<?xml version="1.0"?>\n'
         today = time.asctime()
-        relpath = os.path.relpath(datafname, os.path.dirname(xmlfname))
-        experiment = Element("experiment", date=today,
-                            datafile=relpath)
+        experiment = Element("experiment", date=today)
         experiment.append(self.paramtree.root)
         experiment.append(self.measuretree.root)
 
@@ -164,36 +155,49 @@ class SimuIO():
 
         # Now we write down the whole experiment XML element
         indent(experiment)
-        out.write(tostring(experiment))
-        out.close()
-        #And the numbers in the file datafname
-        dataout = file(datafname, 'w+')
+        xmlout += tostring(experiment)
+
+        # And the data in the file datafname
+        datafile = StringIO.StringIO()
         data = np.vstack(wavelist).T
-        if datafname.endswith('.npy'):
-            np.save(dataout, data)
-        else:
-            dataout.write("# desciptor: " + xmlfname + "\n")
-            np.savetxt(dataout, data, delimiter=' ')
-        logging.info("Simulation saved to file %s and %s "
-            % (xmlfname, datafname))
+        np.save(datafile, data)
 
-    def read(self, xmlfname="results.xml"):
+        # Pack xmlfile and datafile in a zip archive
+        zipf = zipfile.ZipFile(simufname, "w",
+            compression=zipfile.ZIP_DEFLATED)
+        zipf.writestr("results.xml", xmlout)
+        zipf.writestr("data.npy", datafile.getvalue())
+        zipf.close()
+
+        datafile.close()
+
+        logging.info("Simulation saved to file %s " % simufname)
+
+    def read(self, simufname="results.kt"):
         """
-        Creates a simul_spindle.Metaphase from a XML file.
+        Creates a simul_spindle.Metaphase from a results.kt file.
 
-        :param xmlfname: The xml file where results from the existing
-                            simulation are.
-        :type xmlfname: string, optional
+        :param simufname: The .kt file where results from the existing
+                          simulation are (zip which contains xml and npy)
+        :type simufname: string, optional
         :return: a Metaphase instance
         """
 
-        restree = ResultTree(xmlfname)
+        # Unzip results.xml and data.npy and put it in
+        # tempfile
+        zipf = zipfile.ZipFile(simufname, "r")
+        xmltemp = StringIO.StringIO(zipf.read("results.xml"))
+        datatemp = StringIO.StringIO(zipf.read("data.npy"))
+
+        restree = ResultTree(xmltemp, datatemp)
+
         param_root = restree.root.find('parameters')
         paramtree = ParamTree(root=param_root)
         params = paramtree.relative_dic
         measure_root = restree.root.find('measures')
         measuretree = ParamTree(root=measure_root,
                                 adimentionalized=False)
+
         metaphase = Metaphase(paramtree=paramtree,
                               measuretree=measuretree)
 

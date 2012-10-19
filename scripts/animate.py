@@ -4,17 +4,17 @@ from kt_simul.core.simul_spindle import Metaphase
 
 simu = True
 
-meta = Metaphase(verbose=True)
-meta.simul()
-io = SimuIO(meta)
-io.save("results.xml", "data.npy")
+# meta = Metaphase(verbose=True)
+# meta.simul()
+# io = SimuIO(meta)
+# io.save("results.kt")
 
-anim = Animator(meta)
-anim.play()
+# anim = Animator(meta)
+# anim.play()
 
 ########################
 
-meta = SimuIO().read("results.xml")
+meta = SimuIO().read("results.kt")
 
 anim = Animator(meta)
 anim.play()

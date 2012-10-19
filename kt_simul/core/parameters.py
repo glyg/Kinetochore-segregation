@@ -81,4 +81,4 @@ def reduce_params(paramtree, measuretree):
     muk = ( tau_k * kappa_k )
     params['muk'] = muk
     for key, val in params.items():
-        paramtree.change_dic(key, val, write = False, verbose = False)
+        paramtree.change_dic(key, val, verbose = False)
