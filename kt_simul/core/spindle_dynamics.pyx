@@ -83,7 +83,7 @@ cdef class KinetoDynamics(object) :
         for n in range(N):
             ch = Chromosome(self.spindle)
             self.chromosomes.append(ch)
-        cdef int dim = 1 + N * ( 1 + Mk ) * 2
+        cdef int dim = 1 + N * (1 + Mk) * 2
         self.B_mat = np.zeros((dim, dim), dtype = float)
         self.calc_B()
         self.A0_mat = self.time_invariantA()
@@ -124,13 +124,13 @@ cdef class KinetoDynamics(object) :
         self.position_update(time_point)
 
     cdef solve(self):
-        cdef np.ndarray[DTYPE_t, ndim=1] X, C, pos_dep
-        cdef np.ndarray[DTYPE_t, ndim=2] A, B
+        cdef np.ndarray[DTYPE_t, ndim = 1] X, C, pos_dep
+        cdef np.ndarray[DTYPE_t, ndim = 2] A, B
         X = self.get_state_vector()
         A = self.calc_A()
         B = self.B_mat
         C = self.calc_C()
-        pos_dep = np.dot(B,X) + C
+        pos_dep = np.dot(B, X) + C
         self.speeds = np.linalg.solve(A, -pos_dep)
 
     cdef np.ndarray get_state_vector(self):

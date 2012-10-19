@@ -2,12 +2,10 @@
 """
 """
 
-import os
 import time
 import logging
 import StringIO
 import zipfile
-import tempfile
 
 import numpy as np
 
@@ -37,7 +35,7 @@ class SimuIO():
             self.measuretree = self.meta.measuretree
             self.observations = self.meta.observations
 
-    def save(self, simufname = "results.kt"):
+    def save(self, simufname="results.kt"):
         """
         Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
@@ -208,7 +206,6 @@ class SimuIO():
         KD = KinetoDynamics(params)
         KD.spbR.traj = traj_matrix[:, 0]
         KD.spbL.traj = traj_matrix[:, 1]
-        Mk = int(params['Mk'])
         col_num = 2
         state_num = 0
         for n, ch in enumerate(KD.chromosomes):
@@ -216,8 +213,8 @@ class SimuIO():
             col_num += 1
             ch.cen_B.traj = traj_matrix[:, col_num]
             col_num += 1
-            ch.erroneous_history = (erroneous_matrix[:, n * 2 : n * 2 + 2])
-            ch.correct_history = (correct_matrix[:, n * 2 : n * 2 + 2])
+            ch.erroneous_history = (erroneous_matrix[:, n * 2: n * 2 + 2])
+            ch.correct_history = (correct_matrix[:, n * 2: n * 2 + 2])
             for plugsite in ch.cen_A.plugsites:
                 plugsite.traj = traj_matrix[:, col_num]
                 col_num += 1

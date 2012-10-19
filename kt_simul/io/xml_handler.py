@@ -105,7 +105,6 @@ class ParamTree(object):
         Vk = self.absolute_dic["Vk"]
         Fk = self.absolute_dic["Fk"]
         dt = self.absolute_dic["dt"]
-        d0 = self.absolute_dic["d0"]
         params = self.root.findall("param")
 
         for param in params:
@@ -203,7 +202,7 @@ class ResultTree(ParamTree):
             col = int(traj.get("column"))
             cols.append(col)
         cols = tuple(cols)
-        return self.data.take(cols, axis = 1)
+        return self.data.take(cols, axis=1)
 
     def get_all_erroneous(self):
         cols = []
@@ -212,7 +211,7 @@ class ResultTree(ParamTree):
             cols.append(col)
 
         cols = tuple(cols)
-        return self.data.take(cols, axis = 1)
+        return self.data.take(cols, axis=1)
 
     def get_all_plug_state(self):
         cols = []
@@ -221,4 +220,4 @@ class ResultTree(ParamTree):
             cols.append(col)
 
         cols = tuple(cols)
-        return self.data.take(cols, axis = 1)
+        return self.data.take(cols, axis=1)

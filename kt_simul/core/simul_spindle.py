@@ -124,6 +124,7 @@ class Metaphase(object):
             self.measuretree = ParamTree(measurefile, adimentionalized=False)
         else:
             self.measuretree = measuretree
+
         if reduce_p:
             parameters.reduce_params(self.paramtree, self.measuretree)
 

@@ -15,10 +15,8 @@ from multiprocessing import Pool, Queue
 from kt_simul.io.xml_handler import ParamTree
 from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
 from kt_simul.core import parameters
-
 from kt_simul.utils.size import get_folder_size
-
-from kt_simul.io import SimuIO
+from kt_simul.io.simuio import SimuIO
 from kt_simul.draw import Drawer
 
 
@@ -216,20 +214,18 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
     queue = _run_one.q
 
     queue.put({ "id" : simu_id, "state" : "start" })
-    meta = Metaphase(verbose=False,
-        paramtree=paramtree,
-        measuretree=measuretree)
+    meta = Metaphase(verbose=True,
+                paramtree=paramtree,
+                measuretree=measuretree)
     meta.simul()
 
     # Build filename
-    dir_path = os.path.join(result_path)
-    name = "simu_%06d" % simu_id
-    xml_path = os.path.join(dir_path, name + ".xml")
-    npy_path = os.path.join(dir_path, name + ".npy")
+    simu_path = os.path.join(result_path, "simu_%06d.kt" % simu_id)
+    print simu_path
 
     # Write simulation result
     io = SimuIO(meta)
-    io.save(xmlfname=xml_path, datafname=npy_path)
+    io.save(simufname=simu_path)
 
     queue.put({ "id" : simu_id, "state" : "stop" })
 

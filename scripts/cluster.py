@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import argparse
 
 from kt_simul.cluster import Launcher
