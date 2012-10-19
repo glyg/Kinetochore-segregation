@@ -46,7 +46,6 @@ class CellItem(QtGui.QGraphicsItem):
         return self.gotoTime(self.time_point)
 
     def gotoTime(self, time_point):
-        print time_point
         if time_point >= self.mt.KD.num_steps - 1:
             return False
 
