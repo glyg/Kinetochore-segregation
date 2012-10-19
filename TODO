@@ -1,10 +1,21 @@
 TODO
-----
+====
+
+Medium priority
+---------------
+
+1. evaluations : KinetoAttachment
+2. draw : KinetoAttachment evaluation
+3. evaluation_pool : KinetoAttachment
+4. cluster.Process : evaluation_pool + draw
+
+Low priority
+------------
 
 * gestion des collisions ?
 * merge sphinx doc and pdf doc
 
 BUGS
-----
+====
 
 * GUI : random invert state (green and red) on chromosome when animation from loaded simulation

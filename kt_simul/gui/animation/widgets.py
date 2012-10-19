@@ -151,7 +151,7 @@ class ViewCellWidget(QtGui.QGraphicsView):
         self.scale(40, 40)
 
     def wheelEvent(self, event):
-        self.scaleView(math.pow(2.0, -event.delta() / 240.0))
+        self.scaleView(math.pow(2.0, event.delta() / 240.0))
 
     def drawBackground(self, painter, rect):
         # Shadow.

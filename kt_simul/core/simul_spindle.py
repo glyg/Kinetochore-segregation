@@ -284,7 +284,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
 
         for ch in self.KD.chromosomes:
             chdict = collections.OrderedDict()
-
+            chdict["correct"] = ch.correct_history[time]
+            chdict["erroneous"] = ch.erroneous_history[time]
             for cent in [ch.cen_A, ch.cen_B]:
                 cen_dict = collections.OrderedDict()
                 cen_dict["position"] = round(cent.traj[time], 3)

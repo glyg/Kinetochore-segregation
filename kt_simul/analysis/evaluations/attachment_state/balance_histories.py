@@ -17,7 +17,7 @@ class AttachmentRate(Evaluation):
     description = """Returns the difference between the number of correctly and
                     erroneously attached plug sites when those two are != 0."""
     group = "attachment_state"
-    enable = True
+    enable = False
 
     def __init__(self,):
         pass
