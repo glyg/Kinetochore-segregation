@@ -48,6 +48,7 @@ cdef class Chromosome(Organite):
     cdef bool at_rightpole(Chromosome, float)
     cdef bool at_leftpole(Chromosome, float)
     cdef bool at_pole(Chromosome, int side=*, float tol=*)
+    cdef public int ch_id
 
 
 cdef class Centromere(Organite):
@@ -73,3 +74,4 @@ cdef class PlugSite(Organite):
     cdef public float calc_ldep(PlugSite)
     cdef public void plug_unplug(PlugSite, int)
     cdef public float P_det(PlugSite)
+    cdef public int site_id

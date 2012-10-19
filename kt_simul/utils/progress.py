@@ -1,6 +1,6 @@
 import sys
 
-def progress(percent):
+def print_progress(percent):
     """
     Print a progress bar
     percent = -1 to end and remove the progress bar

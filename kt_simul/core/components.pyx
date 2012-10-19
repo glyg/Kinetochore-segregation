@@ -56,7 +56,8 @@ cdef class Organite(object):
         self.traj[0] = init_pos
 
     cdef void set_pos(self, float pos, int time_point=-1):
-        """sets the position. If `time_point` is provided, sets
+        """
+        Sets the position. If `time_point` is provided, sets
         the corresponding value in `self.traj[time_point]`
         """
         self.pos = pos
@@ -79,7 +80,8 @@ cdef class Organite(object):
 
 
 cdef class Spb(Organite):
-    """ A spindle pole object.
+    """
+    A spindle pole object.
 
     Attributes:
     ===========
@@ -89,8 +91,10 @@ cdef class Spb(Organite):
     The left SPB, with `side = -1` corresponds to the daggered
     variable)
     """
+
     def __init__(self, spindle, side, L0):
-        """ side = 1 : left
+        """
+        side = 1 : left
         side = -1 : right
         L0 : spindle length
         """
@@ -99,15 +103,17 @@ cdef class Spb(Organite):
         Organite.__init__(self, spindle, init_pos)
 
 cdef class Chromosome(Organite):
-    """The chromosome, containing two centromeres ('A' and 'B')
+    """
+    The chromosome, containing two centromeres ('A' and 'B')
 
     Parameters
     ----------
     spindle: a :class:`~Spindle` instance
 
     """
-    def __init__(self, spindle):
+    def __init__(self, spindle, ch_id):
 
+        self.ch_id = ch_id
         d0 = spindle.KD.params['d0']
         L0 = spindle.KD.params['L0']
         center_pos = random.gauss(0, 0.2 * (L0 - d0))
@@ -228,7 +234,7 @@ cdef class Centromere(Organite):
        side and the SPB side are not necesseraly related
 
     """
-    def __init__(self, chromosome, tag='A'):
+    def __init__(self, chromosome, tag):
 
         self.tag = tag
         self.chromosome = chromosome
@@ -246,7 +252,7 @@ cdef class Centromere(Organite):
         self.plugsites = []
         cdef PlugSite ps
         for m in range(Mk):
-            ps = PlugSite(self)
+            ps = PlugSite(self, m)
             self.plugsites.append(ps)
         self.calc_plug_vector()
 
@@ -343,19 +349,22 @@ cdef class Centromere(Organite):
 
 
 cdef class PlugSite(Organite):
-    """An attachment site object.
+    """
+    An attachment site object.
 
     Parameters:
     -----------
     centromere: a :class:`~Centromere` instance
     """
 
-    def __init__(self, centromere):
+    def __init__(self, centromere, site_id):
         init_pos = centromere.pos
         Organite.__init__(self, centromere, init_pos)
         initial_plug = self.KD.initial_plug
         self.centromere = centromere
         self.tag = self.centromere.tag
+        self.site_id = site_id
+
         if initial_plug == None:
             self.plug_state = random.randint(-1, 1)
         elif initial_plug == 'null':
@@ -372,6 +381,7 @@ cdef class PlugSite(Organite):
             self.plug_state = random.choice([-1,1])
         else:
             self.plug_state = initial_plug
+
         self.set_pos(init_pos)
         self.state_hist = np.zeros(self.KD.num_steps, dtype=np.int)
         self.state_hist[:] = self.plug_state
@@ -412,8 +422,8 @@ cdef class PlugSite(Organite):
         cdef double ldep
         ldep = ld_slope * mt_length + ld0
         # TODO: investigate: introduces a first order discontinuity
-        #     suspected to trigger artifacts when the plugsite
-        #     is close to the pole
+        # suspected to trigger artifacts when the plugsite
+        # is close to the pole
         if mt_length < 0.0001:
             ldep = mt_length  # No force when at pole
         return ldep
@@ -421,7 +431,7 @@ cdef class PlugSite(Organite):
     cdef void plug_unplug(self, int time_point):
         cdef float dice, side_dice
         dice = random.random()
-        #Attachment
+        # Attachment
         if self.plug_state == 0 and dice < self.P_att:
             side_dice = random.random()
             P_left = self.centromere.P_attachleft()
@@ -429,28 +439,34 @@ cdef class PlugSite(Organite):
                 self.set_plug_state(-1, time_point)
             else:
                 self.set_plug_state(1, time_point)
-        #Detachment
+        # Detachment
         elif dice < self.P_det():
             self.set_plug_state(0, time_point)
 
-    def is_correct(self, int time_point):
+    def is_correct(self, int time_point = -1):
         """
         Returns True if the plugsite is plugged
         correctly, i.e. doesn't contribute to an
         attachment error
         """
-        if self.plug_state == 0:
+
+        if time_point < 0:
+            plug_state = self.plug_state
+        else:
+            plug_state = self.state_hist[time_point]
+
+        if plug_state == 0:
             return False
         if self.tag == 'A':
             if self.centromere.chromosome.is_right_A():
-                return True if self.plug_state == 1 else False
+                return True if plug_state == 1 else False
             else:
-                return True if self.plug_state == -1 else False
+                return True if plug_state == -1 else False
         else:
             if self.centromere.chromosome.is_right_A():
-                return True if self.plug_state == -1 else False
+                return True if plug_state == -1 else False
             else:
-                return True if self.plug_state == 1 else False
+                return True if plug_state == 1 else False
 
     cdef float P_det(self):
         cdef float d_alpha, k_d0

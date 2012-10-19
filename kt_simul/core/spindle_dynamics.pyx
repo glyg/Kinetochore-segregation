@@ -82,7 +82,7 @@ cdef class KinetoDynamics(object) :
         cdef Chromosome ch
         self.chromosomes = []
         for n in range(N):
-            ch = Chromosome(self.spindle)
+            ch = Chromosome(self.spindle, n)
             self.chromosomes.append(ch)
         cdef int dim = 1 + N * (1 + Mk) * 2
         self.B_mat = np.zeros((dim, dim), dtype = float)
@@ -117,6 +117,7 @@ cdef class KinetoDynamics(object) :
         self._one_step(time_point)
         if time_point == (self.num_steps - 1):
             self.simulation_done = True
+            self.reset_positions()
 
     cdef void _one_step(self, int time_point):
         if not self.anaphase:
@@ -367,3 +368,31 @@ cdef class KinetoDynamics(object) :
                 plugsite = ch.cen_B.plugsites[m]
                 new_pos = plugsite.pos + speeds[bnm]
                 plugsite.set_pos(new_pos, time_point)
+
+    cdef reset_positions(self):
+        """
+        When a simu is done, reset all positions to t = 0
+        """
+
+        self.spbR.pos = self.spbR.traj[0]
+        self.spbL.pos = self.spbL.traj[0]
+
+        cdef int Mk = int(self.params['Mk'])
+        cdef int N = int(self.params['N'])
+        cdef int n, m, an, anm, bn, bnm
+        cdef float new_pos
+        cdef Chromosome ch
+        cdef PlugSite plugsite
+        for n in range(N):
+            an = self._idx(0, n)
+            bn = self._idx(1, n)
+            ch = self.chromosomes[n]
+            ch.cen_A.pos = ch.cen_A.traj[0]
+            ch.cen_B.pos = ch.cen_B.traj[0]
+            for m in range(Mk):
+                anm = self._idx(0, n, m)
+                bnm = self._idx(1, n, m)
+                plugsite = ch.cen_A.plugsites[m]
+                plugsite.pos = plugsite.traj[0]
+                plugsite = ch.cen_B.plugsites[m]
+                plugsite.pos = plugsite.traj[0]

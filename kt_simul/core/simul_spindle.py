@@ -12,13 +12,15 @@ http://dx.doi.org/10.1529/biophysj.105.078691
 import os
 import logging
 import numpy as np
+import collections
 
 # Local imports
 from kt_simul.core.spindle_dynamics import KinetoDynamics
 from kt_simul.io.xml_handler import ParamTree
 from kt_simul.analysis import evaluations
 from kt_simul.core import parameters
-from kt_simul.core import utils
+from kt_simul.utils.progress import print_progress
+from kt_simul.utils.format import pretty_dict
 
 __all__ = ["Metaphase", "PARAMFILE", "MEASUREFILE"]
 
@@ -199,7 +201,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             progress = int((time_point * 100.0) / self.num_steps)
 
             if self.verbose and progress != bef:
-                utils.progress(int(progress))
+                print_progress(int(progress))
                 bef = progress
 
             # Ablation test
@@ -210,7 +212,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             # Anaphase transition ?
             if self._anaphase_test(time_point):
                 if not log_anaphase_onset:
-                    utils.progress(-1)
+                    print_progress(-1)
                     logging.info("Anaphase onset at %i / %i" %
                         (time_point, self.num_steps))
                     log_anaphase_onset = True
@@ -218,7 +220,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             self.KD.one_step(time_point)
 
         if self.verbose:
-            utils.progress(-1)
+            print_progress(-1)
 
         logging.info('Simulation done')
         self.KD.params['kappa_c'] = kappa_c
@@ -261,6 +263,44 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         logging.info("All evaluations processed")
 
         return True
+
+    def get_report(self, time = 0):
+        """
+        Print simulation state about a specific time point
+        """
+        params = self.paramtree.relative_dic
+
+        report = collections.OrderedDict()
+
+        report["Total time (span)"] = params["span"]
+        report["Time precision (dt)"] = params["dt"]
+        report["Chromosomes (N)"] = params["N"]
+        report["Kinetochores (Mk)"] = params["Mk"]
+        report["separate"] = ""
+
+        report["spbR pos"] = round(self.KD.spbR.traj[time], 3)
+        report["spbL pos"] = round(self.KD.spbL.traj[time], 3)
+        report["separate"] = ""
+
+        for ch in self.KD.chromosomes:
+            chdict = collections.OrderedDict()
+
+            for cent in [ch.cen_A, ch.cen_B]:
+                cen_dict = collections.OrderedDict()
+                cen_dict["position"] = round(cent.traj[time], 3)
+                for site in cent.plugsites:
+                    site_dict = collections.OrderedDict()
+                    site_dict['position'] = round(site.traj[time], 3)
+                    site_dict['Plug state'] = site.state_hist[time]
+
+                    cen_dict["PlugSite %i" % site.site_id] = site_dict
+
+                chdict["Centromere %s" % cent.tag] = cen_dict
+
+            report["Chromosome %i" % ch.ch_id] = chdict
+            report["separate"] = ""
+
+        return pretty_dict(report)
 
     def _anaphase_test(self, time_point):
         """

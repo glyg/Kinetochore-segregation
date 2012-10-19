@@ -215,8 +215,10 @@ class SimuIO():
         state_num = 0
         for n, ch in enumerate(KD.chromosomes):
             ch.cen_A.traj = traj_matrix[:, col_num]
+            ch.cen_A.pos = ch.cen_A.pos
             col_num += 1
             ch.cen_B.traj = traj_matrix[:, col_num]
+            ch.cen_B.pos = ch.cen_B.pos
             col_num += 1
             ch.erroneous_history = (erroneous_matrix[:, n * 2: n * 2 + 2])
             ch.correct_history = (correct_matrix[:, n * 2: n * 2 + 2])
