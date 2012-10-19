@@ -6,7 +6,7 @@ import logging
 
 from PySide import QtGui, QtCore
 
-from kt_simul.gui.game import InteractiveCellWidget
+from kt_simul.gui.animation import InteractiveCellWidget
 
 
 class Animator:
