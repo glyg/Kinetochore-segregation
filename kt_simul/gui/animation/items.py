@@ -2,8 +2,14 @@
 
 from PySide import QtCore, QtGui
 
-SITE_OFFSET = 0.2  # Vertical distance between attachment sites
+SPB_WIDTH = 0.5
+SPB_HEIGHT = 0.7
+
+PLUGSITE_OFFSET = 0.05  # Vertical distance between attachment sites
 CH_OFFSET = 0.4  # Vertical distance between chromosomes
+
+PLUGSITE_WIDTH = 0.1
+PLUGSITE_HEIGHT = 0.1
 
 SPB_COLOR = QtGui.QColor(255, 0, 0)  # Red
 
@@ -65,14 +71,15 @@ class CellItem(QtGui.QGraphicsItem):
         As this is not easily changed (or not supposed to, we give a
         large box
         """
-        height = 5.  # self.N * ( self.Mk * SITE_OFFSET + CH_OFFSET)
-        width = 14.  # microns, shall be enough
+        height = self.N * ( self.Mk * PLUGSITE_HEIGHT) * 5
+        width = self.mt.KD.spbR.traj[-1] * 6
         return QtCore.QRectF(-width / 2, - height / 2, width, height)
 
     def paint(self, painter, option, widget):
         painter.setBrush(QtCore.Qt.white)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.1))
-        painter.drawRoundedRect(self.boundingRect(), 30, 100, QtCore.Qt.RelativeSize)
+        painter.drawRoundedRect(self.boundingRect(), 30, 100,
+            QtCore.Qt.RelativeSize)
 
 
 class CentromereItem(QtGui.QGraphicsItem):
@@ -90,20 +97,23 @@ class CentromereItem(QtGui.QGraphicsItem):
         self.side = side
         self.ch = self.graphcell.mt.KD.chromosomes[n]
         if side == 0:
-            x = self.ch.cen_A.pos
             self.traj = self.ch.cen_A.traj
         else:
-            x = self.ch.cen_B.pos
             self.traj = self.ch.cen_B.traj
 
-        self.y = (n - (N - 1) / 2.) * 0.4  # * ( Mk * SITE_OFFSET + CH_OFFSET)
-        self.width = 0.2
-        self.height = 0.1 * Mk  # Mk * SITE_OFFSET + CH_OFFSET
+        self.y = (n - (N - 1) / 2.) * 0.55
+
+        self.width = PLUGSITE_WIDTH * 2
+        self.height = Mk * PLUGSITE_HEIGHT + (Mk -1) * PLUGSITE_OFFSET
         self.setZValue(n)
 
         self.plugsites = []
         for m in range(Mk):
-            self.plugsites.append(PlugSiteItem(m, self, parent))
+            if side == 0:
+                plugsite = self.ch.cen_A.plugsites[m]
+            else:
+                plugsite = self.ch.cen_B.plugsites[m]
+            self.plugsites.append(PlugSiteItem(m, plugsite, self, parent))
 
     def gotoTime(self, time_point):
         try:
@@ -141,24 +151,19 @@ class CentromereItem(QtGui.QGraphicsItem):
 
 class PlugSiteItem(QtGui.QGraphicsItem):
 
-    def __init__(self, m, kineto, parent=None):
+    def __init__(self, m, plugsite, kineto, parent=None):
 
         QtGui.QGraphicsItem.__init__(self, parent=parent)
         self.kineto = kineto
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+
         Mk = int(self.kineto.graphcell.mt.KD.params['Mk'])
         self.m = m
-        side = self.kineto.side
+        self.sim = plugsite
 
-        if side == 0:
-            self.sim = self.kineto.ch.cen_A.plugsites[m]
-        else:
-            self.sim = self.kineto.ch.cen_B.plugsites[m]
+        self.width = PLUGSITE_WIDTH
+        self.height = PLUGSITE_HEIGHT
 
-        self.width = 0.1
-        self.height = self.kineto.height / Mk
-
-        self.y = self.kineto.y + (m - (Mk - 1) / 2.) * 0.1
+        self.y = self.kineto.y + (m - (Mk - 1) / 2.) * 0.11
         self.setZValue(self.kineto.n * (1 + m))
 
         self.gotoTime(0)
@@ -174,7 +179,7 @@ class PlugSiteItem(QtGui.QGraphicsItem):
         # Change color according to state
         self.setState(time_point)
 
-    def setState(self, time_point = 0):
+    def setState(self, time_point=0):
         """
         Change color according to state at specific time_point
         """
@@ -216,6 +221,9 @@ class SPBItem(QtGui.QGraphicsItem):
         else:
             self.traj = self.graphcell.mt.KD.spbL.traj
 
+        self.width = SPB_WIDTH
+        self.height = SPB_HEIGHT
+
     def gotoTime(self, time_point):
         try:
             x = self.traj[time_point]
@@ -227,7 +235,8 @@ class SPBItem(QtGui.QGraphicsItem):
 
     def shape(self):
         self.path = QtGui.QPainterPath()
-        self.path.addEllipse(-0.1, -0.3, 0.2, 0.6)
+        self.path.addEllipse(-self.width / 2., - self.height / 2,
+                             self.width, self.height)
         return self.path
 
     def paint(self, painter, option, widget):
@@ -235,9 +244,9 @@ class SPBItem(QtGui.QGraphicsItem):
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
         center = self.pos()
-        painter.drawEllipse(center, 0.2, 0.6)
+        painter.drawEllipse(center, self.width, self.height)
 
     def boundingRect(self):
-        adjust = 5.
-        return QtCore.QRectF(-0.2 - adjust, -0.6 - adjust,
-                             0.4 + adjust, 1.2 + adjust)
+        adjust = 1.
+        return QtCore.QRectF(-self.width - adjust, - self.height - adjust,
+                             2 * self.width + adjust, 2 * self.height + adjust)

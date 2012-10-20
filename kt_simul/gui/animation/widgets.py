@@ -155,27 +155,6 @@ class ViewCellWidget(QtGui.QGraphicsView):
     def wheelEvent(self, event):
         self.scaleView(math.pow(2.0, event.delta() / 240.0))
 
-    def drawBackground(self, painter, rect):
-        # Shadow.
-        sceneRect = self.sceneRect()
-        rightShadow = QtCore.QRectF(sceneRect.right(), sceneRect.top() + 0.1, 0.1,
-                sceneRect.height())
-        bottomShadow = QtCore.QRectF(sceneRect.left() + 0.1, sceneRect.bottom(),
-                sceneRect.width(), 0.1)
-        if rightShadow.intersects(rect) or rightShadow.contains(rect):
-            painter.fillRect(rightShadow, QtCore.Qt.darkGray)
-        if bottomShadow.intersects(rect) or bottomShadow.contains(rect):
-            painter.fillRect(bottomShadow, QtCore.Qt.darkGray)
-
-        # Fill
-        gradient = QtGui.QLinearGradient(sceneRect.topLeft(),
-                sceneRect.bottomRight())
-        gradient.setColorAt(0, QtCore.Qt.white)
-        gradient.setColorAt(1, QtCore.Qt.lightGray)
-        painter.fillRect(rect.intersect(sceneRect), QtGui.QBrush(gradient))
-        painter.setBrush(QtCore.Qt.NoBrush)
-        painter.drawRect(sceneRect)
-
     def scaleView(self, scaleFactor):
         factor = self.matrix().scale(scaleFactor, scaleFactor).mapRect(
             QtCore.QRectF(0, 0, 1, 1)).width()
