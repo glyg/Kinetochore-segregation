@@ -233,7 +233,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
 
-    def evaluate(self, groups=[]):
+    def evaluate(self, groups=[], debug=False):
         """
         Passes all the evaluations in eval_simul.py
         results are stored in the self.observations dictionnary
@@ -251,12 +251,16 @@ instance. Please create another Metaphase instance to launch a new simulation.""
 
         for evaluation in all_evaluations:
             logging.info("Running %s" % evaluation.name)
-            try:
+            if debug:
                 result = evaluation().run(self.KD)
                 logging.info("%s done" % evaluation.name)
-            except Exception as e:
-                result = np.nan
-                logging.info("%s returns errors : %s" % (evaluation.name, e))
+            else:
+                try:
+                    result = evaluation().run(self.KD)
+                    logging.info("%s done" % evaluation.name)
+                except Exception as e:
+                    result = np.nan
+                    logging.info("%s returns errors : %s" % (evaluation.name, e))
             name = evaluation.name.replace(" ", "_")
             self.observations[name] = result
 

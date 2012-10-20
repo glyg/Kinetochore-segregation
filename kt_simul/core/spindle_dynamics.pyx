@@ -1,5 +1,4 @@
 # cython: profile=True
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 This module defines all the objects considered in the simulation,

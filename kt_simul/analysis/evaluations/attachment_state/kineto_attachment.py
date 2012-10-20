@@ -20,19 +20,32 @@ class KinetoAttachment(Evaluation):
         """
         """
 
+        num_steps = KD.spbR.traj.size
+        N = int(KD.params['N'])
         Mk = int(KD.params['Mk'])
-        num_steps = len(KD.spbR.traj)
 
-        balance = np.vsplit(np.zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
+        value_max = N * Mk * 2
 
-        merotelic_types = {'corrected': np.zeros(num_steps),
-                           'cut': np.zeros(num_steps),
-                           'monotelic': np.zeros(num_steps),
-                           'syntelic': np.zeros(num_steps)}
+        attach_state = {'correct_attached': np.zeros(num_steps, dtype='float'),
+                        'incorrect_attached': np.zeros(num_steps, dtype='float'),
+                        'unattached': np.zeros(num_steps, dtype='float')
+                       }
 
         for ch in KD.chromosomes:
 
-            mh = np.array(ch.erroneous_history)
-            ph = np.array(ch.correct_history)
+            ch_incorrect = np.array(ch.erroneous_history).sum(1)
+            ch_correct = np.array(ch.correct_history).sum(1)
 
-        return mh
+            attach_state['correct_attached'] += ch_correct
+            attach_state['incorrect_attached'] += ch_incorrect
+
+        attach_state['unattached'] = np.ones(num_steps, dtype='float') * value_max
+        attach_state['unattached'] -= attach_state['correct_attached']
+        attach_state['unattached'] -= attach_state['incorrect_attached']
+
+        # Scale values on 1
+        attach_state['correct_attached'] /= value_max
+        attach_state['incorrect_attached'] /= value_max
+        attach_state['unattached'] /= value_max
+
+        return attach_state

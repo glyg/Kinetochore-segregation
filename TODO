@@ -4,10 +4,8 @@ TODO
 Medium priority
 ---------------
 
-1. evaluations : KinetoAttachment
-2. draw : KinetoAttachment evaluation
-3. evaluation_pool : KinetoAttachment
-4. cluster.Process : evaluation_pool + draw
+1. evaluation_pool : KinetoAttachment
+2. cluster.Process : evaluation_pool + draw
 
 Low priority
 ------------
