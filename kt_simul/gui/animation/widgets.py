@@ -22,6 +22,8 @@ class InteractiveCellWidget(QtGui.QWidget):
         self.timerId = 0
         self.meta = metaphase
 
+        self.setWindowTitle("Kinetochore simulation")
+
         self.ccw = ControlCellWidget(metaphase)
 
         # This widget will contain self.view and self.textArea

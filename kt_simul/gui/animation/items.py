@@ -26,17 +26,16 @@ class CellItem(QtGui.QGraphicsItem):
         self.N = int(metaphase.KD.params['N'])
         self.Mk = int(metaphase.KD.params['Mk'])
         self.mt = metaphase  # Metaphase instance
-        self.items = []
+
         self.spbR = SPBItem(0, parent=self)
-        self.items.append(self.spbR)
         self.spbL = SPBItem(-1, parent=self)
-        self.items.append(self.spbL)
+
+        self.cens_A = []
+        self.cens_B = []
 
         for n in range(self.N):
-            left_kineto = CentromereItem(n, -1, parent=self)
-            self.items.append(left_kineto)
-            right_kineto = CentromereItem(n, 0, parent=self)
-            self.items.append(right_kineto)
+            self.cens_A.append(CentromereItem(n, -1, parent=self))
+            self.cens_B.append(CentromereItem(n, 0, parent=self))
 
         self.time_point = -1
         self.gotoTime(0)
@@ -50,32 +49,16 @@ class CellItem(QtGui.QGraphicsItem):
             return False
 
         self.time_point = time_point
-        for item in self.items:
-            newPos = item.get_pos(self.time_point)
-            if newPos == item.pos():
-                return False
-            item.setPos(newPos)
-            if isinstance(item, CentromereItem):
-                self.update_plugsite_state(item)
 
-        return True
+        self.spbR.gotoTime(self.time_point)
+        self.spbL.gotoTime(self.time_point)
 
-    def update_plugsite_state(self, centromere):
-        """
-        Update plugsite color according to their state
-        """
-        for plugsite in centromere.plugsites:
-            newPos = plugsite.get_pos(self.time_point)
-            plugsite.setPos(newPos)
-            if plugsite.newPlug != plugsite.sim.state_hist[self.time_point]:
-                plugsite.newPlug = plugsite.sim.state_hist[self.time_point]
-                if plugsite.newPlug == 0:
-                    brush = QtGui.QBrush(UNPLUGED_COLOR)
-                elif plugsite.sim.is_correct(self.time_point):
-                    brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
-                else:
-                    brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
-                plugsite.color = brush
+        for n in range(self.N):
+            cen_A = self.cens_A[n]
+            cen_B = self.cens_B[n]
+
+            cen_A.gotoTime(self.time_point)
+            cen_B.gotoTime(self.time_point)
 
     def boundingRect(self):
         """
@@ -102,7 +85,7 @@ class CentromereItem(QtGui.QGraphicsItem):
 
         N = int(self.graphcell.mt.KD.params['N'])
         Mk = int(self.graphcell.mt.KD.params['Mk'])
-        self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
+
         self.n = n
         self.side = side
         self.ch = self.graphcell.mt.KD.chromosomes[n]
@@ -112,30 +95,27 @@ class CentromereItem(QtGui.QGraphicsItem):
         else:
             x = self.ch.cen_B.pos
             self.traj = self.ch.cen_B.traj
+
         self.y = (n - (N - 1) / 2.) * 0.4  # * ( Mk * SITE_OFFSET + CH_OFFSET)
         self.width = 0.2
         self.height = 0.1 * Mk  # Mk * SITE_OFFSET + CH_OFFSET
-        self.newPos = QtCore.QPointF(x, self.y)
-        self.plugsites = []
         self.setZValue(n)
+
+        self.plugsites = []
         for m in range(Mk):
             self.plugsites.append(PlugSiteItem(m, self, parent))
 
-    def get_pos(self, time_point):
+    def gotoTime(self, time_point):
         try:
             x = self.traj[time_point]
         except IndexError:
             x = self.traj[-1]
-        return QtCore.QPointF(x, self.y)
+        pos = QtCore.QPointF(x, self.y)
+        self.setPos(pos)
 
-    def advance(self):
-        self.time_point += 1
-        for item in self.items:
-            newPos = item.get_pos(self.time_point)
-            if newPos == item.pos():
-                return False
-            item.setPos(newPos)
-        return True
+        # Move PlugSite
+        for p in self.plugsites:
+            p.gotoTime(time_point)
 
     def shape(self):
         self.path = QtGui.QPainterPath()
@@ -150,7 +130,7 @@ class CentromereItem(QtGui.QGraphicsItem):
             brush = QtGui.QBrush(ACTIVE_SAC_COLOR)
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
-        center = self.newPos
+        center = self.pos()
         painter.drawEllipse(center, self.width, self.height)
 
     def boundingRect(self):
@@ -169,6 +149,7 @@ class PlugSiteItem(QtGui.QGraphicsItem):
         Mk = int(self.kineto.graphcell.mt.KD.params['Mk'])
         self.m = m
         side = self.kineto.side
+
         if side == 0:
             self.sim = self.kineto.ch.cen_A.plugsites[m]
         else:
@@ -178,34 +159,32 @@ class PlugSiteItem(QtGui.QGraphicsItem):
         self.height = self.kineto.height / Mk
 
         self.y = self.kineto.y + (m - (Mk - 1) / 2.) * 0.1
-        x = self.sim.pos
-        self.newPos = QtCore.QPointF(x, self.y)
-        self.newPlug = self.sim.plug_state
         self.setZValue(self.kineto.n * (1 + m))
 
-        if self.sim.plug_state == 0:
-            brush = QtGui.QBrush(UNPLUGED_COLOR)
-        elif self.sim.is_correct(0):
-            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
-        else:
-            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
-        self.color = brush
+        self.gotoTime(0)
 
-    def get_pos(self, time_point):
+    def gotoTime(self, time_point):
         try:
             x = self.sim.traj[time_point]
         except IndexError:
             x = self.sim.traj[-1]
-        return QtCore.QPointF(x, self.y)
+        pos = QtCore.QPointF(x, self.y)
+        self.setPos(pos)
 
-    def advance(self):
-        self.time_point += 1
-        for item in self.items:
-            newPos = item.get_pos(self.time_point)
-            if newPos == item.pos():
-                return False
-            item.setPos(newPos)
-        return True
+        # Change color according to state
+        self.setState(time_point)
+
+    def setState(self, time_point = 0):
+        """
+        Change color according to state at specific time_point
+        """
+        if self.sim.state_hist[time_point] == 0:
+            brush = QtGui.QBrush(UNPLUGED_COLOR)
+        elif self.sim.is_correct(time_point):
+            brush = QtGui.QBrush(GOOD_PLUGSITE_COLOR)
+        else:
+            brush = QtGui.QBrush(BAD_PLUGSITE_COLOR)
+        self.color = brush
 
     def shape(self):
         self.path = QtGui.QPainterPath()
@@ -217,7 +196,7 @@ class PlugSiteItem(QtGui.QGraphicsItem):
         brush = self.color
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
-        center = self.newPos
+        center = self.pos()
         painter.drawEllipse(center, self.width, self.height)
 
     def boundingRect(self):
@@ -233,24 +212,18 @@ class SPBItem(QtGui.QGraphicsItem):
         self.graphcell = parent
         self.setFlag(QtGui.QGraphicsItem.ItemIsMovable)
         if side == 0:
-            self.sim = self.graphcell.mt.KD.spbR
+            self.traj = self.graphcell.mt.KD.spbR.traj
         else:
-            self.sim = self.graphcell.mt.KD.spbL
-        self.newPos = QtCore.QPointF(self.sim.pos, 0.)
+            self.traj = self.graphcell.mt.KD.spbL.traj
 
-    def get_pos(self, time_point):
+    def gotoTime(self, time_point):
         try:
-            x = self.sim.traj[time_point]
+            x = self.traj[time_point]
         except IndexError:
-            x = self.sim.traj[-1]
+            x = self.traj[-1]
         y = 0.
-        return QtCore.QPointF(x, y)
-
-    def advance(self):
-        if self.newPos == self.pos():
-            return False
-        self.setPos(self.newPos)
-        return True
+        pos = QtCore.QPointF(x, y)
+        self.setPos(pos)
 
     def shape(self):
         self.path = QtGui.QPainterPath()
@@ -261,7 +234,7 @@ class SPBItem(QtGui.QGraphicsItem):
         brush = QtGui.QBrush(SPB_COLOR)
         painter.setBrush(brush)
         painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.01))
-        center = self.newPos
+        center = self.pos()
         painter.drawEllipse(center, 0.2, 0.6)
 
     def boundingRect(self):

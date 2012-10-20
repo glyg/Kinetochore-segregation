@@ -11,7 +11,8 @@ class AttachmentRate(Evaluation):
     Returns the difference between the number of correctly and erroneously
     attached plug sites when those two are != 0. This is  stored in an 2D array
     for which each line gives the number of kt in each of the possible cases
-    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point. """
+    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point.
+    """
 
     name = "Attachment Rate"
     description = """Returns the difference between the number of correctly and
