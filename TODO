@@ -4,6 +4,7 @@ TODO
 Medium priority
 ---------------
 
+* add variance on PoolEval KinetoAttachment plot
 * add ETA to PoolEvaluations
 * adapt Fabric file to PoolEvaluation and Process
 * review simu data loading (simuio.read()) -> too slow ?
