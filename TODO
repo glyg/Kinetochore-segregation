@@ -4,8 +4,9 @@ TODO
 Medium priority
 ---------------
 
-1. evaluation_pool : KinetoAttachment
-2. cluster.Process : evaluation_pool + draw
+* add ETA to PoolEvaluations
+* adapt Fabric file to PoolEvaluation and Process
+* review simu data loading (simuio.read()) -> too slow ?
 
 Low priority
 ------------

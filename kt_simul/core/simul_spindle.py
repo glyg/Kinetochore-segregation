@@ -150,6 +150,7 @@ class Metaphase(object):
         self.observations = {}
 
         logging.info('Simulation initialized')
+        logging.getLogger().disabled = False
 
     def __str__(self):
         lines = []
@@ -233,38 +234,52 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
 
-    def evaluate(self, groups=[], debug=False):
+    def evaluate(self, name=None, groups=[], debug=False, verbose=False):
         """
-        Passes all the evaluations in eval_simul.py
+        Passes all the evaluations in kt_simul.analysis.valuations module
         results are stored in the self.observations dictionnary
+
+        TODO: most of the code of this method should be moved to
+        kt_simul.analysis.evaluations.__init__
         """
         if not self.KD.simulation_done:
             logging.info("No simulation was runned")
             return False
 
-        logging.info("Starting evaluations")
-        all_evaluations = evaluations.find_evaluations(groups=groups)
+        if not name and verbose:
+            logging.info("Starting evaluations")
+        all_evaluations = evaluations.find_evaluations(name=name, groups=groups)
 
         if not all_evaluations:
-            logging.info("No evaluations found")
+            if verbose:
+                logging.info("No evaluations found")
             return False
 
         for evaluation in all_evaluations:
-            logging.info("Running %s" % evaluation.name)
+            if verbose:
+                logging.info("Running %s" % evaluation.name)
             if debug:
                 result = evaluation().run(self.KD)
-                logging.info("%s done" % evaluation.name)
+                if verbose:
+                    logging.info("%s done" % evaluation.name)
             else:
                 try:
                     result = evaluation().run(self.KD)
-                    logging.info("%s done" % evaluation.name)
+                    if verbose:
+                        logging.info("%s done" % evaluation.name)
                 except Exception as e:
                     result = np.nan
-                    logging.info("%s returns errors : %s" % (evaluation.name, e))
-            name = evaluation.name.replace(" ", "_")
-            self.observations[name] = result
+                    if verbose:
+                        logging.info("%s returns errors : %s" % (evaluation.name, e))
 
-        logging.info("All evaluations processed")
+            if name:
+                return result
+            else:
+                name = evaluation.name.replace(" ", "_")
+                self.observations[name] = result
+
+        if verbose:
+            logging.info("All evaluations processed")
 
         return True
 

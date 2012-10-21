@@ -10,7 +10,7 @@ from kt_simul.utils.filesystem import tree
 
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
-def find_evaluations(groups = []):
+def find_evaluations(name = None, groups = []):
     """
     This function return a list of Evaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
@@ -73,7 +73,9 @@ def find_evaluations(groups = []):
     evaluations = []
     for cls in subclasses:
         if cls.enable:
-            if not groups and cls.group == None:
+            if not groups and cls.group == None and not name:
+                evaluations.append(cls)
+            elif name and cls.name == name:
                 evaluations.append(cls)
             else:
                 if cls.group in groups:

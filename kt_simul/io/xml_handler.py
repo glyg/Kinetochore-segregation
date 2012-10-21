@@ -6,7 +6,7 @@ Handler for the parameters xml files -- to allow phase space exploration
 import numpy as np
 import StringIO
 
-from xml.etree.ElementTree import parse
+from xml.etree.ElementTree import parse, tostring
 
 # Those strings should be respected in the xml file
 SPRING_UNIT = u'pN/µm'
@@ -151,6 +151,15 @@ class ParamTree(object):
             else:
                 print 'Oooups'
                 raise()
+
+    def save(self, path):
+        """
+        Save root tree to a xml file
+        """
+
+        f = open(path, "w")
+        f.write(tostring(self.root))
+        f.close()
 
 
 class ResultTree(ParamTree):

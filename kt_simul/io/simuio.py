@@ -187,7 +187,18 @@ class SimuIO():
 
         # Unzip results.xml and data.npy and put it in
         # tempfile
-        zipf = zipfile.ZipFile(simufname, "r")
+        try:
+            zipf = zipfile.ZipFile(simufname, "r")
+        except:
+            logging.info("%s does not appear to be a Zipfile" % simufname)
+            return False
+
+        # Test if simu results file are in the archive
+        if "results.xml" not in zipf.namelist() or \
+           "data.npy" not in zipf.namelist():
+           logging.info("%s does not contain results.xml and data.npy" % simfname)
+           return False
+
         xmltemp = StringIO.StringIO(zipf.read("results.xml"))
         datatemp = StringIO.StringIO(zipf.read("data.npy"))
 

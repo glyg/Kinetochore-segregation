@@ -25,6 +25,7 @@ class Launcher:
 
     def __init__(self, results_path,
                  nsimu,
+                 name="",
                  ncore=None,
                  paramtree=None,
                  measuretree=None,
@@ -104,7 +105,10 @@ class Launcher:
 
         # Results directory according to date and time
         now = datetime.datetime.now()
-        dirname = now.strftime("%Y.%m.%d.%H.%M")
+        if name:
+            dirname = now.strftime("%Y.%m.%d.%H.%M") + "_" + name
+        else:
+            dirname = now.strftime("%Y.%m.%d.%H.%M")
         self.results_path = os.path.join(self.results_path, dirname)
 
         # Remove existing directory of it exist
@@ -112,11 +116,14 @@ class Launcher:
             shutil.rmtree(self.results_path)
         os.makedirs(self.results_path)
 
+        # Save params.xml and measures.xml in results dir
+        self.paramtree.save(os.path.join(self.results_path, "params.xml"))
+        self.measuretree.save(os.path.join(self.results_path, "measures.xml"))
+
         self.raw_results_path = os.path.join(self.results_path, "raw")
         os.makedirs(self.raw_results_path)
 
         # Redirect log to run.log
-        #logging.getLogger().handlers = []
         logfile = os.path.join(self.results_path, "run.log")
         handler = logging.FileHandler(logfile)
         logging.getLogger().addHandler(handler)

@@ -37,17 +37,19 @@ class Process:
         for pool_evaluation in all_pool_evaluations:
             logging.info("Running %s" % pool_evaluation.name)
             if debug:
-                result = pool_evaluation().run(self.raw_path, self.eval_results)
+                result = pool_evaluation().run(self.results_path,
+                                                self.raw_path,
+                                                self.eval_results)
                 logging.info("%s done" % pool_evaluation.name)
             else:
                 try:
-                    result = pool_evaluation().run(self.raw_path, self.eval_results)
+                    result = pool_evaluation().run(self.results_path,
+                                                self.raw_path,
+                                                self.eval_results)
                     logging.info("%s done" % pool_evaluation.name)
                 except Exception as e:
                     result = np.nan
                     logging.info("%s returns errors : %s" % (pool_evaluation.name, e))
-            name = pool_evaluation.name.replace(" ", "_")
-            # self.observations[name] = result
 
         logging.info("All pool evaluations processed")
 

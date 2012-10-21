@@ -9,10 +9,16 @@ uses kt_simul.simuio.SimuIO().read()
 
 import sys
 import os
+import logging
+import re
+import json
 
 from kt_simul.utils.filesystem import tree
+from kt_simul.io.simuio import SimuIO
+from kt_simul.core.simul_spindle import Metaphase
 
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
+
 
 def find_pool_evaluations(groups=[]):
     """
@@ -32,16 +38,16 @@ def find_pool_evaluations(groups=[]):
     path = EVAL_PATH
     cls = PoolEvaluation
 
-    subclasses=[]
+    subclasses = []
 
     def look_for_subclass(modulename):
-        module=__import__(modulename)
+        module = __import__(modulename)
 
         # walk the dictionaries to get to the last one
-        d=module.__dict__
+        d = module.__dict__
         for m in modulename.split('.')[1:]:
             try:
-                d=d[m].__dict__
+                d = d[m].__dict__
             except:
                 pass
 
@@ -85,8 +91,10 @@ def find_pool_evaluations(groups=[]):
 
     return evaluations
 
+
 class RunFunctionNotImplemented(Exception):
     pass
+
 
 class PoolEvaluation(object):
     """
@@ -100,7 +108,65 @@ class PoolEvaluation(object):
         pass
 
     def run(self, *args):
-        raise RunFunctionNotImplemented("run() method need to be implemented in your Evaluation plugin.")
+        raise RunFunctionNotImplemented("run() method need to be implemented \
+            in your PoolEvaluation plugin.")
+
+    def get_nsimu(self, path):
+        """
+        Return the number of simulations inside a path. This method look to
+        the file simu.log
+        """
+
+        logpath = os.path.join(path, "simu.log")
+        log = json.load(open(logpath))
+
+        return log["number_of_simulations"]
+
+    def get_simus_params(self, path):
+        """
+        Return empty Metaphase object to give simulation parameters
+        before iterating on all simulations
+        """
+
+        params = os.path.join(path, "params.xml")
+        measures = os.path.join(path, "measures.xml")
+        meta = Metaphase(paramfile=params, measurefile=measures, verbose=False)
+        return meta
+
+    def iter_simulations(self, path, nsimu=-1, print_progress=False):
+        """
+        Iterator on zip file which contain simulationr results.
+
+        :return simu_id, meta: Simulation id and an instance of
+                               Metaphase object
+        """
+
+        i = 0
+        last = -1
+        for simu in os.listdir(path):
+           # Find simu id with zip filename
+            simu_id = ""
+            try:
+                simu_id = int(re.search('simu\_(.*)\.zip', simu).group(1))
+            except:
+                logging.info("Filename %s is not well formated" % simu)
+                break
+
+            # Create Metpahase object
+            meta = SimuIO().read(os.path.join(path, simu))
+
+            if meta:
+
+                if print_progress:
+                    progress = "%0.0f" % ((i * 100.) / nsimu)
+                    if last != progress:
+                        logging.info("Progression: %s%%" % progress)
+                        last = progress
+                    i += 1
+
+                yield simu_id, meta
+
+            del meta
 
 __all__ = []
 for ev in find_pool_evaluations():

@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def dic_plot(plot_data):
+def dic_plot(plot_data, fname=None):
     """
     Plot curve with dictionnary description
     """
@@ -35,4 +35,8 @@ def dic_plot(plot_data):
             legends.append(yaxis['legend'])
 
     plt.legend(tuple(legends), 'best')
-    plt.show()
+
+    if fname:
+        plt.savefig(fname)
+    else:
+        plt.show()
