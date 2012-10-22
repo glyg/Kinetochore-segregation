@@ -122,6 +122,17 @@ class PoolEvaluation(object):
 
         return log["number_of_simulations"]
 
+    def get_name(self, path):
+        """
+        Return the name of simulations inside a path. This method look to
+        the file simu.log
+        """
+
+        logpath = os.path.join(path, "simu.log")
+        log = json.load(open(logpath))
+
+        return log["name"]
+
     def get_simus_params(self, path):
         """
         Return empty Metaphase object to give simulation parameters

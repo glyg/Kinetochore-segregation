@@ -3,20 +3,12 @@ from kt_simul.analysis.evaluations import Evaluation
 import numpy as np
 
 
-class AttachmentRate(Evaluation):
+class ChromoAttachment(Evaluation):
     """
-    input: a kt_simul.spindle_dynamics.KinetochoreDynamics()
-    after a simulation instance.
-
-    Returns the difference between the number of correctly and erroneously
-    attached plug sites when those two are != 0. This is  stored in an 2D array
-    for which each line gives the number of kt in each of the possible cases
-    (i.e balance = -Mk+2, -Mk+3, .., Mk-2) for each time point.
     """
 
-    name = "Attachment Rate"
-    description = """Returns the difference between the number of correctly and
-                    erroneously attached plug sites when those two are != 0."""
+    name = "Chromosome Attachment"
+    description = """Return the chromosomes attachment state"""
     group = "attachment_state"
     enable = False
 
@@ -27,17 +19,16 @@ class AttachmentRate(Evaluation):
         """
         """
 
+        num_steps = KD.spbR.traj.size
+        N = int(KD.params['N'])
         Mk = int(KD.params['Mk'])
-        num_steps = len(KD.spbR.traj)
 
-        # The number of cases is (Mk-1) * 2 + 1
+        value_max = N * Mk * 2
 
-        balance = np.vsplit(np.zeros((2 * Mk - 1, num_steps)), 2 * Mk - 1)
-
-        merotelic_types = {'corrected': np.zeros(num_steps),
-                           'cut': np.zeros(num_steps),
-                           'monotelic': np.zeros(num_steps),
-                           'syntelic': np.zeros(num_steps)}
+        attach_state = {'monotelic': np.zeros(num_steps, dtype='float'),
+                        'incorrect_attached': np.zeros(num_steps, dtype='float'),
+                        'unattached': np.zeros(num_steps, dtype='float')
+                       }
 
         for ch in KD.chromosomes:
 

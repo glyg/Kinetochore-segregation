@@ -21,6 +21,8 @@ class Process:
         # Where to store analysis files (plot, etc)
         self.eval_results = os.path.join(self.results_path, 'analysis')
 
+        self.observations = {}
+
         logging.info("Processor initialised")
 
     def evaluate(self, groups=[], debug=False):
@@ -51,6 +53,9 @@ class Process:
                     result = np.nan
                     logging.info("%s returns errors : %s" % (pool_evaluation.name, e))
 
+            name = pool_evaluation.name
+            self.observations[name] = result
+
         logging.info("All pool evaluations processed")
 
-        return True
+        return self.observations

@@ -8,10 +8,10 @@ import socket
 # Local paths
 project = os.path.abspath(os.path.dirname(__file__))
 project = os.path.dirname(os.path.dirname(project))
-if socket.gethostname() == "aragorn":
-    results = "/media/thor/data/ktsimu/"
-else:
+if socket.gethostname() == "boromir":
     results = "/home/hadim/local/data/"
+else:
+    results = "/media/thor/data/ktsimu/"
 
 # Loki paths
 host = 'hadim@130.120.107.234'
@@ -65,7 +65,7 @@ def pool(path):
 
 
 @task
-def pull_data():
+def pull():
     """
     """
     cmd = "rsync --exclude raw --progress -a %s:%s %s" % (host, rresults, results)
@@ -84,15 +84,19 @@ def status(keep=False):
     """
     Display the status of all running simulations
     """
-    with cd(rresults):
-        for simu in run("ls").split(" "):
-            if simu:
-                simu_path = os.path.join(rresults, simu)
-                files = run("ls %s" % simu_path).split(" ")
-                # If no simu.log then simu is running
-                if not "simu.log" in files:
-                    _show_status(simu_path, keep)
+    for simu in _listdir(rresults):
+        if simu:
+            simu_path = os.path.join(rresults, simu)
+            files = _listdir(simu_path)
+            # If no simu.log then simu is running
+            if not "simu.log" in files:
+                _show_status(simu_path, keep)
 
+
+def _listdir(path):
+    files = run("ls %s" % path).replace("\n", " ")
+    files = files.replace("\t", " ").replace("\r", " ").split(" ")
+    return files
 
 def _show_status(path, keep):
     print red("Simulation %s" % path)

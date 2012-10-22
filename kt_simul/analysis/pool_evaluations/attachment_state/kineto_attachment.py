@@ -26,6 +26,7 @@ class KinetoAttachment(PoolEvaluation):
         meta_infos = self.get_simus_params(simu_path)
         num_steps = meta_infos.num_steps
         nsimu = int(self.get_nsimu(simu_path))
+        name = self.get_name(simu_path)
 
         attach_state = {'correct_attached': np.zeros((nsimu, num_steps)),
                         'incorrect_attached': np.zeros((nsimu, num_steps)),
@@ -46,29 +47,39 @@ class KinetoAttachment(PoolEvaluation):
         # Mean data
         logging.info("Processing data")
         correct_attached = attach_state['correct_attached'].mean(axis=0)
+        correct_attached_std = attach_state['correct_attached'].std(axis=0)
         incorrect_attached = attach_state['incorrect_attached'].mean(axis=0)
+        incorrect_attached_std = attach_state['incorrect_attached'].std(axis=0)
         unattached = attach_state['unattached'].mean(axis=0)
+        unattached_std = attach_state['unattached'].std(axis=0)
 
         # Configure and plot the graph
         logging.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}
-        plot_data['title'] = "Kinetochores attachment rate on %i simulations" % nsimu
+        plot_data['title'] = """Kinetochores attachment rate on %i simulations.
+        Simulation name : %s""" % (nsimu, name)
         plot_data['xaxis'] = {'data': timelapse, 'label': 'Time'}
         plot_data['yaxis'] = {'label': 'Attachment rate', 'axis': []}
 
         correct_attached_axis = {'data': correct_attached,
                                  'color': 'green',
-                                 'legend': 'Correct attached kinetochore'}
+                                 'legend': 'Correct attached kinetochore',
+                                 'error': correct_attached_std,
+                                 }
 
         incorrect_attached_axis = {'data': incorrect_attached,
                                    'color': 'red',
-                                   'legend': 'Incorrect attached kinetochore'}
+                                   'legend': 'Incorrect attached kinetochore',
+                                   'error': incorrect_attached_std,
+                                   }
 
         unattached_axis = {'data': unattached,
                            'color': 'blue',
-                           'legend': 'Unattached kinetochore'}
+                           'legend': 'Unattached kinetochore',
+                           'error': unattached_std,
+                           }
 
         plot_data['yaxis']['axis'].append(correct_attached_axis)
         plot_data['yaxis']['axis'].append(incorrect_attached_axis)
@@ -76,4 +87,9 @@ class KinetoAttachment(PoolEvaluation):
 
         dic_plot(plot_data, os.path.join(simu_path, "Kineto_Attachment.svg"))
 
-        return True
+        # Now plot with log xaxis
+        plot_data['xaxis']['label'] = 'Time (Logarithmic scale)'
+        plot_data['logx'] = True
+        dic_plot(plot_data, os.path.join(simu_path, "Kineto_Attachment_logarithmic.svg"))
+
+        return attach_state

@@ -52,8 +52,7 @@ class ParamTree(object):
 
         if xmlfile is not None:
 
-            if isinstance(xmlfile, file) or \
-                isinstance(xmlfile, StringIO.StringIO):
+            if isinstance(xmlfile, file) or isinstance(xmlfile, StringIO.StringIO):
                 self.tree = parse(xmlfile)
             elif isinstance(xmlfile, str):
                 source = file(xmlfile, "r")
@@ -166,8 +165,7 @@ class ResultTree(ParamTree):
 
     def __init__(self, xmlfile, datafile):
 
-        ParamTree.__init__(self, xmlfile=xmlfile,
-            adimentionalized=False)
+        ParamTree.__init__(self, xmlfile=xmlfile, adimentionalized=False)
         self.data = np.load(datafile)
 
     def get_spb_trajs(self):

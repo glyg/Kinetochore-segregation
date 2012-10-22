@@ -15,4 +15,5 @@ if __name__ == '__main__':
     results_path = args.path
 
     p = Process(results_path=results_path)
-    p.evaluate(groups=['attachment_state'], debug=True)
+    resu = p.evaluate(groups=['attachment_state'], debug=True)
+

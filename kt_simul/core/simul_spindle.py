@@ -58,7 +58,7 @@ class Metaphase(object):
 
     def __init__(self,  paramtree=None, measuretree=None,
                  paramfile=PARAMFILE, measurefile=MEASUREFILE,
-                 initial_plug='random', reduce_p=True,
+                 initial_plug='null', reduce_p=True,
                  verbose=False):
 
         """
@@ -279,13 +279,13 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             if name:
                 return result
             else:
-                name = evaluation.name.replace(" ", "_")
+                name = evaluation.name
                 self.observations[name] = result
 
         if verbose:
             logging.info("All evaluations processed")
 
-        return True
+        return self.observations
 
     def get_report(self, time = 0):
         """

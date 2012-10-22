@@ -195,10 +195,9 @@ class SimuIO():
             return False
 
         # Test if simu results file are in the archive
-        if "results.xml" not in zipf.namelist() or \
-           "data.npy" not in zipf.namelist():
-           logging.info("%s does not contain results.xml and data.npy" % simfname)
-           return False
+        if "results.xml" not in zipf.namelist() or "data.npy" not in zipf.namelist():
+            logging.info("%s does not contain results.xml and data.npy" % simufname)
+            return False
 
         xmltemp = StringIO.StringIO(zipf.read("results.xml"))
         datatemp = StringIO.StringIO(zipf.read("data.npy"))
