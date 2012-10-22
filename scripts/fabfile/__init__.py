@@ -35,7 +35,7 @@ def push():
 
 
 @task
-def launch(simu = None):
+def launch(simu=None):
     """
     Launch simulations
     """
@@ -50,11 +50,26 @@ def launch(simu = None):
 
 
 @task
+def pool(path):
+    """
+    Launch PoolEvaluations on simulations
+    """
+    push()
+    with cd(os.path.join(rproject, "scripts")):
+        run("workon ktsimu")
+        cmd = rpython + "pool.py --path %s" % (path)
+        # Allow to run in background
+        run(cmd)
+        # run("screen -dmS ktsimu " + cmd)
+
+
+@task
 def kill():
     """
     Ugly way : kill all python process
     """
     run("killall -9 python")
+
 
 @task
 def status(keep=False):

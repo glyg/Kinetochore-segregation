@@ -5,13 +5,11 @@ Medium priority
 ---------------
 
 * add variance on PoolEval KinetoAttachment plot
-* add ETA to PoolEvaluations
-* adapt Fabric file to PoolEvaluation and Process
-* review simu data loading (simuio.read()) -> too slow ?
 
 Low priority
 ------------
 
+* review simu data loading (simuio.read()) -> too slow ?
 * test on mac os x (should work pretty well)
 * test on windows 7 (wont work without hard work !)
 * gestion des collisions ?

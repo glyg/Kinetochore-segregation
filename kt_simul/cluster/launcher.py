@@ -222,8 +222,8 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
 
     queue.put({"id": simu_id, "state": "start"})
     meta = Metaphase(verbose=False,
-                paramtree=paramtree,
-                measuretree=measuretree)
+                     paramtree=paramtree,
+                     measuretree=measuretree)
     meta.simul()
     meta.evaluate()
 
@@ -232,7 +232,7 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
 
     # Write simulation result
     io = SimuIO(meta)
-    io.save(simufname=simu_path)
+    io.save(simufname=simu_path, verbose=False)
 
     queue.put({ "id" : simu_id, "state" : "stop" })
 

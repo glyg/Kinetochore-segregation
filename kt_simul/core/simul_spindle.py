@@ -193,7 +193,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
 
         kappa_c = self.KD.params['kappa_c']
 
-        logging.info('Running simulation')
+        if self.verbose:
+            logging.info('Running simulation')
         bef = 0
         log_anaphase_onset = False
 
@@ -207,15 +208,17 @@ instance. Please create another Metaphase instance to launch a new simulation.""
 
             # Ablation test
             if ablat == time_point:
-                logging.info("Performing ablation")
+                if self.verbose:
+                    logging.info("Performing ablation")
                 self._ablation(time_point, pos=ablat_pos)
 
             # Anaphase transition ?
             if self._anaphase_test(time_point):
                 if not log_anaphase_onset:
                     print_progress(-1)
-                    logging.info("Anaphase onset at %i / %i" %
-                        (time_point, self.num_steps))
+                    if self.verbose:
+                        logging.info("Anaphase onset at %i / %i" %
+                                        (time_point, self.num_steps))
                     log_anaphase_onset = True
 
             self.KD.one_step(time_point)
@@ -223,7 +226,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         if self.verbose:
             print_progress(-1)
 
-        logging.info('Simulation done')
+        if self.verbose:
+            logging.info('Simulation done')
         self.KD.params['kappa_c'] = kappa_c
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)

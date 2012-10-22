@@ -35,7 +35,7 @@ class SimuIO():
             self.measuretree = self.meta.measuretree
             self.observations = self.meta.observations
 
-    def save(self, simufname="results.zip"):
+    def save(self, simufname="results.zip", verbose=False):
         """
         Saves the results of the simulation in two files
         with the parameters, measures and observations in one file
@@ -169,7 +169,8 @@ class SimuIO():
 
         datafile.close()
 
-        logging.info("Simulation saved to file %s " % simufname)
+        if verbose:
+            logging.info("Simulation saved to file %s " % simufname)
 
     def read(self, simufname="results.zip", verbose=False):
         """
