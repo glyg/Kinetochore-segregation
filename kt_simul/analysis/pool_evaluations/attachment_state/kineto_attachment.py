@@ -23,6 +23,10 @@ class KinetoAttachment(PoolEvaluation):
         """
         """
 
+        # Create eval_results_path if it does not exist
+        if not os.path.isdir(eval_results_path):
+            os.makedirs(eval_results_path)
+
         meta_infos = self.get_simus_params(simu_path)
         num_steps = meta_infos.num_steps
         nsimu = int(self.get_nsimu(simu_path))
@@ -58,10 +62,14 @@ class KinetoAttachment(PoolEvaluation):
         timelapse = meta_infos.timelapse
 
         plot_data = {}
-        plot_data['title'] = """Kinetochores attachment rate on %i simulations.
-        Simulation name : %s""" % (nsimu, name)
+        plot_data['title'] = """Kinetochores attachment rate"""
         plot_data['xaxis'] = {'data': timelapse, 'label': 'Time'}
         plot_data['yaxis'] = {'label': 'Attachment rate', 'axis': []}
+
+        # Draw parameters box
+        plot_data["params_box"] = [{'name': "Name", 'data': name},
+                                   {'name': "Simulations number", 'data': nsimu},
+                             ]
 
         correct_attached_axis = {'data': correct_attached,
                                  'color': 'green',
@@ -85,11 +93,11 @@ class KinetoAttachment(PoolEvaluation):
         plot_data['yaxis']['axis'].append(incorrect_attached_axis)
         plot_data['yaxis']['axis'].append(unattached_axis)
 
-        dic_plot(plot_data, os.path.join(simu_path, "Kineto_Attachment.svg"))
+        dic_plot(plot_data, os.path.join(eval_results_path, "Kineto_Attachment.svg"))
 
         # Now plot with log xaxis
         plot_data['xaxis']['label'] = 'Time (Logarithmic scale)'
         plot_data['logx'] = True
-        dic_plot(plot_data, os.path.join(simu_path, "Kineto_Attachment_logarithmic.svg"))
+        dic_plot(plot_data, os.path.join(eval_results_path, "Kineto_Attachment_logarithmic.svg"))
 
         return attach_state

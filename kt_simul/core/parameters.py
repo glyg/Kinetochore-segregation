@@ -4,10 +4,16 @@ Module dealing with simulation parameters
 """
 
 import logging
+import os
 
-from kt_simul.core import simul_spindle
+from kt_simul.io.xml_handler import ParamTree
 
-MEASURES = simul_spindle.MEASURETREE
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+PARAMFILE = os.path.join(ROOT_DIR, 'default', 'params.xml')
+MEASUREFILE = os.path.join(ROOT_DIR, 'default', 'measures.xml')
+MEASURETREE = ParamTree(MEASUREFILE, adimentionalized=False)
+MEASURES = MEASURETREE.absolute_dic
 
 
 def reduce_params(paramtree, measuretree):
