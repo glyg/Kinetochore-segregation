@@ -3,6 +3,13 @@
 Module dealing with simulation parameters
 """
 
+import logging
+
+from kt_simul.core import simul_spindle
+
+MEASURES = simul_spindle.MEASURETREE
+
+
 def reduce_params(paramtree, measuretree):
     """
     This functions changes the parameters so that
@@ -38,8 +45,8 @@ def reduce_params(paramtree, measuretree):
         logging.warning(MEASURES.keys())
         return False
 
-    k_a = params['k_a'] # 'free' attachement event frequency
-    k_d0 = params['k_d0'] # 'free' detachement event frequency
+    k_a = params['k_a']  # 'free' attachement event frequency
+    k_d0 = params['k_d0']  # 'free' detachement event frequency
     d_alpha = params['d_alpha']
     N = int(params['N'])
     Mk = int(params['Mk'])
@@ -58,27 +65,27 @@ def reduce_params(paramtree, measuretree):
         k_d_eff = k_d0
 
     # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
-    alpha_mean = 1/(1 + k_d_eff/k_a)
+    alpha_mean = 1 / (1 + k_d_eff / k_a)
     #Take metaphase kt pair distance as the maximum one
-    kappa_c = Fk * Mk / ( max_metaph_k_dist - d0 )
+    kappa_c = Fk * Mk / (max_metaph_k_dist - d0)
     params['kappa_c'] = kappa_c
 
     #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
-    kappa_k = Fk * Mk / ( 2 * outer_inner_dist )
+    kappa_k = Fk * Mk / (2 * outer_inner_dist)
     params['kappa_k'] = kappa_k
     #Ensure we have sufficientely small time steps
     dt = params['dt']
-    params['dt'] = min( tau_c/4., tau_k/4., params['dt'])
+    params['dt'] = min(tau_c / 4., tau_k / 4., params['dt'])
     if params['dt'] != dt:
         logging.info('Time step changed')
 
     mus = params['mus']
-    Fmz =  ( Fk * N * Mk * alpha_mean * (1 +  metaph_rate / ( 2 * Vk ))
-             + mus * metaph_rate / 2.  ) / (1 -  metaph_rate / Vmz )
+    Fmz = (Fk * N * Mk * alpha_mean * (1 + metaph_rate / (2 * Vk))
+             + mus * metaph_rate / 2.) / (1 - metaph_rate / Vmz)
     params['Fmz'] = Fmz
-    muc = ( tau_c * kappa_c )
+    muc = (tau_c * kappa_c)
     params['muc'] = muc
-    muk = ( tau_k * kappa_k )
+    muk = (tau_k * kappa_k)
     params['muk'] = muk
     for key, val in params.items():
-        paramtree.change_dic(key, val, verbose = False)
+        paramtree.change_dic(key, val, verbose=False)

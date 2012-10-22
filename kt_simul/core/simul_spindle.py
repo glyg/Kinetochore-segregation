@@ -58,7 +58,7 @@ class Metaphase(object):
 
     def __init__(self,  paramtree=None, measuretree=None,
                  paramfile=PARAMFILE, measurefile=MEASUREFILE,
-                 initial_plug='null', reduce_p=True,
+                 initial_plug='random', reduce_p=True,
                  verbose=False):
 
         """
