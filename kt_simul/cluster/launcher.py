@@ -99,6 +99,8 @@ class Launcher:
 
         self.last_progress = 0
 
+        self.name = name
+
         # Make result directory
         if not os.path.exists(self.results_path):
             os.makedirs(self.results_path)
@@ -109,6 +111,7 @@ class Launcher:
             dirname = now.strftime("%Y.%m.%d.%H.%M") + "_" + name
         else:
             dirname = now.strftime("%Y.%m.%d.%H.%M")
+
         self.results_path = os.path.join(self.results_path, dirname)
 
         # Remove existing directory of it exist
@@ -200,6 +203,7 @@ class Launcher:
         """
 
         log = {}
+        log["name"] = self.name
         log["number_of_simulations"] = self.nsimu
         log["spent_time"] = time.strftime('%H:%M:%S', time.gmtime(self.total_time))
         log["results_folder_size_in_MB"] = get_folder_size(self.results_path)

@@ -12,8 +12,8 @@ It uses cython used for the computer intensive bits
 import random
 import numpy as np
 from scipy import sparse, linalg
-cimport numpy as np
 cimport cython
+cimport numpy as np
 from cpython cimport bool
 
 

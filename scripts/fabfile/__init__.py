@@ -35,7 +35,7 @@ def push():
 
 
 @task
-def launch(simu=None):
+def launch(simu=None, name=""):
     """
     Launch simulations
     """
@@ -44,7 +44,8 @@ def launch(simu=None):
     push()
     with cd(os.path.join(rproject, "scripts")):
         run("workon ktsimu")
-        cmd = rpython + "cluster.py --path %s --nsimu %s" % (rresults, str(simu))
+        cmd = rpython + "cluster.py --path %s --nsimu %s --name %s" \
+            % (rresults, str(simu), name)
         # Allow to run in background
         run("screen -dmS ktsimu " + cmd)
 
@@ -62,6 +63,13 @@ def pool(path):
         run(cmd)
         # run("screen -dmS ktsimu " + cmd)
 
+
+@task
+def pull_data():
+    """
+    """
+    cmd = "rsync --exclude raw --progress -a %s:%s %s" % (host, rresults, results)
+    local(cmd)
 
 @task
 def kill():
