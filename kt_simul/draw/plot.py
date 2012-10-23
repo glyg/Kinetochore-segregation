@@ -4,7 +4,6 @@
 Usefull functions to plot with matplotlib
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -16,9 +15,12 @@ def dic_plot(plot_data, fname=None):
     d = plot_data
 
     if "params_box" in d.keys():
-        fig = plt.figure(figsize=(20, 6))
-        ax = plt.subplot2grid((1, 6), (0, 0), colspan=4)
-        box = plt.subplot2grid((1, 6), (0, 4), colspan=2)
+        fig = plt.figure(figsize=(15, 6))
+        grid_size = (1, 6)
+        ax = plt.subplot2grid(grid_size, (0, 0),
+                              rowspan=1, colspan=4)
+        box = plt.subplot2grid(grid_size, (0, 4),
+                               rowspan=1, colspan=2)
 
         box.set_axis_off()
     else:
@@ -47,6 +49,12 @@ def dic_plot(plot_data, fname=None):
     legends = []
     legends_label = []
 
+    # Find axis limit
+    xmin = int(d['xaxis']['data'].min())
+    xmax = int(d['xaxis']['data'].max())
+    ymin = 0
+    ymax = 1
+
     for yaxis in d['yaxis']['axis']:
         mu = yaxis['data']
         color = yaxis['color']
@@ -61,9 +69,21 @@ def dic_plot(plot_data, fname=None):
             ax.fill_between(xaxis, mu + sigma, mu - sigma,
                 facecolor=color, alpha=0.5)
 
+        # Save ymin and ymax
+        if mu.min() < ymin:
+            ymin = mu.min()
+        if mu.max() > ymax:
+            ymax = mu.max()
+
+    # Move legend outside plot
     lgd = ax.legend(tuple(legends), tuple(legends_label),
-        loc='upper center', bbox_to_anchor=(0.5,-0.1))
+                    loc='upper center', bbox_to_anchor=(0.5, -0.1))
+
+    # Display grid on plot
     ax.grid()
+
+    # Set axis limit
+    ax.axis((xmin, xmax * 1, ymin, ymax * 1.1))
 
     if "params_box" in d.keys():
         txtstr = "Simulation parameters\n\n"
@@ -78,10 +98,10 @@ def dic_plot(plot_data, fname=None):
         box.text(0, 0.9, txtstr,
                  horizontalalignment='left',
                  verticalalignment='center',
-                 fontsize=14,
+                 fontsize=12,
                  bbox=props)
 
-    # plt.tight_layout()
+    plt.tight_layout()
 
     if fname:
         plt.savefig(fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
