@@ -221,6 +221,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
                     log_anaphase_onset = True
 
             self.KD.one_step(time_point)
+            # if time_point % 100 == 0:
+                # print self.KD.At_mat
 
         if self.verbose:
             print_progress(-1)

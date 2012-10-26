@@ -413,13 +413,16 @@ cdef class PlugSite(Organite):
             The prefactor to the force term
         """
         cdef double ld0, ld_slope
-        ld_slope = self.KD.params['ld_slope']
-        ld0 = self.KD.params['ld0']
         cdef double mt_length
         cdef double pole_pos
+        cdef double ldep
+
+        ld_slope = self.KD.params['ld_slope']
+        ld0 = self.KD.params['ld0']
+
         pole_pos = self.KD.spbR.pos * self.plug_state
         mt_length = abs(pole_pos - self.pos)
-        cdef double ldep
+
         ldep = ld_slope * mt_length + ld0
         # TODO: investigate: introduces a first order discontinuity
         # suspected to trigger artifacts when the plugsite

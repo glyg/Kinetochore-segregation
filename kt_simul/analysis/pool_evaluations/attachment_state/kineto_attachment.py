@@ -33,6 +33,8 @@ class KinetoAttachment(PoolEvaluation):
         nsimu = int(self.get_nsimu(simu_path))
         name = self.get_name(simu_path)
         ana_onset = int(params["t_A"])
+        N = int(params["N"])
+        Mk = int(params["Mk"])
 
         attach_state = {'correct_attached': np.zeros((nsimu, num_steps)),
                         'incorrect_attached': np.zeros((nsimu, num_steps)),
@@ -72,6 +74,8 @@ class KinetoAttachment(PoolEvaluation):
         # Draw parameters box
         plot_data["params_box"] = [{'name': "Name", 'data': name},
                                    {'name': "Simulations number", 'data': nsimu},
+                                   {'name': "Chromosome number", 'data': '%i' % N},
+                                   {'name': "Plug site per kinetochore", 'data': '%i' % Mk}
                              ]
 
         # Add annotation about anaphase onset

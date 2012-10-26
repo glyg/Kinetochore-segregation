@@ -3,6 +3,7 @@
 import argparse
 
 from kt_simul.cluster import Launcher
+from kt_simul.cluster.process import Process
 
 if __name__ == '__main__':
 
@@ -14,6 +15,9 @@ if __name__ == '__main__':
                         help='Directory to store results')
     parser.add_argument("--name", "-a", type=str, default="",
                         help='Name of the simulations')
+    parser.add_argument("--eval", default=False,
+                        action="store_true",
+                        help='Launch pool evaluations')
     args = parser.parse_args()
 
     PARAMFILE = "params.xml"
@@ -21,6 +25,7 @@ if __name__ == '__main__':
     result_path = args.path
     number_simu = args.nsimu
     name = args.name
+    launch_eval = args.eval
     ncore = 4
 
     l = Launcher(result_path,
@@ -31,3 +36,7 @@ if __name__ == '__main__':
                  measurefile=MEASUREFILE)
 
     l.run()
+
+    if launch_eval:
+        p = Process(results_path=l.results_path)
+        resu = p.evaluate(groups=['attachment_state'], debug=True)

@@ -202,11 +202,10 @@ cdef class KinetoDynamics(object) :
                 A0[bn, bnm] = muk
         return A0
 
-
     cdef time_dependentA(self):
         cdef int N = int(self.params['N'])
         cdef int Mk = int(self.params['Mk'])
-        cdef int pi_nmA, pi_nmB
+        cdef float pi_nmA, pi_nmB
         cdef int pluggedA, pluggedB
         cdef int n, m, anm, bnm
         self.At_mat[0,0] = 0
@@ -221,6 +220,11 @@ cdef class KinetoDynamics(object) :
                 plugsite_B = ch.cen_B.plugsites[m]
                 pi_nmB = plugsite_B.plug_state
                 pluggedB = plugsite_B.plugged
+
+                # Lenght dependance
+                pi_nmA *= plugsite_A.calc_ldep()
+                pi_nmB *= plugsite_B.calc_ldep()
+
                 #spbs diag terms:
                 self.At_mat[0, 0] -= pluggedA + pluggedB
                 anm = self._idx(0, n, m)
@@ -301,12 +305,14 @@ cdef class KinetoDynamics(object) :
         cdef float Fmz = self.params['Fmz']
         cdef float d0 = self.params['d0']
         cdef float kappa_c = self.params['kappa_c']
-        #cdef float ldep_A, ldep_B
+        cdef float pi_nmA, pi_nmB
         cdef np.ndarray C
-        C = np.zeros(1 + N * (1 + Mk) * 2)
+        cdef PlugSite plugsite_A, plugsite_B
+
+        C = np.zeros(1 + N * (1 + Mk) * 2, dtype="float")
         C[0] = 2 * Fmz
         cdef int n, m, delta, an, bn
-        cdef int pi_nma, pi_nmb, pluggedA, pluggedB
+        cdef int pluggedA, pluggedB
         cdef Chromosome ch
         for n in range(N):
             ch = self.chromosomes[n]
@@ -324,6 +330,11 @@ cdef class KinetoDynamics(object) :
                 plugsite_B = ch.cen_B.plugsites[m]
                 pi_nmB = plugsite_B.plug_state
                 pluggedB = plugsite_B.plugged
+
+                # Lenght dependance
+                pi_nmA *= plugsite_A.calc_ldep()
+                pi_nmB *= plugsite_B.calc_ldep()
+
                 C[0] -= pluggedA + pluggedB
                 C[anm] = pi_nmA
                 C[bnm] = pi_nmB
