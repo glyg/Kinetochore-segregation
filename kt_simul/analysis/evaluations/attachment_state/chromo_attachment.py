@@ -26,6 +26,7 @@ class ChromoAttachment(Evaluation):
         num_steps = KD.spbR.traj.size
         N = int(KD.params['N'])
         Mk = int(KD.params['Mk'])
+        ana_onset = int(KD.params["t_A"])
 
         value_max = N * Mk * 2
 
@@ -90,6 +91,10 @@ class ChromoAttachment(Evaluation):
                     logging.error("Problem in attachment rate algorithm (first level condition")
                     return False
 
+        # Normalize values on 1
+        for state in chromo_attach:
+            chromo_attach[state] = chromo_attach[state] / N
+
         if draw:
             # Draw attachment state with matplotlib
             timelapse = np.arange(0, KD.duration, KD.dt)
@@ -99,6 +104,22 @@ class ChromoAttachment(Evaluation):
             plot_data['xaxis'] = {'data': timelapse, 'label': 'Time'}
             plot_data['yaxis'] = {'label': 'Attachment rate', 'axis': []}
             plot_data['logx'] = True
+
+            # Add annotation about anaphase onset
+            plot_data["annotations"] = []
+            plot_data["annotations"].append({'s': 'Anaphase onset: %i' % ana_onset,
+                                             'xy': (ana_onset, 0),
+                                             'xytext': (0,50),
+                                             'textcoords': 'offset points',
+                                             'ha': 'center',
+                                             'va': 'bottom',
+                                             'bbox': dict(boxstyle='round,pad=0.2',
+                                                          fc='yellow',
+                                                          alpha=0.3),
+                                             'arrowprops': dict(arrowstyle='->',
+                                                                # connectionstyle='arc3,rad=0.5',
+                                                                color='black')
+                                             })
 
             plot_data['yaxis']['axis'].append({'data': chromo_attach['monotelic'],
                                                 'color': 'cyan',

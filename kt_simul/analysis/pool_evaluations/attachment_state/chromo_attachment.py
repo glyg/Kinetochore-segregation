@@ -27,10 +27,12 @@ class ChromoAttachment(PoolEvaluation):
         if not os.path.isdir(eval_results_path):
             os.makedirs(eval_results_path)
 
+        params = self.get_params(simu_path)
         meta_infos = self.get_simus_params(simu_path)
         num_steps = meta_infos.num_steps
         nsimu = int(self.get_nsimu(simu_path))
         name = self.get_name(simu_path)
+        ana_onset = int(params["t_A"])
 
         chromo_attach = {'monotelic': np.zeros((nsimu, num_steps)),
                          'syntelic': np.zeros((nsimu, num_steps)),
@@ -66,6 +68,22 @@ class ChromoAttachment(PoolEvaluation):
         plot_data["params_box"] = [{'name': "Name", 'data': name},
                                    {'name': "Simulations number", 'data': nsimu},
                              ]
+
+        # Add annotation about anaphase onset
+        plot_data["annotations"] = []
+        plot_data["annotations"].append({'s': 'Anaphase onset: %i' % ana_onset,
+                                         'xy': (ana_onset, 0),
+                                         'xytext': (0,50),
+                                         'textcoords': 'offset points',
+                                         'ha': 'center',
+                                         'va': 'bottom',
+                                         'bbox': dict(boxstyle='round,pad=0.2',
+                                                      fc='yellow',
+                                                      alpha=0.3),
+                                         'arrowprops': dict(arrowstyle='->',
+                                                            # connectionstyle='arc3,rad=0.5',
+                                                            color='black')
+                                         })
 
         plot_data['yaxis']['axis'].append({'data': chromo_attach['monotelic'].mean(axis=0),
                                             'color': 'cyan',

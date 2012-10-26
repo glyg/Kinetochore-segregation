@@ -27,10 +27,12 @@ class KinetoAttachment(PoolEvaluation):
         if not os.path.isdir(eval_results_path):
             os.makedirs(eval_results_path)
 
+        params = self.get_params(simu_path)
         meta_infos = self.get_simus_params(simu_path)
         num_steps = meta_infos.num_steps
         nsimu = int(self.get_nsimu(simu_path))
         name = self.get_name(simu_path)
+        ana_onset = int(params["t_A"])
 
         attach_state = {'correct_attached': np.zeros((nsimu, num_steps)),
                         'incorrect_attached': np.zeros((nsimu, num_steps)),
@@ -48,6 +50,7 @@ class KinetoAttachment(PoolEvaluation):
             attach_state['unattached'][i] = results['unattached']
 
         logging.getLogger().disabled = False
+
         # Mean data
         logging.info("Processing data")
         correct_attached = attach_state['correct_attached'].mean(axis=0)
@@ -70,6 +73,22 @@ class KinetoAttachment(PoolEvaluation):
         plot_data["params_box"] = [{'name': "Name", 'data': name},
                                    {'name': "Simulations number", 'data': nsimu},
                              ]
+
+        # Add annotation about anaphase onset
+        plot_data["annotations"] = []
+        plot_data["annotations"].append({'s': 'Anaphase onset: %i' % ana_onset,
+                                         'xy': (ana_onset, 0),
+                                         'xytext': (0,50),
+                                         'textcoords': 'offset points',
+                                         'ha': 'center',
+                                         'va': 'bottom',
+                                         'bbox': dict(boxstyle='round,pad=0.2',
+                                                      fc='yellow',
+                                                      alpha=0.3),
+                                         'arrowprops': dict(arrowstyle='->',
+                                                            # connectionstyle='arc3,rad=0.5',
+                                                            color='black')
+                                         })
 
         correct_attached_axis = {'data': correct_attached,
                                  'color': 'green',

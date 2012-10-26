@@ -144,6 +144,17 @@ class PoolEvaluation(object):
         meta = Metaphase(paramfile=params, measurefile=measures, verbose=False)
         return meta
 
+    def get_params(self, path):
+        """
+        """
+
+        params = os.path.join(path, "params.xml")
+        measures = os.path.join(path, "measures.xml")
+        meta = Metaphase(paramfile=params, measurefile=measures, verbose=False)
+        return meta.KD.params
+
+
+
     def iter_simulations(self, path, nsimu=-1, print_progress=False):
         """
         Iterator on zip file which contain simulationr results.

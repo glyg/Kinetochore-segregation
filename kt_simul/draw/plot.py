@@ -106,6 +106,11 @@ def dic_plot(plot_data, fname=None):
                  fontsize=12,
                  bbox=props)
 
+    # Add annotations
+    if "annotations" in d.keys():
+        for ann in d["annotations"]:
+            ax.annotate(**ann)
+
     plt.tight_layout()
 
     if fname:
