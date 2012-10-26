@@ -237,7 +237,10 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             ch.cen_A.calc_toa()
             ch.cen_B.calc_toa()
 
-    def evaluate(self, name=None, groups=[], debug=False, verbose=False):
+    def evaluate(self, name=None, groups=[],
+                 debug=False,
+                 verbose=False,
+                 draw=False):
         """
         Passes all the evaluations in kt_simul.analysis.valuations module
         results are stored in the self.observations dictionnary
@@ -262,12 +265,12 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             if verbose:
                 logging.info("Running %s" % evaluation.name)
             if debug:
-                result = evaluation().run(self.KD)
+                result = evaluation().run(self.KD, draw)
                 if verbose:
                     logging.info("%s done" % evaluation.name)
             else:
                 try:
-                    result = evaluation().run(self.KD)
+                    result = evaluation().run(self.KD, draw)
                     if verbose:
                         logging.info("%s done" % evaluation.name)
                 except Exception as e:
@@ -278,8 +281,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             if name:
                 return result
             else:
-                name = evaluation.name
-                self.observations[name] = result
+                current_name = evaluation.name.replace(" ", "_")
+                self.observations[current_name] = result
 
         if verbose:
             logging.info("All evaluations processed")

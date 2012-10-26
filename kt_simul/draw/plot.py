@@ -15,7 +15,7 @@ def dic_plot(plot_data, fname=None):
     d = plot_data
 
     if "params_box" in d.keys():
-        fig = plt.figure(figsize=(15, 6))
+        fig = plt.figure(figsize=(12, 4))
         grid_size = (1, 6)
         ax = plt.subplot2grid(grid_size, (0, 0),
                               rowspan=1, colspan=4)
@@ -26,6 +26,11 @@ def dic_plot(plot_data, fname=None):
     else:
         fig = plt.figure(figsize=(12, 6))
         ax = fig.add_subplot(111)
+
+    # Do we draw error ?
+    draw_erro = True
+    if 'error' in d.keys() and d['error'] == False:
+        draw_erro = False
 
     # Add label and title
     if 'label' in d['xaxis'].keys():
@@ -59,12 +64,12 @@ def dic_plot(plot_data, fname=None):
         mu = yaxis['data']
         color = yaxis['color']
 
-        yplot, = plotter(xaxis, mu, color, label=yaxis['legend'])
         if 'legend' in yaxis.keys():
+            yplot, = plotter(xaxis, mu, color, label=yaxis['legend'])
             legends.append(yplot)
             legends_label.append(yaxis['legend'])
 
-        if 'error' in yaxis.keys():
+        if 'error' in yaxis.keys() and draw_erro:
             sigma = yaxis['error']
             ax.fill_between(xaxis, mu + sigma, mu - sigma,
                 facecolor=color, alpha=0.5)

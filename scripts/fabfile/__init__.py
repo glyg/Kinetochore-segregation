@@ -35,17 +35,17 @@ def push():
 
 
 @task
-def launch(simu=None, name=""):
+def launch(nsimu=None, name=""):
     """
     Launch simulations
     """
-    if not simu:
-        simu = NSIMU
+    if not nsimu:
+        nsimu = NSIMU
     push()
     with cd(os.path.join(rproject, "scripts")):
         run("workon ktsimu")
         cmd = rpython + "cluster.py --path %s --nsimu %s --name %s" \
-            % (rresults, str(simu), name)
+            % (rresults, str(nsimu), name)
         # Allow to run in background
         run("screen -dmS ktsimu " + cmd)
 

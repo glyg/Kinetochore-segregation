@@ -41,6 +41,8 @@ cdef class KinetoDynamics(object) :
     cdef public bool simulation_done
     cdef public object params
     cdef public int num_steps
+    cdef public float duration
+    cdef public float dt
     cdef public list chromosomes
     cdef public np.ndarray B_mat, At_mat, A0_mat
     cdef public bool anaphase
@@ -71,12 +73,12 @@ cdef class KinetoDynamics(object) :
         L0 = self.params['L0']
         N = int(self.params['N'])
         Mk = int(self.params['Mk'])
-        duration = self.params['span']
-        dt = self.params['dt']
-        self.num_steps = int(duration/dt)
+        self.duration = self.params['span']
+        self.dt = self.params['dt']
+        self.num_steps = int(self.duration / self.dt)
         self.spindle = Spindle(self)
-        self.spbR = Spb(self.spindle, RIGHT, L0) #right spb (RIGHT = 1)
-        self.spbL = Spb(self.spindle, LEFT, L0) #left one (LEFT = -1)
+        self.spbR = Spb(self.spindle, RIGHT, L0)  # right spb (RIGHT = 1)
+        self.spbL = Spb(self.spindle, LEFT, L0)  # left one (LEFT = -1)
         self.initial_plug = initial_plug
         cdef Chromosome ch
         self.chromosomes = []
@@ -84,10 +86,10 @@ cdef class KinetoDynamics(object) :
             ch = Chromosome(self.spindle, n)
             self.chromosomes.append(ch)
         cdef int dim = 1 + N * (1 + Mk) * 2
-        self.B_mat = np.zeros((dim, dim), dtype = float)
+        self.B_mat = np.zeros((dim, dim), dtype=float)
         self.calc_B()
         self.A0_mat = self.time_invariantA()
-        self.At_mat = np.zeros((dim, dim), dtype = float)
+        self.At_mat = np.zeros((dim, dim), dtype=float)
         self.simulation_done = False
         self.anaphase = False
         self.all_plugsites = self.spindle.get_all_plugsites()
