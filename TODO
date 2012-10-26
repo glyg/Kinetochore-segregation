@@ -1,11 +1,20 @@
 TODO
 ====
 
+Hight priority
+--------------
+
+* store notebook file
+* separate confg in scripts/ pool.py and cluster.py
+* better simu name management in cluster module
+* ajouter evaluation pr avoir des profils
+* implémenter lenght dependance
+
 Medium priority
 ---------------
 
-* chromo attachments
 * Explorator module
+* faire tt les graphes
 
 Low priority
 ------------
