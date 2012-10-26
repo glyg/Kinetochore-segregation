@@ -111,7 +111,7 @@ def dic_plot(plot_data, fname=None):
         for ann in d["annotations"]:
             ax.annotate(**ann)
 
-    plt.tight_layout()
+    fig.tight_layout()
 
     if fname:
         plt.savefig(fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
