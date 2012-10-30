@@ -108,11 +108,15 @@ class Launcher:
         # Results directory according to date and time
         now = datetime.datetime.now()
         if name:
-            dirname = now.strftime("%Y.%m.%d.%H.%M") + "_" + name
+            dirname = now.strftime("%Y.%m.%d") + "_" + name
         else:
-            dirname = now.strftime("%Y.%m.%d.%H.%M")
+            dirname = now.strftime("%Y.%m.%d")
 
         self.results_path = os.path.join(self.results_path, dirname)
+
+        # TODO: Ugly fix
+        if os.path.isdir(self.results_path):
+            self.results_path += "_2"
 
         # Remove existing directory of it exist
         if os.path.exists(self.results_path):
