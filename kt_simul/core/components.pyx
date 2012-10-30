@@ -114,6 +114,7 @@ cdef class Chromosome(Organite):
     def __init__(self, spindle, ch_id):
 
         self.ch_id = ch_id
+        self.id = self.ch_id
         d0 = spindle.KD.params['d0']
         L0 = spindle.KD.params['L0']
         center_pos = random.gauss(0, 0.2 * (L0 - d0))
@@ -424,11 +425,13 @@ cdef class PlugSite(Organite):
         mt_length = abs(pole_pos - self.pos)
 
         ldep = ld_slope * mt_length + ld0
+
         # TODO: investigate: introduces a first order discontinuity
         # suspected to trigger artifacts when the plugsite
         # is close to the pole
         if mt_length < 0.0001:
             ldep = mt_length  # No force when at pole
+
         return ldep
 
     cdef void plug_unplug(self, int time_point):

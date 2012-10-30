@@ -49,6 +49,7 @@ cdef class Chromosome(Organite):
     cdef bool at_leftpole(Chromosome, float)
     cdef bool at_pole(Chromosome, int side=*, float tol=*)
     cdef public int ch_id
+    cdef public int id
 
 
 cdef class Centromere(Organite):

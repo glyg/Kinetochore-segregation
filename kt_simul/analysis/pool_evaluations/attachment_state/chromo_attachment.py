@@ -97,11 +97,11 @@ class ChromoAttachment(PoolEvaluation):
                                             'error': chromo_attach['unattached'].std(axis=0)
                                           })
 
-        plot_data['yaxis']['axis'].append({'data': chromo_attach['amphitelic'].mean(axis=0),
-                                            'color': 'green',
-                                            'legend': 'Amphitelic',
-                                            'error': chromo_attach['amphitelic'].std(axis=0)
-                                          })
+        # plot_data['yaxis']['axis'].append({'data': chromo_attach['amphitelic'].mean(axis=0),
+        #                                     'color': 'green',
+        #                                     'legend': 'Amphitelic',
+        #                                     'error': chromo_attach['amphitelic'].std(axis=0)
+        #                                   })
 
         plot_data['yaxis']['axis'].append({'data': chromo_attach['syntelic'].mean(axis=0),
                                             'color': 'yellow',

@@ -27,6 +27,11 @@ def dic_plot(plot_data, fname=None):
         fig = plt.figure(figsize=(12, 6))
         ax = fig.add_subplot(111)
 
+    # Do we draw legend ?
+    draw_legend = True
+    if 'legend' in d.keys() and d['legend'] == False:
+        draw_legend = False
+
     # Do we draw error ?
     draw_erro = True
     if 'error' in d.keys() and d['error'] == False:
@@ -64,8 +69,12 @@ def dic_plot(plot_data, fname=None):
         mu = yaxis['data']
         color = yaxis['color']
 
-        if 'legend' in yaxis.keys():
-            yplot, = plotter(xaxis, mu, color, label=yaxis['legend'])
+        if 'plot_args' in yaxis.keys():
+            yplot, = plotter(xaxis, mu, color=color, **yaxis['plot_args'])
+        else:
+            yplot, = plotter(xaxis, mu, color=color)
+
+        if 'legend' in yaxis.keys() and draw_legend:
             legends.append(yplot)
             legends_label.append(yaxis['legend'])
 
@@ -81,14 +90,17 @@ def dic_plot(plot_data, fname=None):
             ymax = mu.max()
 
     # Move legend outside plot
-    lgd = ax.legend(tuple(legends), tuple(legends_label),
-                    loc='upper center', bbox_to_anchor=(0.5, -0.1))
+    if draw_legend:
+        lgd = ax.legend(tuple(legends), tuple(legends_label),
+                        loc='upper center', bbox_to_anchor=(0.5, -0.1))
+    else:
+        lgd = None
 
     # Display grid on plot
     ax.grid()
 
     # Set axis limit
-    ax.axis((xmin, xmax * 1, ymin, ymax * 1.1))
+    # ax.axis((xmin, xmax * 1, ymin, ymax * 1.1))
 
     if "params_box" in d.keys():
         txtstr = "Simulation parameters\n\n"
@@ -114,6 +126,9 @@ def dic_plot(plot_data, fname=None):
     fig.tight_layout()
 
     if fname:
-        plt.savefig(fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if lgd:
+            plt.savefig(fname, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        else:
+            plt.savefig(fname, bbox_inches='tight')
     else:
         plt.show()

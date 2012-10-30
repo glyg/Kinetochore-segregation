@@ -4,13 +4,9 @@ TODO
 Hight priority
 --------------
 
-* ajouter evaluation pr avoir des profils
-* implémenter lenght dependance
-
 Medium priority
 ---------------
 
-* Explorator module
 * faire tt les graphes
 
 Low priority
@@ -20,7 +16,6 @@ Low priority
 * test on mac os x (should work pretty well)
 * test on windows 7 (wont work without hard work !)
 * gestion des collisions ?
-* merge sphinx doc and pdf doc
 * install a frozen workflow (see pyinstaller) (cython issues?)
 
 BUGS

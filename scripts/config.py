@@ -16,4 +16,6 @@ nsimu = 10
 results_path = "/media/thor/data/ktsimu"
 
 # Default cluster simulations name
-simu_name = "Default_n%i" % nsimu
+simu_name = "Default"
+
+evaluations = ['trajectories', 'attachment_state']

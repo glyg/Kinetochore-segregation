@@ -16,6 +16,7 @@ if __name__ == '__main__':
     nsimu = config.nsimu
     results_path = config.results_path
     simu_name = config.simu_name
+    evaluations = config.evaluations
 
     # Arguments parser
     parser = argparse.ArgumentParser(description='KtSimu Launcher')
@@ -24,7 +25,7 @@ if __name__ == '__main__':
                         help='Number of simulations to launch (default = 10)')
     parser.add_argument("--results", "-r", type=str, default=results_path,
                         help='Directory to store results')
-    parser.add_argument("--name", "-a", type=str, default=simu_name,
+    parser.add_argument("--name", "-a", type=str, default="",
                         help='Name of the simulations')
 
     parser.add_argument("--eval", '-e', default=False,
@@ -49,9 +50,14 @@ if __name__ == '__main__':
     only_eval = args.only_eval
     ncore = 4
 
+    if name == "":
+        name = "%s_n%i" % (config.simu_name, number_simu)
+
+
+
     if only_eval:
         p = Process(results_path=only_eval)
-        resu = p.evaluate(groups=['attachment_state'], debug=True)
+        resu = p.evaluate(groups=evaluations, debug=True)
 
     else:
         l = Launcher(result_path,
@@ -65,4 +71,4 @@ if __name__ == '__main__':
 
         if pool_eval:
             p = Process(results_path=l.results_path)
-            resu = p.evaluate(groups=['attachment_state'], debug=True)
+            resu = p.evaluate(groups=evaluations, debug=True)
