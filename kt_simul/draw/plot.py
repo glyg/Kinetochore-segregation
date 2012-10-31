@@ -43,7 +43,7 @@ def dic_plot(plot_data, fname=None):
     if 'label' in d['yaxis'].keys():
         ax.set_ylabel(d['yaxis']['label'])
     if 'title' in d.keys():
-        ax.set_title(d['title'])
+        ax.set_title(d['title'], fontsize=16)
 
     # Set plot configuration
     plotter = ax.plot
@@ -100,6 +100,8 @@ def dic_plot(plot_data, fname=None):
     ax.grid()
 
     # Set axis limit
+    if 'limit_y_min' in d.keys():
+        plt.ylim(ymin = d["limit_y_min"])
     # ax.axis((xmin, xmax * 1, ymin, ymax * 1.1))
 
     if "params_box" in d.keys():
@@ -123,7 +125,7 @@ def dic_plot(plot_data, fname=None):
         for ann in d["annotations"]:
             ax.annotate(**ann)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=1)
 
     if fname:
         if lgd:
