@@ -28,10 +28,20 @@ class MitoticPlate(Evaluation):
         timelapse = np.arange(0, KD.duration, KD.dt)
         num_steps = KD.duration / KD.dt
 
+        kt_traj_step = num_steps / 20
+
         spindle_length = abs(KD.spbR.traj - KD.spbL.traj)
+
+        # Dispersion is size of the segment made by extrem Kt scaled
+        # by spindle size
+        kt_plate = {'dispersion': None,
+                    'kt_trajs': []
+                    }
 
         max_kt = np.zeros((N * 2, num_steps), dtype="float")
         min_kt = np.zeros((N * 2, num_steps), dtype="float")
+
+        kt_trajs = []
 
         for i, ch in enumerate(KD.chromosomes):
             id1 = (i * 2) -1
@@ -43,13 +53,29 @@ class MitoticPlate(Evaluation):
             min_kt[id1] = ch.cen_A.traj
             min_kt[id2] = ch.cen_B.traj
 
+            kt_trajs.append(ch.cen_A.traj / spindle_length)
+            kt_trajs.append(ch.cen_B.traj / spindle_length)
+
         max_kt_distance = max_kt.max(axis=0)
         min_kt_distance = min_kt.min(axis=0)
 
-        dispersion = (abs(max_kt_distance - min_kt_distance) / spindle_length)
+        kt_plate['dispersion'] = (abs(max_kt_distance - min_kt_distance) /
+                                    spindle_length)
 
-        # if not draw:
-        #     return trajectories
+        # Scale kt trajectories
+        for kt in kt_trajs:
+            kt = kt + kt_plate['dispersion']
+
+            # Lighten array
+            light_traj = np.zeros(num_steps, dtype='float')
+            light_traj[::kt_traj_step] = 1
+            light_traj *= kt
+            light_traj[light_traj == 0] = np.nan
+
+            kt_plate['kt_trajs'].append(light_traj)
+
+        if not draw:
+            return kt_plate
 
         # Draw attachment state with matplotlib
         timelapse = np.arange(0, KD.duration, KD.dt)
@@ -78,10 +104,25 @@ class MitoticPlate(Evaluation):
                                                           color='black')
                                        })
 
-        plot_data['yaxis']['axis'].append({'data': dispersion,
+        plot_data['yaxis']['axis'].append({'data': kt_plate['dispersion'],
                                           'color': 'blue',
+                                          'plot_args' : {'lw': 2}
                                           })
 
-        dic_plot(plot_data, fname="../noldep+.svg")
+        dic_plot(plot_data)
 
-        # return trajectories
+        # User matplotlib to get color gradient
+        cm = plt.get_cmap('gist_rainbow')
+        for j, kt in enumerate(kt_plate['kt_trajs']):
+
+            if j%2 == 0:
+                color = cm(1. * j / (N))
+
+            plot_data['yaxis']['axis'].append({'data': kt,
+                                               'color': color,
+                                               'plot_args' : {'marker': 'o'}
+                                               })
+
+        dic_plot(plot_data)
+
+        return kt_plate

@@ -20,7 +20,7 @@ from kt_simul.core.simul_spindle import Metaphase
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-def find_pool_evaluations(groups=[]):
+def find_pool_evaluations(groups=[], all = False):
     """
     This function return a list of PoolEvaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
@@ -83,11 +83,14 @@ def find_pool_evaluations(groups=[]):
     evaluations = []
     for cls in subclasses:
         if cls.enable:
-            if not groups and cls.group == None:
-                evaluations.append(cls)
-            else:
-                if cls.group in groups:
+            if not all:
+                if not groups and cls.group == None:
                     evaluations.append(cls)
+                else:
+                    if cls.group in groups:
+                        evaluations.append(cls)
+            else:
+                evaluations.append(cls)
 
     return evaluations
 
@@ -194,4 +197,11 @@ __all__ = []
 for ev in find_pool_evaluations():
     __all__.append(ev)
 
-__all__ += ['find_pool_evaluations', 'PoolEvaluation', 'RunFunctionNotImplemented']
+def get():
+    """
+    Return all available pool_evaluations
+    """
+    evals = [e.name for e in find_pool_evaluations(all = True)]
+    return evals
+
+__all__ += ['find_pool_evaluations', 'PoolEvaluation', 'RunFunctionNotImplemented', 'get']
