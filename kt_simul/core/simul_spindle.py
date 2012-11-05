@@ -242,7 +242,8 @@ instance. Please create another Metaphase instance to launch a new simulation.""
     def evaluate(self, name=None, groups=[],
                  debug=False,
                  verbose=False,
-                 draw=False):
+                 draw=False,
+                 run_all=False):
         """
         Passes all the evaluations in kt_simul.analysis.valuations module
         results are stored in the self.observations dictionnary
@@ -256,7 +257,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
 
         if not name and verbose:
             logging.info("Starting evaluations")
-        all_evaluations = evaluations.find_evaluations(name=name, groups=groups)
+        all_evaluations = evaluations.find_evaluations(name=name, groups=groups, run_all=run_all)
 
         if not all_evaluations:
             if verbose:
@@ -280,7 +281,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
                     if verbose:
                         logging.info("%s returns errors : %s" % (evaluation.name, e))
 
-            if name:
+            if name and not run_all:
                 return result
             else:
                 current_name = evaluation.name.replace(" ", "_")
