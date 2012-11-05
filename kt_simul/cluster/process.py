@@ -25,12 +25,12 @@ class Process:
 
         logging.info("Processor initialised")
 
-    def evaluate(self, groups=[], debug=False):
+    def evaluate(self, groups=[], debug=False, run_all=False):
         """
         """
 
         logging.info("Starting pool evaluations")
-        all_pool_evaluations = find_pool_evaluations(groups=groups)
+        all_pool_evaluations = find_pool_evaluations(groups=groups, run_all=run_all)
 
         if not all_pool_evaluations:
             logging.info("No pool evaluations found")

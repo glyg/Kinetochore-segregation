@@ -100,9 +100,12 @@ def dic_plot(plot_data, fname=None):
     ax.grid()
 
     # Set axis limit
+    xmin, xmax, ymin, ymax = ax.axis()
+
     if 'limit_y_min' in d.keys():
-        plt.ylim(ymin = d["limit_y_min"])
-    # ax.axis((xmin, xmax * 1, ymin, ymax * 1.1))
+        ymin = d["limit_y_min"]
+
+    ax.axis((xmin, xmax, ymin, ymax))
 
     if "params_box" in d.keys():
         txtstr = "Simulation parameters\n\n"
