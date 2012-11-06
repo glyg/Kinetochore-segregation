@@ -18,7 +18,7 @@ class MitoticPlate(PoolEvaluation):
     def __init__(self,):
         pass
 
-    def run(self, simu_path, raw_path, eval_results_path):
+    def run(self, simu_path, raw_path, eval_results_path, verbose=True):
         """
         """
 
@@ -36,10 +36,11 @@ class MitoticPlate(PoolEvaluation):
         kt_plate = {'dispersion': np.zeros((nsimu, num_steps))
                    }
 
-        logging.info("Loading data from simulations files")
+        if verbose:
+            logging.info("Loading data from simulations files")
         for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
                                                         nsimu=nsimu,
-                                                        print_progress=True)):
+                                                        print_progress=verbose)):
             results = meta.evaluate(name="Mitotic Plate", verbose=False)
 
             kt_plate['dispersion'][i] = results['dispersion']

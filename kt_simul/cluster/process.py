@@ -25,12 +25,12 @@ class Process:
 
         logging.info("Processor initialised")
 
-    def evaluate(self, groups=[], debug=False, run_all=False):
+    def evaluate(self, name=None, groups=[], debug=False, run_all=False, verbose=True):
         """
         """
 
         logging.info("Starting pool evaluations")
-        all_pool_evaluations = find_pool_evaluations(groups=groups, run_all=run_all)
+        all_pool_evaluations = find_pool_evaluations(name=name, groups=groups, run_all=run_all)
 
         if not all_pool_evaluations:
             logging.info("No pool evaluations found")
@@ -41,13 +41,15 @@ class Process:
             if debug:
                 result = pool_evaluation().run(self.results_path,
                                                 self.raw_path,
-                                                self.eval_results)
+                                                self.eval_results,
+                                                verbose=verbose)
                 logging.info("%s done" % pool_evaluation.name)
             else:
                 try:
                     result = pool_evaluation().run(self.results_path,
                                                 self.raw_path,
-                                                self.eval_results)
+                                                self.eval_results,
+                                                verbose=verbose)
                     logging.info("%s done" % pool_evaluation.name)
                 except Exception as e:
                     result = np.nan

@@ -54,7 +54,6 @@ if __name__ == '__main__':
         name = "%s_n%i" % (config.simu_name, number_simu)
 
 
-
     if only_eval:
         p = Process(results_path=only_eval)
         resu = p.evaluate(groups=evaluations, debug=True)

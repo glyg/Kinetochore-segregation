@@ -3,6 +3,7 @@ import datetime
 import shutil
 import logging
 import copy
+import json
 
 from kt_simul.io.xml_handler import ParamTree
 from kt_simul.core import parameters
@@ -121,5 +122,24 @@ class Explorator:
                 del p
 
             del paramtree_tmp
+
+        self.create_log()
+
+    def create_log(self):
+        """
+        Create logfile in results folder
+        """
+
+        log = {}
+        log["name"] = self.name
+        log["number_of_simulations"] = self.nsimu
+        log["parameter vector length"] = len(self.parameter_to_explore['vector'])
+        log["total simu number"] = self.total_simu
+        log["parameter to explore name"] = self.parameter_to_explore['name']
+        log["parameter vector"] = self.parameter_to_explore['vector'].tolist()
+
+        f = open(os.path.join(self.results_path, "simu.log"), 'w')
+        f.write(json.dumps(log, sort_keys=True, indent=4))
+        f.close()
 
 

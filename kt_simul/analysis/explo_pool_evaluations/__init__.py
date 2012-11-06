@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Pool evaluations are small plugin that can be automatically
-launch after severals simulations.
-
-PoolEvaluation take a path where .zip files are stored. To open simulations
-uses kt_simul.simuio.SimuIO().read()
 """
 
 import sys
@@ -20,7 +15,7 @@ from kt_simul.core.simul_spindle import Metaphase
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-def find_pool_evaluations(name = None, groups=[], run_all = False):
+def find_explo_pool_evaluations(name = None, groups=[], run_all = False):
     """
     This function return a list of PoolEvaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
@@ -36,7 +31,7 @@ def find_pool_evaluations(name = None, groups=[], run_all = False):
     """
 
     path = EVAL_PATH
-    cls = PoolEvaluation
+    cls = ExploPoolEvaluation
 
     subclasses = []
 
@@ -77,7 +72,7 @@ def find_pool_evaluations(name = None, groups=[], run_all = False):
     sys.path.insert(0, path)
 
     for plugin in plugin_files:
-        look_for_subclass("kt_simul.analysis.pool_evaluations." + plugin)
+        look_for_subclass("kt_simul.analysis.explo_pool_evaluations." + plugin)
 
     # Filter plugin here
     evaluations = []
@@ -101,9 +96,9 @@ class RunFunctionNotImplemented(Exception):
     pass
 
 
-class PoolEvaluation(object):
+class ExploPoolEvaluation(object):
     """
-    Abstract class. All pool evaluation plugins need to write a
+    Abstract class. All explopool evaluation plugins need to write a
     class that inherit from PoolEvaluation.
 
     .. warning:: run() method need to be implemented.
@@ -114,7 +109,7 @@ class PoolEvaluation(object):
 
     def run(self, *args):
         raise RunFunctionNotImplemented("run() method need to be implemented \
-            in your PoolEvaluation plugin.")
+            in your ExploPoolEvaluation plugin.")
 
     def get_nsimu(self, path):
         """
@@ -138,72 +133,15 @@ class PoolEvaluation(object):
 
         return log["name"]
 
-    def get_simus_params(self, path):
-        """
-        Return empty Metaphase object to give simulation parameters
-        before iterating on all simulations
-        """
-
-        params = os.path.join(path, "params.xml")
-        measures = os.path.join(path, "measures.xml")
-        meta = Metaphase(paramfile=params, measurefile=measures, verbose=False)
-        return meta
-
-    def get_params(self, path):
-        """
-        """
-
-        params = os.path.join(path, "params.xml")
-        measures = os.path.join(path, "measures.xml")
-        meta = Metaphase(paramfile=params, measurefile=measures, verbose=False)
-        return meta.KD.params
-
-
-
-    def iter_simulations(self, path, nsimu=-1, print_progress=False):
-        """
-        Iterator on zip file which contain simulationr results.
-
-        :return simu_id, meta: Simulation id and an instance of
-                               Metaphase object
-        """
-
-        i = 0
-        last = -1
-        for simu in os.listdir(path):
-           # Find simu id with zip filename
-            simu_id = ""
-            try:
-                simu_id = int(re.search('simu\_(.*)\.zip', simu).group(1))
-            except:
-                logging.info("Filename %s is not well formated" % simu)
-                break
-
-            # Create Metpahase object
-            meta = SimuIO().read(os.path.join(path, simu))
-
-            if meta:
-
-                if print_progress:
-                    progress = "%0.0f" % ((i * 100.) / nsimu)
-                    if last != progress:
-                        logging.info("Progression: %s%%" % progress)
-                        last = progress
-                    i += 1
-
-                yield simu_id, meta
-
-            del meta
-
 __all__ = []
-for ev in find_pool_evaluations():
+for ev in find_explo_pool_evaluations():
     __all__.append(ev)
 
 def get():
     """
-    Return all available pool_evaluations
+    Return all available explo_pool_evaluations
     """
-    evals = [e.name for e in find_pool_evaluations(run_all = True)]
+    evals = [e.name for e in find_explo_pool_evaluations(run_all = True)]
     return evals
 
-__all__ += ['find_pool_evaluations', 'PoolEvaluation', 'RunFunctionNotImplemented', 'get']
+__all__ += ['find_explo_pool_evaluations', 'ExploPoolEvaluation', 'RunFunctionNotImplemented', 'get']

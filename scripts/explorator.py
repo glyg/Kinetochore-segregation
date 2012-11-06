@@ -5,6 +5,8 @@ import argparse
 import numpy as np
 
 from kt_simul.cluster import Explorator
+from kt_simul.cluster.process_exploration import ProcessExploration
+
 
 import config
 
@@ -31,6 +33,9 @@ def main():
 
     parser.add_argument("--eval", '-e', default=True,
                         action="store_true", help='Launch pool evaluations after simulations has runned')
+    parser.add_argument("--only-eval", '-o', dest="only_eval", type=str, default="",
+                        help='Launch only pool evaluations and specified ktsimu results path')
+
 
     parser.add_argument('--params', '-p', type=str, default=params_file,
                          help="For new simulation, specified params.xml file")
@@ -46,25 +51,39 @@ def main():
     number_simu = args.nsimu
     name = args.name
     pool_eval = args.eval
+    only_eval = args.only_eval
     ncore = 4
 
     # Here we explore ld_slope parameter
     parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0, 2, 0.1)}
+    # parameter_to_explore = {'name': 'ld0', 'vector': np.arange(0, 2, 0.1)}
 
     if name == "":
-        name = "%s_n%i_p%i" % (config.explo_simu_name, number_simu, len(parameter_to_explore['vector']))
+        name = "%s_n%i_p%i_%s" % (config.explo_simu_name, number_simu,
+                                  len(parameter_to_explore['vector']),
+                                  parameter_to_explore['name'])
 
-    explorator = Explorator(result_path,
-                            number_simu,
-                            name=name,
-                            ncore=ncore,
-                            paramfile=PARAMFILE,
-                            measurefile=MEASUREFILE,
-                            parameter_to_explore=parameter_to_explore,
-                            pool_eval=pool_eval
-                            )
+    if only_eval:
+        p = ProcessExploration(results_path=only_eval)
+        resu = p.evaluate(run_all=True, debug=True)
 
-    explorator.run()
+    else:
+
+        explorator = Explorator(result_path,
+                                number_simu,
+                                name=name,
+                                ncore=ncore,
+                                paramfile=PARAMFILE,
+                                measurefile=MEASUREFILE,
+                                parameter_to_explore=parameter_to_explore,
+                                pool_eval=pool_eval
+                                )
+
+        explorator.run()
+
+        if pool_eval:
+            p = ProcessExploration(results_path=only_eval)
+            resu = p.evaluate(run_all=True, debug=True)
 
 if __name__ == '__main__':
     main()
