@@ -58,4 +58,5 @@ class Process:
 
         logging.info("All pool evaluations processed")
 
+        del result
         return self.observations

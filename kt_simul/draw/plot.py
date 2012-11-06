@@ -4,6 +4,7 @@
 Usefull functions to plot with matplotlib
 """
 
+import gc
 import matplotlib.pyplot as plt
 
 
@@ -137,3 +138,8 @@ def dic_plot(plot_data, fname=None):
             plt.savefig(fname, bbox_inches='tight')
     else:
         plt.show()
+
+    # Cleanup memory
+    fig.clf()
+    plt.close()
+    gc.collect()

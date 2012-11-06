@@ -31,7 +31,8 @@ class Launcher:
                  measuretree=None,
                  paramfile=PARAMFILE,
                  measurefile=MEASUREFILE,
-                 verbose=True):
+                 verbose=True,
+                 name_without_date=False):
         """
 
         :results_path: The path where simulation results are stored
@@ -106,11 +107,14 @@ class Launcher:
             os.makedirs(self.results_path)
 
         # Results directory according to date and time
-        now = datetime.datetime.now()
-        if name:
-            dirname = now.strftime("%Y.%m.%d") + "_" + name
+        if name_without_date and name:
+            dirname = name
         else:
-            dirname = now.strftime("%Y.%m.%d")
+            now = datetime.datetime.now()
+            if name:
+                dirname = now.strftime("%Y.%m.%d") + "_" + name
+            else:
+                dirname = now.strftime("%Y.%m.%d")
 
         self.results_path = os.path.join(self.results_path, dirname)
 

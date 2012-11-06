@@ -18,4 +18,7 @@ results_path = "/media/thor/data/ktsimu"
 # Default cluster simulations name
 simu_name = "Default"
 
+# Default cluster simulations name
+explo_simu_name = "Exploration"
+
 evaluations = ['trajectories', 'attachment_state']
