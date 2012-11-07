@@ -212,6 +212,10 @@ class Launcher:
 
         log = {}
         log["name"] = self.name
+        log["duration"] = self.paramtree.absolute_dic['span']
+        log["dt"] = self.paramtree.absolute_dic['dt']
+        log["num_steps"] = int(log["duration"] / log["dt"])
+        log["number_of_simulations"] = self.nsimu
         log["number_of_simulations"] = self.nsimu
         log["spent_time"] = time.strftime('%H:%M:%S', time.gmtime(self.total_time))
         log["results_folder_size_in_MB"] = get_folder_size(self.results_path)

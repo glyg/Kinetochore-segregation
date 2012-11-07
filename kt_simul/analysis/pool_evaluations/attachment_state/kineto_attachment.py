@@ -19,7 +19,7 @@ class KinetoAttachment(PoolEvaluation):
     def __init__(self,):
         pass
 
-    def run(self, simu_path, raw_path, eval_results_path):
+    def run(self, simu_path, raw_path, eval_results_path, draw=True, verbose=True):
         """
         """
 
@@ -41,7 +41,8 @@ class KinetoAttachment(PoolEvaluation):
                         'unattached': np.zeros((nsimu, num_steps))
                        }
 
-        logging.info("Loading data from simulations files")
+        if verbose:
+            logging.info("Loading data from simulations files")
         for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
                                                         nsimu=nsimu,
                                                         print_progress=True)):
@@ -62,8 +63,12 @@ class KinetoAttachment(PoolEvaluation):
         unattached = attach_state['unattached'].mean(axis=0)
         unattached_std = attach_state['unattached'].std(axis=0)
 
+        if not draw:
+            return attach_state
+
         # Configure and plot the graph
-        logging.info("Plotting results")
+        if verbose:
+            logging.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}

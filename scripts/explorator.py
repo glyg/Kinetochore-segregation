@@ -55,7 +55,7 @@ def main():
     ncore = 4
 
     # Here we explore ld_slope parameter
-    parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0, 2, 0.1)}
+    parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0.2, 0.5, 0.02)}
     # parameter_to_explore = {'name': 'ld0', 'vector': np.arange(0, 2, 0.1)}
 
     if name == "":
@@ -82,7 +82,7 @@ def main():
         explorator.run()
 
         if pool_eval:
-            p = ProcessExploration(results_path=only_eval)
+            p = ProcessExploration(results_path=explorator.results_path)
             resu = p.evaluate(run_all=True, debug=True)
 
 if __name__ == '__main__':

@@ -2,9 +2,12 @@ import numpy as np
 import os
 import logging
 
+import matplotlib.pyplot as plt
+
 from kt_simul.analysis.explo_pool_evaluations import ExploPoolEvaluation
 from kt_simul.draw.plot import dic_plot
 from kt_simul.cluster.process import Process
+from kt_simul.utils.color import color
 
 
 class MitoticPlate(ExploPoolEvaluation):
@@ -24,70 +27,53 @@ class MitoticPlate(ExploPoolEvaluation):
         """
 
         nparams = len(pool_folder)
-        nsimu = int(self.get_nsimu(simu_path))
+        plog = self.get_param_from_log(simu_path)
+        nsimu = int(plog['nsimu'])
+        param_name = plog["parameter to explore name"]
 
-        for simudir in pool_folder:
+        kt_plate = []
+
+        logging.info("Running processes on each pool")
+        for i, simudir in enumerate(sorted(pool_folder)):
+
+            logging.info(color("Running processes on pool called: %s" % os.path.split(simudir)[-1], 'BOLD'))
+
             p = Process(results_path=simudir)
+            resu = p.evaluate(name="Mitotic Plate", draw=False, verbose=False)
 
-            print p.evaluate(name="Mitotic Plate", verbose=False)
-            print "###################################"
+            kt_plate.append(resu)
 
-        # kt_plate = {'dispersion': np.zeros((nsimu, num_steps))
-        #            }
+        # Configure and plot the graph
+        logging.info("Plotting results")
+        timelapse = np.arange(0, plog['duration'], plog['dt'])
 
-        # logging.info("Loading data from simulations files")
-        # for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
-        #                                                 nsimu=nsimu,
-        #                                                 print_progress=True)):
-        #     results = meta.evaluate(name="Mitotic Plate", verbose=False)
-
-        #     kt_plate['dispersion'][i] = results['dispersion']
-
-        # logging.getLogger().disabled = False
-
-        # kt_plate['dispersion_std'] = kt_plate['dispersion'].std(axis=0)
-        # kt_plate['dispersion'] = kt_plate['dispersion'].mean(axis=0)
-
-        # # Configure and plot the graph
-        # logging.info("Plotting results")
-        # timelapse = meta_infos.timelapse
-
-        # plot_data = {}
-        # plot_data['title'] = "Mitotic plate formation"
-        # plot_data['xaxis'] = {'data': timelapse, 'label': 'Time (second)'}
-        # plot_data['yaxis'] = {'label': 'Dispersion measure (relative to the spindle length)', 'axis': []}
-        # plot_data['error'] = True
-        # plot_data['legend'] = False
+        plot_data = {}
+        plot_data['title'] = "Mitotic plate formation with %s variable" % param_name
+        plot_data['xaxis'] = {'data': timelapse, 'label': 'Time (second)'}
+        plot_data['yaxis'] = {'label': 'Dispersion measure (relative to the spindle length)', 'axis': []}
+        plot_data['error'] = False
+        plot_data['legend'] = True
         # plot_data['limit_y_min'] = 0
 
-        # # Draw parameters box
-        # plot_data["params_box"] = [{'name': "Name", 'data': name},
-        #                            {'name': "Simulations number", 'data': nsimu},
-        #                            {'name': "Lenght Dependance factor", 'data': params["ld_slope"]},
-        #                            {'name': 'Lenght Dependance base', 'data': params['ld0']}
-        #                      ]
+        # Draw parameters box
+        plot_data["params_box"] = [{'name': "Name", 'data': plog["name"]},
+                                   {'name': "Simulations number", 'data': nsimu},
 
-        # # Add annotation about anaphase onset
-        # plot_data["annotations"] = []
-        # plot_data["annotations"].append({'s': 'Anaphase onset: %i' % ana_onset,
-        #                                  'xy': (ana_onset, 0),
-        #                                  'xytext': (0,50),
-        #                                  'textcoords': 'offset points',
-        #                                  'ha': 'center',
-        #                                  'va': 'bottom',
-        #                                  'bbox': dict(boxstyle='round,pad=0.2',
-        #                                               fc='yellow',
-        #                                               alpha=0.3),
-        #                                  'arrowprops': dict(arrowstyle='->',
-        #                                                     # connectionstyle='arc3,rad=0.5',
-        #                                                     color='black')
-        #                                  })
+                             ]
 
-        # plot_data['yaxis']['axis'].append({'data': kt_plate['dispersion'],
-        #                                     'color': 'blue',
-        #                                     'error': kt_plate['dispersion_std']
-        #                                     })
+        # User matplotlib to get color gradient
+        cm = plt.get_cmap('gist_rainbow')
 
-        # dic_plot(plot_data, os.path.join(eval_results_path, "Mitotic_Plate_Formation.svg"))
+        for i, resu in enumerate(kt_plate):
 
-        # return kt_plate
+            plot_color = cm(1. * i / nparams)
+
+            plot_data['yaxis']['axis'].append({'data': resu['dispersion'],
+                                               'color': plot_color,
+                                               'legend': "%s" % resu['params'][param_name]
+                                    })
+
+
+        dic_plot(plot_data, os.path.join(eval_results_path, "Mitotic_Plate_Formation.svg"))
+
+        return kt_plate

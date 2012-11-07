@@ -111,27 +111,14 @@ class ExploPoolEvaluation(object):
         raise RunFunctionNotImplemented("run() method need to be implemented \
             in your ExploPoolEvaluation plugin.")
 
-    def get_nsimu(self, path):
+    def get_param_from_log(self, path):
         """
-        Return the number of simulations inside a path. This method look to
-        the file simu.log
         """
 
         logpath = os.path.join(path, "simu.log")
         log = json.load(open(logpath))
 
-        return log["number_of_simulations"]
-
-    def get_name(self, path):
-        """
-        Return the name of simulations inside a path. This method look to
-        the file simu.log
-        """
-
-        logpath = os.path.join(path, "simu.log")
-        log = json.load(open(logpath))
-
-        return log["name"]
+        return log
 
 __all__ = []
 for ev in find_explo_pool_evaluations():

@@ -86,7 +86,7 @@ class KtTrajectories(Evaluation):
 
         for i, ch in enumerate(trajectories['chromosomes']):
 
-            color = cm(1.*i/N)
+            color = cm(1. * i / N)
 
             plot_data['yaxis']['axis'].append({'data': ch[0],
                                    'color': color,

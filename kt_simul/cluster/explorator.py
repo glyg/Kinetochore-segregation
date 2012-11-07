@@ -118,7 +118,7 @@ class Explorator:
 
             if self.pool_eval:
                 p = Process(results_path=fullpath)
-                p.evaluate(debug=True, run_all=True)
+                p.evaluate(debug=True, run_all=True, verbose=False)
                 del p
 
             del paramtree_tmp
@@ -132,11 +132,15 @@ class Explorator:
 
         log = {}
         log["name"] = self.name
-        log["number_of_simulations"] = self.nsimu
+        log["nsimu"] = self.nsimu
         log["parameter vector length"] = len(self.parameter_to_explore['vector'])
         log["total simu number"] = self.total_simu
         log["parameter to explore name"] = self.parameter_to_explore['name']
         log["parameter vector"] = self.parameter_to_explore['vector'].tolist()
+
+        log["duration"] = self.paramtree.absolute_dic['span']
+        log["dt"] = self.paramtree.absolute_dic['dt']
+        log["num_steps"] = int(log["duration"] / log["dt"])
 
         f = open(os.path.join(self.results_path, "simu.log"), 'w')
         f.write(json.dumps(log, sort_keys=True, indent=4))

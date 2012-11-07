@@ -18,7 +18,7 @@ class MitoticPlate(PoolEvaluation):
     def __init__(self,):
         pass
 
-    def run(self, simu_path, raw_path, eval_results_path, verbose=True):
+    def run(self, simu_path, raw_path, eval_results_path, draw=True, verbose=True):
         """
         """
 
@@ -33,7 +33,8 @@ class MitoticPlate(PoolEvaluation):
         name = self.get_name(simu_path)
         ana_onset = int(params["t_A"])
 
-        kt_plate = {'dispersion': np.zeros((nsimu, num_steps))
+        kt_plate = {'dispersion': np.zeros((nsimu, num_steps)),
+                    'params': params
                    }
 
         if verbose:
@@ -50,8 +51,12 @@ class MitoticPlate(PoolEvaluation):
         kt_plate['dispersion_std'] = kt_plate['dispersion'].std(axis=0)
         kt_plate['dispersion'] = kt_plate['dispersion'].mean(axis=0)
 
+        if not draw:
+            return kt_plate
+
         # Configure and plot the graph
-        logging.info("Plotting results")
+        if verbose:
+            logging.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}

@@ -12,3 +12,5 @@ dist/*
 *details_defect*
 build/
 
+*.sublime-project
+*.sublime-workspace

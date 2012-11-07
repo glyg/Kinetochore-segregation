@@ -23,9 +23,7 @@ class Process:
 
         self.observations = {}
 
-        logging.info("Processor initialised")
-
-    def evaluate(self, name=None, groups=[], debug=False, run_all=False, verbose=True):
+    def evaluate(self, name=None, groups=[], draw=True, debug=False, run_all=False, verbose=True):
         """
         """
 
@@ -37,26 +35,31 @@ class Process:
             return False
 
         for pool_evaluation in all_pool_evaluations:
-            logging.info("Running %s" % pool_evaluation.name)
+            logging.info("\tRunning %s" % pool_evaluation.name)
             if debug:
                 result = pool_evaluation().run(self.results_path,
                                                 self.raw_path,
                                                 self.eval_results,
+                                                draw=draw,
                                                 verbose=verbose)
-                logging.info("%s done" % pool_evaluation.name)
+                logging.info("\t%s done" % pool_evaluation.name)
             else:
                 try:
                     result = pool_evaluation().run(self.results_path,
                                                 self.raw_path,
                                                 self.eval_results,
+                                                draw=draw,
                                                 verbose=verbose)
-                    logging.info("%s done" % pool_evaluation.name)
+                    logging.info("\t%s done" % pool_evaluation.name)
                 except Exception as e:
                     result = np.nan
                     logging.info("%s returns errors : %s" % (pool_evaluation.name, e))
 
-            name = pool_evaluation.name
-            self.observations[name] = result
+            if name and not run_all:
+                return result
+            else:
+                current_name = pool_evaluation.name
+                self.observations[current_name] = result
 
         logging.info("All pool evaluations processed")
 

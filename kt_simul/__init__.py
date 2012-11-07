@@ -16,10 +16,18 @@ import os
 import sys
 import numpy
 
+from kt_simul.utils.color import color
+
 # Setup logging
-logging.basicConfig( level=logging.DEBUG,
-                     format='%(asctime)s:%(levelname)s: %(message)s',
-                     datefmt='%Y/%m/%d-%H:%M:%S')
+
+logformat = color('%(asctime)s', 'BLUE') + ':'
+logformat += color('%(levelname)s', 'RED') + ':'
+logformat += color('%(filename)s', 'YELLOW') + ':'
+logformat += color('%(funcName)s', 'GREEN') + ': '
+logformat += color('%(message)s', 'ENDC')
+logging.basicConfig(level=logging.DEBUG,
+                    format=logformat,
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 import pyximport
 

@@ -25,8 +25,6 @@ class ProcessExploration:
         if not os.path.isdir(self.eval_results):
             os.makedirs(self.eval_results)
 
-        logging.info("Exporation Processor initialised")
-
     def get_pool_folder(self, path):
         """
         """

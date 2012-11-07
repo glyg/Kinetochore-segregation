@@ -44,7 +44,7 @@ class MitoticPlate(Evaluation):
         kt_trajs = []
 
         for i, ch in enumerate(KD.chromosomes):
-            id1 = (i * 2) -1
+            id1 = (i * 2) - 1
             id2 = (i * 2)
 
             max_kt[id1] = ch.cen_A.traj
