@@ -99,7 +99,7 @@ class Explorator:
         param_name = self.parameter_to_explore['name']
         for param_value in self.parameter_to_explore['vector']:
 
-            name = "%s_%.1f" % (param_name, param_value)
+            name = "%s_%.2f" % (param_name, param_value)
             fullpath = os.path.join(self.results_path, name)
 
             paramtree_tmp = copy.deepcopy(self.paramtree)

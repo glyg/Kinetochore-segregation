@@ -15,7 +15,7 @@ from kt_simul.core.simul_spindle import Metaphase
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
 
-def find_explo_pool_evaluations(name = None, groups=[], run_all = False):
+def find_explo_pool_evaluations(name=None, groups=[], run_all=False):
     """
     This function return a list of PoolEvaluation classes that are enabled. In the future, it will have the capability to filter evaluations.
 
@@ -119,6 +119,16 @@ class ExploPoolEvaluation(object):
         log = json.load(open(logpath))
 
         return log
+
+    def get_param(self, path):
+        """
+        Retrieve paramtree of the first pool simulation
+        """
+
+        paramfile = os.path.join(path[0], 'params.xml')
+        meta = Metaphase(paramfile=paramfile)
+
+        return meta.paramtree.relative_dic
 
 __all__ = []
 for ev in find_explo_pool_evaluations():

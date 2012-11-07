@@ -421,6 +421,10 @@ cdef class PlugSite(Organite):
         ld_slope = self.KD.params['ld_slope']
         ld0 = self.KD.params['ld0']
 
+        if ld_slope == -1:
+            # Remove length dependant behaviour
+            return 1
+
         pole_pos = self.KD.spbR.pos * self.plug_state
         mt_length = abs(pole_pos - self.pos)
 
@@ -429,7 +433,7 @@ cdef class PlugSite(Organite):
         # TODO: investigate: introduces a first order discontinuity
         # suspected to trigger artifacts when the plugsite
         # is close to the pole
-        if mt_length < 0.0001:
+        if mt_length < 0.00000001:
             ldep = mt_length  # No force when at pole
 
         return ldep

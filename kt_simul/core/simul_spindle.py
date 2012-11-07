@@ -306,7 +306,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         report["Kinetochores (Mk)"] = params["Mk"]
         report["separate"] = ""
 
-        report["Current time"] = "%i\n" % (time + 1)
+        report["Current time"] = "%i\n" % ((time + 1) * float(params["dt"]))
 
         report["separate"] = ""
         report["spbR pos"] = round(self.KD.spbR.traj[time], 3)

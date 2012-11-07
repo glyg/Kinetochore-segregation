@@ -16,8 +16,6 @@ if __name__ == '__main__':
 
     # Arguments parser
     parser = argparse.ArgumentParser(description='KtSimu Animator')
-    parser.add_argument('string', metavar='result_file', type=str, nargs='?',
-                         help='Zip file which contain ktsimu results file')
     parser.add_argument('--new', '-n', action='store_true', default=False,
                          help="Run a new simulation")
     parser.add_argument('--params', '-p', type=str, default=params_file,
