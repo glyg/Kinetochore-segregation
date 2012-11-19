@@ -34,6 +34,8 @@ class MitoticPlate(PoolEvaluation):
         ana_onset = int(params["t_A"])
 
         kt_plate = {'dispersion': np.zeros((nsimu, num_steps)),
+                    'plate_shape_right': np.zeros((nsimu, num_steps)),
+                    'plate_shape_left': np.zeros((nsimu, num_steps)),
                     'params': params
                    }
 
@@ -45,11 +47,19 @@ class MitoticPlate(PoolEvaluation):
             results = meta.evaluate(name="Mitotic Plate", verbose=False)
 
             kt_plate['dispersion'][i] = results['dispersion']
+            kt_plate['plate_shape_left'][i] = results['plate_shape_left']
+            kt_plate['plate_shape_right'][i] = results['plate_shape_right']
 
         logging.getLogger().disabled = False
 
         kt_plate['dispersion_std'] = kt_plate['dispersion'].std(axis=0)
         kt_plate['dispersion'] = kt_plate['dispersion'].mean(axis=0)
+
+        kt_plate['plate_shape_right'] = kt_plate['plate_shape_right'].mean(axis=0)
+        kt_plate['plate_shape_right_std'] = kt_plate['plate_shape_right'].std(axis=0)
+
+        kt_plate['plate_shape_left'] = kt_plate['plate_shape_left'].mean(axis=0)
+        kt_plate['plate_shape_left_std'] = kt_plate['plate_shape_left'].std(axis=0)
 
         if not draw:
             return kt_plate
@@ -60,7 +70,7 @@ class MitoticPlate(PoolEvaluation):
         timelapse = meta_infos.timelapse
 
         plot_data = {}
-        plot_data['title'] = "Mitotic plate formation"
+        plot_data['title'] = "Centromeres dispersion variation"
         plot_data['xaxis'] = {'data': timelapse, 'label': 'Time (second)'}
         plot_data['yaxis'] = {'label': 'Dispersion measure (relative to the spindle length)', 'axis': []}
         plot_data['error'] = True
@@ -96,5 +106,24 @@ class MitoticPlate(PoolEvaluation):
                                             })
 
         dic_plot(plot_data, os.path.join(eval_results_path, "Mitotic_Plate_Formation.svg"))
+
+        # Plot the plate shape
+        plot_data['title'] = "Mitotic plate formation"
+        plot_data['yaxis'] = {'label': "Centromeres position variance", 'axis': []}
+        del plot_data['limit_y_min']
+        plot_data['legend'] = True
+
+        plot_data['yaxis']['axis'].append({'data': kt_plate['plate_shape_right'],
+                                          'color': 'blue',
+                                          'legend': 'Right kinetochores',
+                                          'error': kt_plate['plate_shape_right_std']
+                                          })
+        plot_data['yaxis']['axis'].append({'data': kt_plate['plate_shape_left'],
+                                          'color': 'red',
+                                          'legend': 'Left kinetochores',
+                                          'error': kt_plate['plate_shape_left_std']
+                                          })
+
+        dic_plot(plot_data, os.path.join(eval_results_path, "Mitotic_Plate_Formation2.svg"))
 
         return kt_plate

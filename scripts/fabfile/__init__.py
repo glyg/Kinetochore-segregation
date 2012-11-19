@@ -33,6 +33,16 @@ def push():
     with lcd(project):
         local("rsync --progress -a --delete ../kt_simul/ %s:%s" % (host, rproject))
 
+@task
+def pull():
+    """
+    """
+    cmd = "rsync --exclude raw --progress -a %s:%s %s" % (host, rresults, results)
+    local(cmd)
+
+
+# Function below are not really used anymore
+# Instead I launch python scripts see in scripts/loki/ folder
 
 @task
 def launch(nsimu=None, name=""):
@@ -63,13 +73,6 @@ def pool(path):
         run(cmd)
         # run("screen -dmS ktsimu " + cmd)
 
-
-@task
-def pull():
-    """
-    """
-    cmd = "rsync --exclude raw --progress -a %s:%s %s" % (host, rresults, results)
-    local(cmd)
 
 @task
 def kill():

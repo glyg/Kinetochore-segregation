@@ -4,6 +4,7 @@ import shutil
 import logging
 import copy
 import json
+import gc
 
 from kt_simul.io.xml_handler import ParamTree
 from kt_simul.core import parameters
@@ -26,7 +27,8 @@ class Explorator:
                  measurefile=MEASUREFILE,
                  verbose=True,
                  parameter_to_explore={},
-                 pool_eval=False):
+                 pool_eval=False,
+                 name_without_date=False):
         """
         """
 
@@ -71,11 +73,14 @@ class Explorator:
             os.makedirs(self.results_path)
 
         # Results directory according to date and time
-        now = datetime.datetime.now()
-        if name:
-            dirname = now.strftime("%Y.%m.%d") + "_" + name
+        if name_without_date and name:
+            dirname = name
         else:
-            dirname = now.strftime("%Y.%m.%d")
+            now = datetime.datetime.now()
+            if name:
+                dirname = now.strftime("%Y.%m.%d") + "_" + name
+            else:
+                dirname = now.strftime("%Y.%m.%d")
 
         self.results_path = os.path.join(self.results_path, dirname)
 
@@ -115,6 +120,7 @@ class Explorator:
 
             l.run()
             del l
+            gc.collect()
 
             if self.pool_eval:
                 p = Process(results_path=fullpath)
@@ -122,6 +128,7 @@ class Explorator:
                 del p
 
             del paramtree_tmp
+            gc.collect()
 
         self.create_log()
 

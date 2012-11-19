@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     if only_eval:
         p = Process(results_path=only_eval)
-        resu = p.evaluate(groups=evaluations, debug=True)
+        resu = p.evaluate(run_all=True, debug=True)
 
     else:
         l = Launcher(result_path,

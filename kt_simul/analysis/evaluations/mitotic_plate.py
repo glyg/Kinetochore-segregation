@@ -35,7 +35,9 @@ class MitoticPlate(Evaluation):
         # Dispersion is size of the segment made by extrem Kt scaled
         # by spindle size
         kt_plate = {'dispersion': None,
-                    'kt_trajs': []
+                    'kt_trajs': [],
+                    'plate_shape_right': np.zeros((N , num_steps), dtype="float"),
+                    'plate_shape_left': np.zeros((N , num_steps), dtype="float")
                     }
 
         max_kt = np.zeros((N * 2, num_steps), dtype="float")
@@ -55,6 +57,16 @@ class MitoticPlate(Evaluation):
 
             kt_trajs.append(ch.cen_A.traj / spindle_length)
             kt_trajs.append(ch.cen_B.traj / spindle_length)
+
+            if ch.cen_A.traj.mean() < ch.cen_B.traj.mean():
+                kt_plate['plate_shape_left'][i] = ch.cen_A.traj
+                kt_plate['plate_shape_right'][i] = ch.cen_B.traj
+            else:
+                kt_plate['plate_shape_right'][i] = ch.cen_A.traj
+                kt_plate['plate_shape_left'][i] = ch.cen_B.traj
+
+        kt_plate['plate_shape_left'] = kt_plate['plate_shape_left'].std(axis=0)
+        kt_plate['plate_shape_right'] = kt_plate['plate_shape_right'].std(axis=0)
 
         max_kt_distance = max_kt.max(axis=0)
         min_kt_distance = min_kt.min(axis=0)
@@ -81,7 +93,7 @@ class MitoticPlate(Evaluation):
         timelapse = np.arange(0, KD.duration, KD.dt)
 
         plot_data = {}
-        plot_data['title'] = "Mitotic plate formation"
+        plot_data['title'] = "Centromeres dispersion variation"
         plot_data['xaxis'] = {'data': timelapse, 'label': 'Time (second)'}
         plot_data['yaxis'] = {'label': "Dispersion measure (relative to the spindle length)", 'axis': []}
         plot_data['logx'] = False
@@ -127,6 +139,22 @@ class MitoticPlate(Evaluation):
                                                'color': color,
                                                'plot_args' : {'marker': 'o'}
                                                })
+
+        dic_plot(plot_data)
+
+        # Plot the plate shape
+        plot_data['title'] = "Mitotic plate formation"
+        plot_data['yaxis'] = {'label': "Centromeres position variance", 'axis': []}
+        del plot_data['limit_y_min']
+
+        plot_data['yaxis']['axis'].append({'data': kt_plate['plate_shape_right'],
+                                          'color': 'blue',
+                                          'legend': 'Right kinetochores'
+                                          })
+        plot_data['yaxis']['axis'].append({'data': kt_plate['plate_shape_left'],
+                                          'color': 'red',
+                                          'legend': 'Left kinetochores'
+                                          })
 
         dic_plot(plot_data)
 

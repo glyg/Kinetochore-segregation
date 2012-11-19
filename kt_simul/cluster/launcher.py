@@ -8,6 +8,7 @@ import time
 import datetime
 import json
 import shutil
+import gc
 import logging
 import multiprocessing
 from multiprocessing import Pool, Queue
@@ -175,6 +176,8 @@ class Launcher:
 
         self.create_log()
 
+        del p
+
     def log_progress(self, simu_left, precision = 2):
         """
         Log the progression of the simulations
@@ -254,6 +257,7 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
 
     del meta
     del io
+    gc.collect()
     return True
 
 

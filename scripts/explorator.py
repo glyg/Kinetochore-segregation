@@ -55,7 +55,7 @@ def main():
     ncore = 4
 
     # Here we explore ld_slope parameter
-    parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0.2, 0.5, 0.02)}
+    parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0, 2, 0.1)}
     # parameter_to_explore = {'name': 'ld0', 'vector': np.arange(0, 2, 0.1)}
 
     if name == "":
@@ -76,7 +76,8 @@ def main():
                                 paramfile=PARAMFILE,
                                 measurefile=MEASUREFILE,
                                 parameter_to_explore=parameter_to_explore,
-                                pool_eval=pool_eval
+                                pool_eval=pool_eval,
+                                name_without_date=True
                                 )
 
         explorator.run()
