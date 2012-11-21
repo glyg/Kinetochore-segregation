@@ -49,7 +49,7 @@ cdef class KinetoDynamics(object) :
     cdef public list all_plugsites
     cdef public np.ndarray speeds
 
-    def __init__(self, parameters, initial_plug = 'null'):
+    def __init__(self, parameters, initial_plug='null'):
         """
         KinetoDynamics instenciation method
 
@@ -256,11 +256,11 @@ cdef class KinetoDynamics(object) :
         cdef N, Mk, n, m
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
-        cdef int dim = 1 + N * ( 1 + Mk ) * 2
+        cdef int dim = 1 + N * (1 + Mk) * 2
         cdef int an, bn, anm, bnm
-        cdef np.ndarray[DTYPE_t, ndim=2] Bk
-        Bk = np.zeros((dim, dim), dtype = float)
-        for n in range(N) :
+        cdef np.ndarray[DTYPE_t, ndim = 2] Bk
+        Bk = np.zeros((dim, dim), dtype=float)
+        for n in range(N):
             an = self._idx(0, n)
             bn = self._idx(1, n)
             Bk[an, an] = - Mk
@@ -280,11 +280,11 @@ cdef class KinetoDynamics(object) :
         cdef N, Mk
         Mk = int(self.params['Mk'])
         N = int(self.params['N'])
-        cdef int dim = 1 + N * ( 1 + Mk ) * 2
-        cdef np.ndarray[DTYPE_t, ndim=2] Bc
-        Bc = np.zeros((dim, dim), dtype = float)
+        cdef int dim = 1 + N * (1 + Mk) * 2
+        cdef np.ndarray[DTYPE_t, ndim = 2] Bc
+        Bc = np.zeros((dim, dim), dtype=float)
         cdef int an, bn
-        for n in range(N) :
+        for n in range(N):
             an = self._idx(0, n)
             bn = self._idx(1, n)
             Bc[an, an] = - 1.
@@ -358,7 +358,7 @@ cdef class KinetoDynamics(object) :
         cdef double Vk = self.params['Vk']
         cdef np.ndarray[DTYPE_t] speeds
         speeds = self.speeds
-        speeds *= Vk * dt #Back to real space
+        speeds *= Vk * dt # Back to real space
         self.spbR.set_pos(self.spbR.pos + speeds[0], time_point)
         self.spbL.set_pos(self.spbL.pos - speeds[0], time_point)
         cdef int n, m, an, anm, bn, bnm

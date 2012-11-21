@@ -119,6 +119,8 @@ class Explorator:
                          name_without_date=True)
 
             l.run()
+
+            del paramtree_tmp
             del l
             gc.collect()
 
@@ -126,9 +128,7 @@ class Explorator:
                 p = Process(results_path=fullpath)
                 p.evaluate(debug=True, run_all=True, verbose=False)
                 del p
-
-            del paramtree_tmp
-            gc.collect()
+                gc.collect()
 
         self.create_log()
 

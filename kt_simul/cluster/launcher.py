@@ -170,6 +170,8 @@ class Launcher:
                 done = True
         self.total_time = time.time() - self.start_time
 
+        p.close()
+
         results_size = get_folder_size(self.results_path)
         logging.info("Simulations are done")
         logging.info("Results are stored in %s (%s MB)" % (self.results_path, results_size))
@@ -177,8 +179,10 @@ class Launcher:
         self.create_log()
 
         del p
+        del queue
+        gc.collect()
 
-    def log_progress(self, simu_left, precision = 2):
+    def log_progress(self, simu_left, precision=2):
         """
         Log the progression of the simulations
 
@@ -253,7 +257,7 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
     io = SimuIO(meta)
     io.save(simufname=simu_path, verbose=False)
 
-    queue.put({ "id" : simu_id, "state" : "stop" })
+    queue.put({"id" : simu_id, "state" : "stop" })
 
     del meta
     del io

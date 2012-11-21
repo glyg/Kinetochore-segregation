@@ -433,8 +433,8 @@ cdef class PlugSite(Organite):
         # TODO: investigate: introduces a first order discontinuity
         # suspected to trigger artifacts when the plugsite
         # is close to the pole
-        if mt_length < 0.00000001:
-            ldep = mt_length  # No force when at pole
+        if mt_length < 0.000001:
+            ldep = ld0
 
         return ldep
 

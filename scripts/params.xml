@@ -90,11 +90,11 @@
   <description>Midzone stall Force</description>
 </param>
 <!-- not implemented correctly -->
-<param max="2." min="0." name="ld_slope" step="0" value="0">
+<param max="2." min="0." name="ld_slope" step="0" value="0.2">
   <unit> </unit>
   <description>Fk length dependance, slope</description>
 </param>
-<param max="2." min="0." name="ld0" step="0" value="0.1">
+<param max="2." min="0." name="ld0" step="0" value="0.6">
   <unit> </unit>
   <description>Fk length dependance, base</description>
 </param>

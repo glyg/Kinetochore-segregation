@@ -13,8 +13,9 @@ def one_explo(param, param_to_explore):
     PARAMFILE = "params.xml"
     MEASUREFILE = "measures.xml"
 
-    result_path = "/media/thor/data/ktsimu/test"
-    number_simu = 100
+    result_path = "/media/thor/data/ktsimu/small_explo_ld_slope_ld0"
+    result_path = "/home/hadim/local/data/ktsimu/explo_ld_slope_ld0"
+    number_simu = 500
     name = "explo_%s_%s" % (param['name'], str(param['value']))
     ncore = 4
 
