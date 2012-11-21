@@ -101,9 +101,8 @@ class MitoticPlate(Evaluation):
         plot_data['limit_y_min'] = 0
 
         # Draw parameters box
-        plot_data["params_box"] = [{'name': "Lenght Dependance factor", 'data': KD.params["ld_slope"]},
-                                   {'name': 'Lenght Dependance base', 'data': KD.params['ld0']}
-                             ]
+        plot_data["params_box"] = [{'name': "Lenght Dependance factor", 'data': KD.params["ldep"]},
+                                  ]
 
         # Add annotation about anaphase onset
         plot_data["annotations"] = []

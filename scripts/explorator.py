@@ -36,7 +36,6 @@ def main():
     parser.add_argument("--only-eval", '-o', dest="only_eval", type=str, default="",
                         help='Launch only pool evaluations and specified ktsimu results path')
 
-
     parser.add_argument('--params', '-p', type=str, default=params_file,
                          help="For new simulation, specified params.xml file")
     parser.add_argument('--measures', '-m', type=str, default=measures_file,
@@ -55,8 +54,7 @@ def main():
     ncore = 4
 
     # Here we explore ld_slope parameter
-    parameter_to_explore = {'name': 'ld_slope', 'vector': np.arange(0, 2, 0.1)}
-    # parameter_to_explore = {'name': 'ld0', 'vector': np.arange(0, 2, 0.1)}
+    parameter_to_explore = {'name': 'ldep', 'vector': np.arange(0, 1, 0.1)}
 
     if name == "":
         name = "%s_n%i_p%i_%s" % (config.explo_simu_name, number_simu,

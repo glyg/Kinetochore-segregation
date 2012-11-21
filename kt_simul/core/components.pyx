@@ -1,4 +1,6 @@
 # cython: profile=True
+import logging
+
 import random
 import numpy as np
 cimport numpy as np
@@ -395,48 +397,41 @@ cdef class PlugSite(Organite):
 
     cdef float calc_ldep(self):
         """
-        Calculates the length dependency of the force applied
-        at the plugsite.
+        The force term will increase or decrease the force applied to Kt
+        according to kt - spb distance.
 
-        Parameters:
-        -----------
-        plugsite_pos: float
-            The position of the plugsite
-        pole_pose: float
-            The position of the attached spindle pole
+        Force term is calculated with linear function: ax + b
 
-        If the KD.param ld_slope is null, there is no length
-        dependence, and 1. is returned
+        Because we want to keep a "correct mean behaviour" according to Fmz,
+        we compute lbase to keep: ldep * distance + lbase = 1
 
-        Returns:
-        --------
-        ldep: float
-            The prefactor to the force term
+        * ldep: the lenght dependance factor parameter
+        * ldep_balance: mean distance btw spb and Kt (measured by microscopy)
         """
-        cdef double ld0, ld_slope
+        cdef double ldep
+        cdef double ldep_balance
+        cdef double lbase
         cdef double mt_length
         cdef double pole_pos
-        cdef double ldep
+        cdef double force_term
 
-        ld_slope = self.KD.params['ld_slope']
-        ld0 = self.KD.params['ld0']
+        ldep = self.KD.params['ldep']
+        ldep_balance = self.KD.params['ldep_balance']
 
-        if ld_slope == -1:
+        # The mean
+        lbase = (1 - ldep * ldep_balance)
+
+        if ldep > (1 / ldep_balance):
             # Remove length dependant behaviour
+            # We don't want lbase < 0
             return 1
 
         pole_pos = self.KD.spbR.pos * self.plug_state
         mt_length = abs(pole_pos - self.pos)
 
-        ldep = ld_slope * mt_length + ld0
+        force_term = ldep * mt_length + lbase
 
-        # TODO: investigate: introduces a first order discontinuity
-        # suspected to trigger artifacts when the plugsite
-        # is close to the pole
-        if mt_length < 0.000001:
-            ldep = ld0
-
-        return ldep
+        return force_term
 
     cdef void plug_unplug(self, int time_point):
         cdef float dice, side_dice
@@ -453,7 +448,7 @@ cdef class PlugSite(Organite):
         elif dice < self.P_det():
             self.set_plug_state(0, time_point)
 
-    def is_correct(self, int time_point = -1):
+    def is_correct(self, int time_point=-1):
         """
         Returns True if the plugsite is plugged
         correctly, i.e. doesn't contribute to an
@@ -486,7 +481,7 @@ cdef class PlugSite(Organite):
         cdef float dist
         dist = abs(self.pos -
                    (self.centromere.chromosome.cen_A.pos +
-                    self.centromere.chromosome.cen_B.pos)/2.)
+                    self.centromere.chromosome.cen_B.pos) / 2.)
         if dist == 0: return 1.
         k_dc = k_d0  *  d_alpha / dist
         if k_dc > 1e4: return 1.

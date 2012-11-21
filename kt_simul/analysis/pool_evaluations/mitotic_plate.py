@@ -80,8 +80,7 @@ class MitoticPlate(PoolEvaluation):
         # Draw parameters box
         plot_data["params_box"] = [{'name': "Name", 'data': name},
                                    {'name': "Simulations number", 'data': nsimu},
-                                   {'name': "Lenght Dependance factor", 'data': params["ld_slope"]},
-                                   {'name': 'Lenght Dependance base', 'data': params['ld0']}
+                                   {'name': "Lenght Dependance factor", 'data': params["ldep"]}
                              ]
 
         # Add annotation about anaphase onset

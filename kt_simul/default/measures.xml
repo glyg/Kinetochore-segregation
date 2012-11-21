@@ -20,6 +20,10 @@
     <unit>&#181;m</unit>
     <description>Max kt-kt distance</description>
   </param>
+  <param max="2." min="0." name="mean_kt_spb_dist" step="0.1" value="1">
+    <unit>&#181;m</unit>
+    <description>Mean kt-spb distance</description>
+  </param>
   <param max="1." min="0." name="obs_d0" step="0.01" value="0.1">
     <unit>&#181;m</unit>
     <description>kt-kt equilibrium distance</description>

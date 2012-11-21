@@ -45,6 +45,7 @@ def reduce_params(paramtree, measuretree):
         tau_k = measures['tau_k']
         tau_c = measures['tau_c']
         obs_d0 = measures['obs_d0']
+        mean_kt_spb_dist = measures["mean_kt_spb_dist"]
     except KeyError:
         logging.warning("The measures dictionary should contain"
                "at least the following keys: ")
@@ -63,9 +64,12 @@ def reduce_params(paramtree, measuretree):
     d0 = params['d0'] = obs_d0
     Vk = params['Vk'] = poleward_speed
     Vmz = params['Vmz'] = anaph_rate
+
+    params['ldep_balance'] = mean_kt_spb_dist
+
     #Aurora modifies fd
     if d_alpha != 0:
-        k_d_eff = k_a * d_alpha / mean_metaph_k_dist
+        k_d_eff = k_a * d_alpha / (mean_metaph_k_dist / 1)
     else:
         logging.warning("Things don't go well without Aurora ")
         k_d_eff = k_d0

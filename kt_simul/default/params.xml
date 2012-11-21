@@ -9,7 +9,7 @@
     <unit>s</unit>
     <description>Time step</description>
   </param>
-  <param max="1000." min="0." name="t_A" step="1." value="720.0">
+  <param max="1000." min="0." name="t_A" step="1." value="720">
     <unit>s</unit>
     <description>Anaphase A transition</description>
   </param>
@@ -29,7 +29,7 @@
   <param max="1." min="0." name="k_a" step="0.001" value="0.06">
     <unit>Hz</unit>
     <description>MT free attachement frequency</description>
-  </param>  
+  </param>
   <!-- Spindle -->
   <param max="2000." min="1." name="mus" step="1." value="500.0">
     <unit>pN.s/&#181;m</unit>
@@ -48,6 +48,12 @@
     <unit> </unit>
     <description>Number of attachment sites</description>
   </param>
+<!-- Length dependance -->
+<param max="2." min="0." name="ldep" step="0" value="1">
+  <unit> </unit>
+  <description>Fk length dependance coefficient</description>
+</param>
+
 <!--  Non free parameters - changing values below this line is useless -->
 <param max="1." min="0." name="k_d0" step="0.001" value="0.06">
   <unit>Hz</unit>
@@ -89,13 +95,12 @@
   <unit>pN</unit>
   <description>Midzone stall Force</description>
 </param>
-<!-- not implemented correctly -->
-<param max="2." min="0." name="ld_slope" step="0" value="0.">
-  <unit> </unit>
-  <description>Fk length dependance, slope</description>
+<param max="2." min="0." name="k_spb" step="0.1" value="1">
+  <unit>&#181;m</unit>
+  <description>Mean kt-spb distance</description>
 </param>
-<param max="2." min="0." name="ld0" step="0" value="1.">
+<param max="2." min="0." name="ldep_balance" step="0" value="1">
   <unit> </unit>
-  <description>Fk length dependance, base</description>
+  <description>Length dependance balance</description>
 </param>
 </parameters>
