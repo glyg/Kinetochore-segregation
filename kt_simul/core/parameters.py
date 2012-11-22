@@ -69,7 +69,7 @@ def reduce_params(paramtree, measuretree):
 
     #Aurora modifies fd
     if d_alpha != 0:
-        k_d_eff = k_a * d_alpha / (mean_metaph_k_dist / 1)
+        k_d_eff = k_a * d_alpha / (mean_metaph_k_dist / 2)
     else:
         logging.warning("Things don't go well without Aurora ")
         k_d_eff = k_d0
@@ -77,6 +77,7 @@ def reduce_params(paramtree, measuretree):
     # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
     alpha_mean = 1 / (1 + k_d_eff / k_a)
     #Take metaphase kt pair distance as the maximum one
+    # TODO : kc = Fk * Mt * alpha_mean / (max_metaph_k_dist - d0)
     kappa_c = Fk * Mk / (max_metaph_k_dist - d0)
     params['kappa_c'] = kappa_c
 
@@ -99,3 +100,4 @@ def reduce_params(paramtree, measuretree):
     params['muk'] = muk
     for key, val in params.items():
         paramtree.change_dic(key, val, verbose=False)
+
