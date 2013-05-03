@@ -1,5 +1,6 @@
 import sys
 
+
 def print_progress(percent):
     """
     Print a progress bar
@@ -28,5 +29,5 @@ def print_progress(percent):
     bar += "]"
 
     # Write progress bar
-    sys.stdout.write("\r%d%% " %(percent+1) + bar)
+    sys.stdout.write("\r%d%% " % (percent+1) + bar)
     sys.stdout.flush()
