@@ -5,6 +5,8 @@ import logging
 from kt_simul.analysis.pool_evaluations import PoolEvaluation
 from kt_simul.draw.plot import dic_plot
 
+logger = logging.getLogger(__name__)
+
 
 class MitoticPlate(PoolEvaluation):
     """
@@ -40,7 +42,7 @@ class MitoticPlate(PoolEvaluation):
                    }
 
         if verbose:
-            logging.info("Loading data from simulations files")
+            logger.info("Loading data from simulations files")
         for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
                                                         nsimu=nsimu,
                                                         print_progress=verbose)):
@@ -50,7 +52,7 @@ class MitoticPlate(PoolEvaluation):
             kt_plate['plate_shape_left'][i] = results['plate_shape_left']
             kt_plate['plate_shape_right'][i] = results['plate_shape_right']
 
-        logging.getLogger().disabled = False
+        logger.disabled = False
 
         kt_plate['dispersion_std'] = kt_plate['dispersion'].std(axis=0)
         kt_plate['dispersion'] = kt_plate['dispersion'].mean(axis=0)
@@ -66,7 +68,7 @@ class MitoticPlate(PoolEvaluation):
 
         # Configure and plot the graph
         if verbose:
-            logging.info("Plotting results")
+            logger.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}

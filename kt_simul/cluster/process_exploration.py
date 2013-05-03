@@ -5,6 +5,8 @@ import numpy as np
 
 from kt_simul.analysis.explo_pool_evaluations import find_explo_pool_evaluations
 
+logger = logging.getLogger(__name__)
+
 
 class ProcessExploration:
     """
@@ -45,31 +47,31 @@ class ProcessExploration:
         """
         """
 
-        logging.info("Starting exploration pool evaluations")
+        logger.info("Starting exploration pool evaluations")
         all_explo_explo_pool_evaluations = find_explo_pool_evaluations(groups=groups, run_all=run_all)
 
         if not all_explo_explo_pool_evaluations:
-            logging.info("No pool evaluations found")
+            logger.info("No pool evaluations found")
             return False
 
         for explo_pool_evaluation in all_explo_explo_pool_evaluations:
-            logging.info("Running %s" % explo_pool_evaluation.name)
+            logger.info("Running %s" % explo_pool_evaluation.name)
             if debug:
                 result = explo_pool_evaluation().run(self.results_path,
                                                 self.pool_folder,
                                                 self.eval_results)
-                logging.info("%s done" % explo_pool_evaluation.name)
+                logger.info("%s done" % explo_pool_evaluation.name)
             else:
                 try:
                     result = explo_pool_evaluation().run(self.results_path,
                                                 self.pool_folder,
                                                 self.eval_results)
-                    logging.info("%s done" % explo_pool_evaluation.name)
+                    logger.info("%s done" % explo_pool_evaluation.name)
                 except Exception as e:
                     result = np.nan
-                    logging.info("%s returns errors : %s" % (explo_pool_evaluation.name, e))
+                    logger.info("%s returns errors : %s" % (explo_pool_evaluation.name, e))
 
-        logging.info("All exploration pool evaluations processed")
+        logger.info("All exploration pool evaluations processed")
 
         del result
         return True

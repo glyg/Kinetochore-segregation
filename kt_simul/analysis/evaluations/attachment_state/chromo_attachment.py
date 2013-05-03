@@ -6,6 +6,8 @@ import numpy as np
 from kt_simul.analysis.evaluations import Evaluation
 from kt_simul.draw.plot import dic_plot
 
+logger = logging.getLogger(__name__)
+
 
 class ChromoAttachment(Evaluation):
     """
@@ -83,12 +85,12 @@ class ChromoAttachment(Evaluation):
                         chromo_attach['merotelic-amphi'][i] += 1
                     else:
                         # The code should never run here unless we got errors !
-                        logging.error("Problem in attachment rate algorithm (second level condition")
+                        logger.error("Problem in attachment rate algorithm (second level condition")
                         return False
 
                 else:
                     # The code should never run here unless we got errors !
-                    logging.error("Problem in attachment rate algorithm (first level condition")
+                    logger.error("Problem in attachment rate algorithm (first level condition")
                     return False
 
         # Normalize values on 1

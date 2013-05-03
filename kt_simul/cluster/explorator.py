@@ -12,6 +12,8 @@ from kt_simul.cluster import Launcher
 from kt_simul.core.simul_spindle import PARAMFILE, MEASUREFILE
 from kt_simul.cluster.process import Process
 
+logger = logging.getLogger(__name__)
+
 
 class Explorator:
     """
@@ -37,7 +39,7 @@ class Explorator:
 
         # Enable or disable log console
         self.verbose = verbose
-        logger = logging.getLogger()
+        logger = logging.getLogger(__name__)
         if not self.verbose:
             logger.disabled = True
         else:
@@ -92,13 +94,13 @@ class Explorator:
         # Redirect log to run.log
         logfile = os.path.join(self.results_path, "run.log")
         handler = logging.FileHandler(logfile)
-        logging.getLogger().addHandler(handler)
+        logging.getLogger(__name__).addHandler(handler)
 
     def run(self):
         """
         """
 
-        logging.info("Starting %i simulations for %s parameters (%s total simulations)"\
+        logger.info("Starting %i simulations for %s parameters (%s total simulations)"\
             % (self.nsimu, self.nparam, self.total_simu))
 
         param_name = self.parameter_to_explore['name']

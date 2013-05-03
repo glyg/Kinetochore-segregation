@@ -21,6 +21,8 @@ from kt_simul.core import parameters
 from kt_simul.utils.progress import print_progress
 from kt_simul.utils.format import pretty_dict
 
+logger = logging.getLogger(__name__)
+
 __all__ = ["Metaphase", "PARAMFILE", "MEASUREFILE"]
 
 CURRENT_DIR = parameters.CURRENT_DIR
@@ -111,7 +113,7 @@ class Metaphase(object):
 
         # Enable or disable log console
         self.verbose = verbose
-        logger = logging.getLogger()
+        logger = logging.getLogger(__name__)
         if not self.verbose:
             logger.disabled = True
         else:
@@ -129,7 +131,7 @@ class Metaphase(object):
         if reduce_p:
             parameters.reduce_params(self.paramtree, self.measuretree)
 
-        logging.info('Parameters loaded')
+        logger.info('Parameters loaded')
 
         params = self.paramtree.relative_dic
         # Reset explicitely the unit parameters to their
@@ -148,8 +150,8 @@ class Metaphase(object):
         self.delay = -1
         self.observations = {}
 
-        logging.info('Simulation initialized')
-        logging.getLogger().disabled = False
+        logger.info('Simulation initialized')
+        logger.disabled = False
 
     def __str__(self):
         lines = []
@@ -193,7 +195,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         kappa_c = self.KD.params['kappa_c']
 
         if self.verbose:
-            logging.info('Running simulation')
+            logger.info('Running simulation')
         bef = 0
         log_anaphase_onset = False
 
@@ -208,7 +210,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             # Ablation test
             if ablat == time_point:
                 if self.verbose:
-                    logging.info("Performing ablation")
+                    logger.info("Performing ablation")
                 self._ablation(time_point, pos=ablat_pos)
 
             # Anaphase transition ?
@@ -216,7 +218,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
                 if not log_anaphase_onset:
                     print_progress(-1)
                     if self.verbose:
-                        logging.info("Anaphase onset at %i / %i" %
+                        logger.info("Anaphase onset at %i / %i" %
                                         (time_point, self.num_steps))
                     log_anaphase_onset = True
 
@@ -228,7 +230,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
             print_progress(-1)
 
         if self.verbose:
-            logging.info('Simulation done')
+            logger.info('Simulation done')
         self.KD.params['kappa_c'] = kappa_c
         delay_str = "delay = %2d seconds" % self.delay
         self.report.append(delay_str)
@@ -252,34 +254,34 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         kt_simul.analysis.evaluations.__init__
         """
         if not self.KD.simulation_done:
-            logging.info("No simulation was runned")
+            logger.info("No simulation was runned")
             return False
 
         if not name and verbose:
-            logging.info("Starting evaluations")
+            logger.info("Starting evaluations")
         all_evaluations = evaluations.find_evaluations(name=name, groups=groups, run_all=run_all)
 
         if not all_evaluations:
             if verbose:
-                logging.info("No evaluations found")
+                logger.info("No evaluations found")
             return False
 
         for evaluation in all_evaluations:
             if verbose:
-                logging.info("Running %s" % evaluation.name)
+                logger.info("Running %s" % evaluation.name)
             if debug:
                 result = evaluation().run(self.KD, draw)
                 if verbose:
-                    logging.info("%s done" % evaluation.name)
+                    logger.info("%s done" % evaluation.name)
             else:
                 try:
                     result = evaluation().run(self.KD, draw)
                     if verbose:
-                        logging.info("%s done" % evaluation.name)
+                        logger.info("%s done" % evaluation.name)
                 except Exception as e:
                     result = np.nan
                     if verbose:
-                        logging.info("%s returns errors : %s" % (evaluation.name, e))
+                        logger.info("%s returns errors : %s" % (evaluation.name, e))
 
             if name and not run_all:
                 return result
@@ -288,7 +290,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
                 self.observations[current_name] = result
 
         if verbose:
-            logging.info("All evaluations processed")
+            logger.info("All evaluations processed")
 
         return self.observations
 
@@ -372,7 +374,7 @@ instance. Please create another Metaphase instance to launch a new simulation.""
         """
         if pos == None: pos = self.KD.spbR.pos
         if not self.KD.spbL.pos <= pos <= self.KD.spbR.pos:
-            logging.warning('Missed shot, same player play again!')
+            logger.warning('Missed shot, same player play again!')
             return
         self.KD.params['Fmz'] = 0.
         self.KD.params['k_a'] = 0.

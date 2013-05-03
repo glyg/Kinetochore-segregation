@@ -8,6 +8,8 @@ from PySide import QtGui, QtCore
 
 from kt_simul.gui.animation import InteractiveCellWidget
 
+logger = logging.getLogger(__name__)
+
 
 class Animator:
     """
@@ -22,7 +24,7 @@ class Animator:
         """
         """
 
-        logging.info("Playing animation")
+        logger.info("Playing animation")
 
         app = QtGui.QApplication([])
         QtCore.qsrand(QtCore.QTime(0, 0, 0).secsTo(QtCore.QTime.currentTime()))

@@ -15,6 +15,8 @@ MEASUREFILE = os.path.join(ROOT_DIR, 'default', 'measures.xml')
 MEASURETREE = ParamTree(MEASUREFILE, adimentionalized=False)
 MEASURES = MEASURETREE.absolute_dic
 
+logger = logging.getLogger(__name__)
+
 
 def reduce_params(paramtree, measuretree):
     """
@@ -47,9 +49,9 @@ def reduce_params(paramtree, measuretree):
         obs_d0 = measures['obs_d0']
         mean_kt_spb_dist = measures["mean_kt_spb_dist"]
     except KeyError:
-        logging.warning("The measures dictionary should contain"
+        logger.warning("The measures dictionary should contain"
                "at least the following keys: ")
-        logging.warning(MEASURES.keys())
+        logger.warning(MEASURES.keys())
         return False
 
     k_a = params['k_a']  # 'free' attachement event frequency
@@ -71,7 +73,7 @@ def reduce_params(paramtree, measuretree):
     if d_alpha != 0:
         k_d_eff = k_a * d_alpha / (mean_metaph_k_dist / 2)
     else:
-        logging.warning("Things don't go well without Aurora ")
+        logger.warning("Things don't go well without Aurora ")
         k_d_eff = k_d0
 
     # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
@@ -88,7 +90,7 @@ def reduce_params(paramtree, measuretree):
     dt = params['dt']
     params['dt'] = min(tau_c / 4., tau_k / 4., params['dt'])
     if params['dt'] != dt:
-        logging.info('Time step changed')
+        logger.info('Time step changed')
 
     mus = params['mus']
     Fmz = (Fk * N * Mk * alpha_mean * (1 + metaph_rate / (2 * Vk))

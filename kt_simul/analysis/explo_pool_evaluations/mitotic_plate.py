@@ -9,6 +9,8 @@ from kt_simul.draw.plot import dic_plot
 from kt_simul.cluster.process import Process
 from kt_simul.utils.color import color
 
+logger = logging.getLogger(__name__)
+
 
 class MitoticPlate(ExploPoolEvaluation):
     """
@@ -34,10 +36,10 @@ class MitoticPlate(ExploPoolEvaluation):
 
         kt_plate = []
 
-        logging.info("Running processes on each pool")
+        logger.info("Running processes on each pool")
         for i, simudir in enumerate(sorted(pool_folder)):
 
-            logging.info(color("Running processes on pool called: %s" % os.path.split(simudir)[-1], 'BOLD'))
+            logger.info(color("Running processes on pool called: %s" % os.path.split(simudir)[-1], 'BOLD'))
 
             p = Process(results_path=simudir)
             resu = p.evaluate(name="Mitotic Plate", draw=False, verbose=False)
@@ -45,7 +47,7 @@ class MitoticPlate(ExploPoolEvaluation):
             kt_plate.append(resu)
 
         # Configure and plot the graph
-        logging.info("Plotting results")
+        logger.info("Plotting results")
         timelapse = np.arange(0, plog['duration'], plog['dt'])
 
         plot_data = {}

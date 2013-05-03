@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from kt_simul.analysis.pool_evaluations import PoolEvaluation
 from kt_simul.draw.plot import dic_plot
 
+logger = logging.getLogger(__name__)
+
 
 class KtTrajectories(PoolEvaluation):
     """
@@ -47,10 +49,10 @@ class KtTrajectories(PoolEvaluation):
             trajectories['chromosomes'].append(cen_traj)
 
         if verbose:
-            logging.info("Loading data from simulations files")
+            logger.info("Loading data from simulations files")
         for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
                                                         nsimu=nsimu,
-                                                        print_progress=True)):
+                                                        print_progress=verbose)):
             results = meta.evaluate(name="Kinetochores Trajectories", verbose=False)
 
             trajectories['spbR'][i] = results['spbR']
@@ -60,14 +62,14 @@ class KtTrajectories(PoolEvaluation):
                 trajectories["chromosomes"][j][0][i] = ch[0]
                 trajectories["chromosomes"][j][1][i] = ch[1]
 
-        logging.getLogger().disabled = False
+        logger.disabled = False
 
         if not draw:
             return trajectories
 
         # Configure and plot the graph
         if verbose:
-            logging.info("Plotting results")
+            logger.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}

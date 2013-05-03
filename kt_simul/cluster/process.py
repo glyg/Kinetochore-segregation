@@ -5,6 +5,8 @@ import numpy as np
 
 from kt_simul.analysis.pool_evaluations import find_pool_evaluations
 
+logger = logging.getLogger(__name__)
+
 
 class Process:
     """
@@ -27,22 +29,22 @@ class Process:
         """
         """
 
-        logging.info("Starting pool evaluations")
+        logger.info("Starting pool evaluations")
         all_pool_evaluations = find_pool_evaluations(name=name, groups=groups, run_all=run_all)
 
         if not all_pool_evaluations:
-            logging.info("No pool evaluations found")
+            logger.info("No pool evaluations found")
             return False
 
         for pool_evaluation in all_pool_evaluations:
-            logging.info("\tRunning %s" % pool_evaluation.name)
+            logger.info("Running %s" % pool_evaluation.name)
             if debug:
                 result = pool_evaluation().run(self.results_path,
                                                 self.raw_path,
                                                 self.eval_results,
                                                 draw=draw,
                                                 verbose=verbose)
-                logging.info("\t%s done" % pool_evaluation.name)
+                logger.info("%s done" % pool_evaluation.name)
             else:
                 try:
                     result = pool_evaluation().run(self.results_path,
@@ -50,10 +52,10 @@ class Process:
                                                 self.eval_results,
                                                 draw=draw,
                                                 verbose=verbose)
-                    logging.info("\t%s done" % pool_evaluation.name)
+                    logger.info("%s done" % pool_evaluation.name)
                 except Exception as e:
                     result = np.nan
-                    logging.info("%s returns errors : %s" % (pool_evaluation.name, e))
+                    logger.info("%s returns errors : %s" % (pool_evaluation.name, e))
 
             if name and not run_all:
                 return result
@@ -61,7 +63,7 @@ class Process:
                 current_name = pool_evaluation.name
                 self.observations[current_name] = result
 
-        logging.info("All pool evaluations processed")
+        logger.info("All pool evaluations processed")
 
         del result
         return self.observations

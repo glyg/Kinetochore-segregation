@@ -19,6 +19,8 @@ from kt_simul.core import parameters
 from kt_simul.utils.size import get_folder_size
 from kt_simul.io.simuio import SimuIO
 
+logger = logging.getLogger(__name__)
+
 
 class Launcher:
     """
@@ -74,7 +76,7 @@ class Launcher:
 
         # Enable or disable log console
         self.verbose = verbose
-        logger = logging.getLogger()
+        logger = logging.getLogger(__name__)
         if not self.verbose:
             logger.disabled = True
         else:
@@ -138,13 +140,13 @@ class Launcher:
         # Redirect log to run.log
         logfile = os.path.join(self.results_path, "run.log")
         handler = logging.FileHandler(logfile)
-        logging.getLogger().addHandler(handler)
+        logging.getLogger(__name__).addHandler(handler)
 
     def run(self):
         """
         """
 
-        logging.info("Starting %i simulations on %i core" % \
+        logger.info("Starting %i simulations on %i core" % \
             (self.nsimu, self.ncore))
 
         if os.name == 'posix':
@@ -176,8 +178,8 @@ class Launcher:
         p.close()
 
         results_size = get_folder_size(self.results_path)
-        logging.info("Simulations are done")
-        logging.info("Results are stored in %s (%s MB)" % (self.results_path, results_size))
+        logger.info("Simulations are done")
+        logger.info("Results are stored in %s (%s MB)" % (self.results_path, results_size))
 
         self.create_log()
 
@@ -201,7 +203,7 @@ class Launcher:
             output = "Progression : %0.2f%% | " % progress
             output += "ETA : %s | " % time_remaining
             output += "Spent time : %s" % spent_time
-            logging.info(output)
+            logger.info(output)
             self.last_progress = progress
 
     def estimate_remaining_time(self, simu_left):

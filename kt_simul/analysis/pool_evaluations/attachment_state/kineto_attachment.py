@@ -5,6 +5,8 @@ import logging
 from kt_simul.analysis.pool_evaluations import PoolEvaluation
 from kt_simul.draw.plot import dic_plot
 
+logger = logging.getLogger(__name__)
+
 
 class KinetoAttachment(PoolEvaluation):
     """
@@ -42,20 +44,20 @@ class KinetoAttachment(PoolEvaluation):
                        }
 
         if verbose:
-            logging.info("Loading data from simulations files")
+            logger.info("Loading data from simulations files")
         for i, (simu_id, meta) in enumerate(self.iter_simulations(raw_path,
                                                         nsimu=nsimu,
-                                                        print_progress=True)):
+                                                        print_progress=verbose)):
             results = meta.evaluate(name="Kineto Attachment", verbose=False)
 
             attach_state['correct_attached'][i] = results['correct_attached']
             attach_state['incorrect_attached'][i] = results['incorrect_attached']
             attach_state['unattached'][i] = results['unattached']
 
-        logging.getLogger().disabled = False
+        logger.disabled = False
 
         # Mean data
-        logging.info("Processing data")
+        logger.info("Processing data")
         correct_attached = attach_state['correct_attached'].mean(axis=0)
         correct_attached_std = attach_state['correct_attached'].std(axis=0)
         incorrect_attached = attach_state['incorrect_attached'].mean(axis=0)
@@ -68,7 +70,7 @@ class KinetoAttachment(PoolEvaluation):
 
         # Configure and plot the graph
         if verbose:
-            logging.info("Plotting results")
+            logger.info("Plotting results")
         timelapse = meta_infos.timelapse
 
         plot_data = {}

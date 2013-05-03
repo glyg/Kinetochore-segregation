@@ -22,8 +22,7 @@ from kt_simul.utils.color import color
 
 logformat = color('%(asctime)s', 'BLUE') + ':'
 logformat += color('%(levelname)s', 'RED') + ':'
-logformat += color('%(filename)s', 'YELLOW') + ':'
-logformat += color('%(funcName)s', 'GREEN') + ': '
+logformat += color('%(name)s', 'YELLOW') + ':'
 logformat += color('%(message)s', 'ENDC')
 logging.basicConfig(level=logging.DEBUG,
                     format=logformat,

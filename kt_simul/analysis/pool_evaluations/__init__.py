@@ -19,6 +19,8 @@ from kt_simul.core.simul_spindle import Metaphase
 
 EVAL_PATH = os.path.abspath(os.path.dirname(__file__))
 
+logger = logging.getLogger(__name__)
+
 
 def find_pool_evaluations(name = None, groups=[], run_all = False):
     """
@@ -160,7 +162,7 @@ class PoolEvaluation(object):
 
 
 
-    def iter_simulations(self, path, nsimu=-1, print_progress=False):
+    def iter_simulations(self, path, nsimu=-1, print_progress=True):
         """
         Iterator on zip file which contain simulationr results.
 
@@ -176,7 +178,7 @@ class PoolEvaluation(object):
             try:
                 simu_id = int(re.search('simu\_(.*)\.zip', simu).group(1))
             except:
-                logging.info("Filename %s is not well formated" % simu)
+                logger.info("Filename %s is not well formated" % simu)
                 break
 
             # Create Metpahase object
@@ -187,7 +189,7 @@ class PoolEvaluation(object):
                 if print_progress:
                     progress = "%0.0f" % ((i * 100.) / nsimu)
                     if last != progress:
-                        logging.info("Progression: %s%%" % progress)
+                        logger.info("Progression: %s%%" % progress)
                         last = progress
                     i += 1
 

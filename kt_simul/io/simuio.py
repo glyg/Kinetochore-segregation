@@ -15,6 +15,8 @@ from kt_simul.core.spindle_dynamics import KinetoDynamics
 from kt_simul.core.simul_spindle import Metaphase
 from kt_simul.io.xml_handler import ParamTree, indent, ResultTree
 
+logger = logging.getLogger(__name__)
+
 
 class SimuIO():
     """
@@ -170,7 +172,7 @@ class SimuIO():
         datafile.close()
 
         if verbose:
-            logging.info("Simulation saved to file %s " % simufname)
+            logger.info("Simulation saved to file %s " % simufname)
 
     def read(self, simufname="results.zip", verbose=False):
         """
@@ -191,12 +193,12 @@ class SimuIO():
         try:
             zipf = zipfile.ZipFile(simufname, "r")
         except:
-            logging.info("%s does not appear to be a Zipfile" % simufname)
+            logger.info("%s does not appear to be a Zipfile" % simufname)
             return False
 
         # Test if simu results file are in the archive
         if "results.xml" not in zipf.namelist() or "data.npy" not in zipf.namelist():
-            logging.info("%s does not contain results.xml and data.npy" % simufname)
+            logger.info("%s does not contain results.xml and data.npy" % simufname)
             return False
 
         xmltemp = StringIO.StringIO(zipf.read("results.xml"))
