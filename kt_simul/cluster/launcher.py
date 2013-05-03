@@ -147,6 +147,9 @@ class Launcher:
         logging.info("Starting %i simulations on %i core" % \
             (self.nsimu, self.ncore))
 
+        if os.name == 'posix':
+            os.system("taskset -p 0xff %d" % os.getpid())
+
         params = [self.paramtree, self.measuretree, self.verbose]
         all_params = []
         for i in range(self.nsimu):
