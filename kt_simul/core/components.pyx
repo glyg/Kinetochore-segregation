@@ -7,13 +7,13 @@ cimport numpy as np
 cimport cython
 from cpython cimport bool
 
-__all__ = [ "Spb", "Chromosome",
+__all__ = ["Spb", "Chromosome",
            "Centromere", "PlugSite", "Spindle"]
 
-cdef class Spindle(object) :
+cdef class Spindle(object):
     def __init__(self, KD):
         self.KD = KD
-        self.all_plugsites=[]
+        self.all_plugsites = []
 
     def get_all_plugsites(self):
         plugsites = []

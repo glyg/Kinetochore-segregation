@@ -31,7 +31,7 @@ b = 1
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
-cdef class KinetoDynamics(object) :
+cdef class KinetoDynamics(object):
     """
     This class wraps all the simulation internals.
     """

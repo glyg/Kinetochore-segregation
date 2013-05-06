@@ -30,7 +30,6 @@ def reduce_params(paramtree, measuretree):
 
     paramtree is modified in place
 
-
     .. [1] G. Gay, T.Courthéoux, C. Reyes, S. Tournier, Y. Gachet.
            J. Cell Biol 2012 http://dx.doi.org/10.1083/jcb.201107124
 
@@ -50,7 +49,7 @@ def reduce_params(paramtree, measuretree):
         mean_kt_spb_dist = measures["mean_kt_spb_dist"]
     except KeyError:
         logger.warning("The measures dictionary should contain"
-               "at least the following keys: ")
+                       "at least the following keys: ")
         logger.warning(MEASURES.keys())
         return False
 
@@ -78,7 +77,7 @@ def reduce_params(paramtree, measuretree):
 
     # alpha_mean = float(mean_attachment(k_a/fd_eff) / Mk)
     alpha_mean = 1 / (1 + k_d_eff / k_a)
-    #Take metaphase kt pair distance as the maximum one
+    # Take metaphase kt pair distance as the maximum one
     # TODO : kc = Fk * Mt * alpha_mean / (max_metaph_k_dist - d0)
     kappa_c = Fk * Mk / (max_metaph_k_dist - d0)
     params['kappa_c'] = kappa_c
@@ -94,7 +93,7 @@ def reduce_params(paramtree, measuretree):
 
     mus = params['mus']
     Fmz = (Fk * N * Mk * alpha_mean * (1 + metaph_rate / (2 * Vk))
-             + mus * metaph_rate / 2.) / (1 - metaph_rate / Vmz)
+           + mus * metaph_rate / 2.) / (1 - metaph_rate / Vmz)
     params['Fmz'] = Fmz
     muc = (tau_c * kappa_c)
     params['muc'] = muc
@@ -102,4 +101,3 @@ def reduce_params(paramtree, measuretree):
     params['muk'] = muk
     for key, val in params.items():
         paramtree.change_dic(key, val, verbose=False)
-
