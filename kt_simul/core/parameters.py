@@ -79,11 +79,11 @@ def reduce_params(paramtree, measuretree):
     alpha_mean = 1 / (1 + k_d_eff / k_a)
     # Take metaphase kt pair distance as the maximum one
     # TODO : kc = Fk * Mt * alpha_mean / (max_metaph_k_dist - d0)
-    kappa_c = Fk * Mk / (max_metaph_k_dist - d0)
+    kappa_c = Fk * Mk * 2 / (max_metaph_k_dist - d0)
     params['kappa_c'] = kappa_c
 
     #kop = alpha_mean * ( 1 + metaph_rate/2 ) / ( outer_inner_dist )
-    kappa_k = Fk * Mk / (2 * outer_inner_dist)
+    kappa_k = Fk * Mk * 2 / (2 * outer_inner_dist)
     params['kappa_k'] = kappa_k
     #Ensure we have sufficientely small time steps
     dt = params['dt']
