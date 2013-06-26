@@ -18,6 +18,7 @@ from kt_simul.core.simul_spindle import Metaphase, PARAMFILE, MEASUREFILE
 from kt_simul.core import parameters
 from kt_simul.utils.size import get_folder_size
 from kt_simul.io.simuio import SimuIO
+from ..utils.ipython import in_ipython
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +150,12 @@ class Launcher:
         logger.info("Starting %i simulations on %i core" % \
             (self.nsimu, self.ncore))
 
-        if os.name == 'posix':
+        if in_ipython():
+            parallel = False
+        else:
+            parallel = True
+
+        if parallel and os.name == 'posix':
             os.system("taskset -p 0xff %d" % os.getpid())
 
         params = [self.paramtree, self.measuretree, self.verbose]
@@ -251,7 +257,8 @@ def _run_one(simu_id, result_path, paramtree, measuretree, verbose):
     queue.put({"id": simu_id, "state": "start"})
     meta = Metaphase(verbose=False,
                      paramtree=paramtree,
-                     measuretree=measuretree)
+                     measuretree=measuretree,
+                     reduce_p=True)
     meta.simul()
     meta.evaluate()
 

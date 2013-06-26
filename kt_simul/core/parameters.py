@@ -87,9 +87,9 @@ def reduce_params(paramtree, measuretree):
     params['kappa_k'] = kappa_k
     #Ensure we have sufficientely small time steps
     dt = params['dt']
-    params['dt'] = min(tau_c / 4., tau_k / 4., params['dt'])
-    if params['dt'] != dt:
-        logger.info('Time step changed')
+    # params['dt'] = min(tau_c / 4., tau_k / 4., params['dt'])
+    # if params['dt'] != dt:
+    #     logger.info('Time step changed')
 
     mus = params['mus']
     Fmz = (Fk * N * Mk * alpha_mean * (1 + metaph_rate / (2 * Vk))
